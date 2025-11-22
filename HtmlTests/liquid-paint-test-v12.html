@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile-First Universal Puck v12</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Background Layer - Coupon */
+        #backgroundCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        /* Main Image Layer - CSS Demo instead of Canvas */
+        .demo-image {
+            position: absolute;
+            width: 700px;
+            height: 700px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            background: radial-gradient(circle at center,
+                #fe0048 0%,
+                #fe802d 25%,
+                #fbbf24 50%,
+                #a855f7 75%,
+                #3b82f6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(254, 0, 72, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .demo-image h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .demo-image p {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Particle Canvas Layer */
+        #fluidCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background: transparent;
+            pointer-events: none;
+        }
+
+        /* Universal Puck - Simplified */
+        .universal-puck {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%,
+                rgba(255, 255, 255, 0.9),
+                rgba(255, 255, 255, 0.6),
+                rgba(255, 255, 255, 0.2));
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
+                        0 0 40px rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+            display: block;
+            left: 50%;
+            top: 50%;
+        }
+
+        .universal-puck.dragging {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.8),
+                        0 0 60px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Instructions - Mobile Optimized */
+        .puck-instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 20px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 50;
+            max-width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .puck-instructions h4 {
+            margin-bottom: 8px;
+            font-size: 1rem;
+            opacity: 1;
+        }
+
+        .puck-instructions p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        /* Stats Display - Simplified */
+        .stats {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats div {
+            margin: 3px 0;
+            opacity: 0.9;
+        }
+
+        /* Controls - Mobile Friendly */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .controls h3 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 1;
+        }
+
+        .control-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .demo-image {
+                width: 90vw;
+                height: 90vw;
+                max-width: 500px;
+                max-height: 500px;
+            }
+
+            .demo-image h1 {
+                font-size: 3rem;
+            }
+
+            .demo-image p {
+                font-size: 1.2rem;
+            }
+
+            .universal-puck {
+                width: 50px;
+                height: 50px;
+                border-width: 2px;
+            }
+
+            .puck-instructions {
+                top: 10px;
+                padding: 10px 15px;
+            }
+
+            .stats {
+                top: 10px;
+                right: 10px;
+                padding: 8px;
+                font-size: 0.7rem;
+            }
+
+            .controls {
+                bottom: 10px;
+                right: 10px;
+                padding: 10px;
+            }
+
+            .control-btn {
+                padding: 10px 12px;
+                margin: 6px 0;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Universal Puck -->
+    <div class="universal-puck" id="universalPuck"></div>
+
+    <!-- Puck Instructions -->
+    <div class="puck-instructions" id="puckInstructions">
+        <h4>🎮 Universal Puck v12</h4>
+        <p>Touch and drag anywhere to move the puck!</p>
+    </div>
+
+    <!-- Stats Display -->
+    <div class="stats">
+        <div>FPS: <span id="fps">60</span></div>
+        <div>Particles: <span id="particleCount">0</span></div>
+        <div>Puck Vel: <span id="puckVel">0</span></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Background Canvas (Coupon Layer) -->
+        <canvas id="backgroundCanvas"></canvas>
+
+        <!-- Demo Image Layer (CSS instead of Canvas) -->
+        <div class="demo-image">
+            <h1>UNIVERSAL</h1>
+            <p>Puck System v12</p>
+        </div>
+
+        <!-- Particle Canvas Layer -->
+        <canvas id="fluidCanvas"></canvas>
+    </section>
+
+    <!-- Controls -->
+    <div class="controls">
+        <h3>Puck Controls</h3>
+        <button class="control-btn" onclick="adjustInfluence(10)">More Influence</button>
+        <button class="control-btn" onclick="adjustInfluence(-10)">Less Influence</button>
+        <button class="control-btn" onclick="toggleTrails()">Toggle Trails</button>
+        <button class="control-btn active" onclick="resetSimulation()">Reset Particles</button>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('fluidCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('backgroundCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const universalPuck = document.getElementById('universalPuck');
+
+        // Universal puck variables
+        let puckActive = false;
+        let puckX = window.innerWidth / 2;
+        let puckY = window.innerHeight / 2;
+        let prevPuckX = puckX;
+        let prevPuckY = puckY;
+        let puckVelX = 0;
+        let puckVelY = 0;
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            drawCouponBackground();
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Draw coupon background
+        function drawCouponBackground() {
+            bgCtx.fillStyle = '#0a0a0a';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            bgCtx.fillStyle = '#fe0048';
+            bgCtx.font = 'bold 56px Arial';
+            bgCtx.textAlign = 'center';
+            bgCtx.textBaseline = 'middle';
+
+            bgCtx.fillText('Coupon Code', bgCanvas.width / 2, bgCanvas.height / 2 - 60);
+            bgCtx.fillText('BlackFriday21', bgCanvas.width / 2, bgCanvas.height / 2);
+            bgCtx.fillText('Save 30%', bgCanvas.width / 2, bgCanvas.height / 2 + 60);
+        }
+
+        // Simplified particle system
+        let particles = [];
+        let influenceRadius = 120;
+        let trailsEnabled = false;
+
+        // Simple particle class
+        class SimpleParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = 2 + Math.random() * 3;
+                this.color = `hsl(${Math.random() * 60 + 10}, 70%, 60%)`;
+                this.mass = 1 + Math.random() * 0.5;
+            }
+
+            update() {
+                const dx = this.x - puckX;
+                const dy = this.y - puckY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+
+                    const tangentX = -Math.sin(angle);
+                    const tangentY = Math.cos(angle);
+
+                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+
+                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+                }
+
+                const springForce = 0.02;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+
+                const damping = 0.92;
+                this.vx *= damping;
+                this.vy *= damping;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < this.radius || this.x > canvas.width - this.radius) {
+                    this.vx *= -0.7;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+                if (this.y < this.radius || this.y > canvas.height - this.radius) {
+                    this.vy *= -0.7;
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                }
+            }
+
+            draw() {
+                const velocityMagnitude = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                const alpha = Math.min(0.8, 0.4 + velocityMagnitude * 0.02);
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color.replace('60%)', `60%, ${alpha})`);
+                ctx.fill();
+
+                if (velocityMagnitude > 2) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color.replace('60%)', `60%, ${alpha * 0.3})`);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Initialize simple particle grid
+        function initParticles() {
+            particles = [];
+            const spacing = 25;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const gridSize = 400;
+
+            for (let x = centerX - gridSize/2; x < centerX + gridSize/2; x += spacing) {
+                for (let y = centerY - gridSize/2; y < centerY + gridSize/2; y += spacing) {
+                    particles.push(new SimpleParticle(x, y));
+                }
+            }
+
+            document.getElementById('particleCount').textContent = particles.length;
+        }
+
+        // SUPER SIMPLIFIED TOUCH HANDLING for maximum mobile compatibility
+        function getTouchPos(touchEvent) {
+            if (!touchEvent || !touchEvent.touches || touchEvent.touches.length === 0) {
+                return null;
+            }
+            const touch = touchEvent.touches[0];
+            return {
+                x: touch.clientX || touch.pageX || 0,
+                y: touch.clientY || touch.pageY || 0
+            };
+        }
+
+        function getMousePos(mouseEvent) {
+            return {
+                x: mouseEvent.clientX || mouseEvent.pageX || 0,
+                y: mouseEvent.clientY || mouseEvent.pageY || 0
+            };
+        }
+
+        function startDrag(e) {
+            console.log('Start drag event type:', e.type);
+
+            // Hide instructions
+            const instructions = document.getElementById('puckInstructions');
+            if (instructions) {
+                instructions.style.display = 'none';
+            }
+
+            // Get position based on event type
+            let pos = null;
+            if (e.type === 'touchstart') {
+                pos = getTouchPos(e);
+                if (!pos) {
+                    console.error('Could not get touch position');
+                    return;
+                }
+            } else {
+                pos = getMousePos(e);
+            }
+
+            console.log('Position:', pos);
+
+            puckActive = true;
+            puckX = pos.x;
+            puckY = pos.y;
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+
+            universalPuck.classList.add('dragging');
+            updatePuckPosition();
+
+            console.log('Drag started successfully at:', puckX, puckY);
+        }
+
+        function drag(e) {
+            if (!puckActive) return;
+
+            // Get position based on event type
+            let pos = null;
+            if (e.type === 'touchmove') {
+                pos = getTouchPos(e);
+                if (!pos) return;
+            } else {
+                pos = getMousePos(e);
+            }
+
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+            puckX = pos.x;
+            puckY = pos.y;
+
+            puckVelX = puckX - prevPuckX;
+            puckVelY = puckY - prevPuckY;
+
+            updatePuckPosition();
+            updateVelocityDisplay();
+        }
+
+        function endDrag(e) {
+            console.log('End drag event type:', e.type);
+            if (!puckActive) return;
+
+            puckActive = false;
+            puckVelX = 0;
+            puckVelY = 0;
+            universalPuck.classList.remove('dragging');
+            console.log('Drag ended');
+        }
+
+        function updatePuckPosition() {
+            universalPuck.style.left = puckX + 'px';
+            universalPuck.style.top = puckY + 'px';
+        }
+
+        function updateVelocityDisplay() {
+            const velocity = Math.sqrt(puckVelX * puckVelX + puckVelY * puckVelY);
+            const velDisplay = document.getElementById('puckVel');
+            if (velDisplay) {
+                velDisplay.textContent = velocity.toFixed(1);
+            }
+        }
+
+        // Mobile-first event listeners with multiple fallback approaches
+        console.log('Setting up event listeners...');
+
+        // TOUCH EVENTS - Primary for mobile
+        document.addEventListener('touchstart', function(e) {
+            console.log('Touch start detected');
+            startDrag(e);
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function(e) {
+            if (puckActive) {
+                console.log('Touch move detected');
+                drag(e);
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', function(e) {
+            console.log('Touch end detected');
+            endDrag(e);
+        });
+
+        document.addEventListener('touchcancel', function(e) {
+            console.log('Touch cancel detected');
+            endDrag(e);
+        });
+
+        // MOUSE EVENTS - Fallback for desktop/testing
+        document.addEventListener('mousedown', function(e) {
+            console.log('Mouse down detected');
+            startDrag(e);
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (puckActive) {
+                drag(e);
+            }
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            console.log('Mouse up detected');
+            endDrag(e);
+        });
+
+        // FALLBACK: Click events as last resort
+        document.addEventListener('click', function(e) {
+            console.log('Click detected as fallback');
+            puckX = e.clientX || 0;
+            puckY = e.clientY || 0;
+            updatePuckPosition();
+        });
+
+        console.log('All event listeners set up');
+
+        // Animation loop
+        let frameCount = 0;
+        let fps = 60;
+        let lastTime = performance.now();
+
+        function animate() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                document.getElementById('fps').textContent = fps;
+            }
+
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Control functions
+        function adjustInfluence(delta) {
+            influenceRadius = Math.max(50, Math.min(200, influenceRadius + delta));
+            console.log('Influence radius:', influenceRadius);
+        }
+
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+            event.target.classList.toggle('active');
+            console.log('Trails:', trailsEnabled);
+        }
+
+        function resetSimulation() {
+            initParticles();
+            console.log('Particles reset');
+        }
+
+        // Initialize
+        console.log('Starting v12 initialization...');
+        drawCouponBackground();
+        initParticles();
+        updatePuckPosition();
+        animate();
+
+        console.log('Universal Puck v12 loaded successfully!');
+        console.log('- CSS-based demo image (no canvas issues)');
+        console.log('- Simplified particle system');
+        console.log('- Improved touch handling');
+    </script>
+</body>
+</html>

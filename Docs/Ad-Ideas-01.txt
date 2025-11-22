@@ -1,0 +1,26 @@
+Hi, it's Clyde here, your vibe coding guru. One shot coding is AWESOME! Just tell AI what you want, boom, millionaire app in 10 minutes. It works everytime... except for when it doesn't. And then you spend days debugging and cursing at AI... lots of cursing. Use DebugLayer. DebugLayer is like window sensors for your code. We detect breaks. But we can't see inside. Less cursing. More gaming - and code that actually works. 
+
+Vibe Coding is fun, creative, and cool.
+But then AI proclaims it is working and it doesn't.
+We tell AI what to fix.
+
+
+===
+
+Side view Kara climbing sand mountain.
+3/4 way to top, she slides back down.
+(Text appears in sand "Vibe Coding")
+She climbs again, gets a little higher
+slides down again
+(Added text: Context full... /compact)
+She climbs again, gets to top
+(Sign at top: "AI: Code Working"
+She presses "start" button in sand
+(Text in sand "FAILURE") She slides to bottom
+Metal Step "DebugLayer" appears as 1st step in sand
+Kara steps up. Every step she takes a metal step appears under her feet.
+REaches top, presses "Start", sand slides off rocketship
+rocketship blasts off with DebugLayer written on side
+https://www.youtube.com/watch?v=keT_ywKa_lM
+
+

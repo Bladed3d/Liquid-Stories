@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable Fluid Dynamics - Advanced Color Picker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Fluid Canvas */
+        #fluidCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        /* Content Overlay */
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 600px;
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 8vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: white;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Color Picker Modal */
+        .color-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-modal.active {
+            display: flex;
+        }
+
+        .color-picker-container {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .color-header h3 {
+            font-size: 1.5rem;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 0, 72, 0.2);
+            border-color: #fe0048;
+            transform: rotate(90deg);
+        }
+
+        .color-modes {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        .color-section {
+            margin-bottom: 2rem;
+        }
+
+        .color-section h4 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* CSS-based Spectrum Color Picker */
+        .color-picker-wrapper {
+            margin-bottom: 1rem;
+        }
+
+        .spectrum-gradient {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            cursor: crosshair;
+            margin-bottom: 1rem;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right,
+                hsl(0, 100%, 50%),
+                hsl(60, 100%, 50%),
+                hsl(120, 100%, 50%),
+                hsl(180, 100%, 50%),
+                hsl(240, 100%, 50%),
+                hsl(300, 100%, 50%),
+                hsl(360, 100%, 50%)
+            );
+            background-size: 100% 100%;
+        }
+
+        .spectrum-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom,
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(255, 255, 255, 0) 50%,
+                rgba(0, 0, 0, 0) 50%,
+                rgba(0, 0, 0, 0.8) 100%
+            );
+            border-radius: 12px;
+            pointer-events: none; /* Allow clicks to pass through */
+        }
+
+        .color-slider {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid white;
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transform: translate(-50%, -50%);
+            top: 50%;
+            left: 50%;
+        }
+
+        .color-input {
+            width: 60px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .color-preview {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .color-box {
+            flex: 1;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-box::after {
+            content: attr(data-color);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.25rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+            text-align: center;
+        }
+
+        .quick-colors {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .quick-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .quick-color:hover {
+            transform: scale(1.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .quick-color.selected {
+            border-color: white;
+        }
+
+        .quick-color.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .properties-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .property-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .property-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .property-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .property-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(254, 0, 72, 0.4);
+        }
+
+        .property-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 10px rgba(254, 0, 72, 0.4);
+        }
+
+        .apply-section {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .apply-btn, .cancel-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .apply-btn {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            color: white;
+        }
+
+        .apply-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(254, 0, 72, 0.4);
+        }
+
+        .cancel-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cancel-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .controls h3 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .control-btn {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        /* Stats Display */
+        .stats {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+            opacity: 0.9;
+        }
+
+        /* Custom Cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1001;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+            mix-blend-mode: difference;
+        }
+
+        .custom-cursor.large {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .color-picker-container {
+                padding: 1.5rem;
+                width: 95%;
+            }
+
+            .apply-section {
+                flex-direction: column;
+            }
+
+            .controls {
+                bottom: 1rem;
+                right: 1rem;
+            }
+
+            .stats {
+                top: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Color Picker Modal -->
+    <div class="color-modal" id="colorModal">
+        <div class="color-picker-container">
+            <div class="color-header">
+                <h3>🎨 Fluid Color Designer</h3>
+                <button class="close-btn" onclick="closeColorPicker()">×</button>
+            </div>
+
+            <div class="color-modes">
+                <button class="mode-btn active" onclick="setColorMode('two-color')">Two Colors</button>
+                <button class="mode-btn" onclick="setColorMode('single')">Single Color</button>
+                <button class="mode-btn" onclick="setColorMode('gradient')">Gradient Mix</button>
+            </div>
+
+            <div class="color-section" id="color1Section">
+                <h4>🫧 Primary Color</h4>
+                <div class="color-picker-wrapper">
+                    <div class="spectrum-gradient" id="spectrum1" data-color-id="1">
+                        <div class="color-slider" id="slider1"></div>
+                    </div>
+                    <div class="color-preview">
+                        <div class="color-box" id="preview1" data-color="#3B82F6"></div>
+                        <input type="color" id="colorInput1" class="color-input" value="#3B82F6">
+                    </div>
+                </div>
+                <div class="quick-colors" id="quickColors1">
+                    <!-- Quick colors added by JS -->
+                </div>
+            </div>
+
+            <div class="color-section" id="color2Section">
+                <h4>💧 Secondary Color</h4>
+                <div class="color-picker-wrapper">
+                    <div class="spectrum-gradient" id="spectrum2" data-color-id="2">
+                        <div class="color-slider" id="slider2"></div>
+                    </div>
+                    <div class="color-preview">
+                        <div class="color-box" id="preview2" data-color="#F97316"></div>
+                        <input type="color" id="colorInput2" class="color-input" value="#F97316">
+                    </div>
+                </div>
+                <div class="quick-colors" id="quickColors2">
+                    <!-- Quick colors added by JS -->
+                </div>
+            </div>
+
+            <div class="properties-section">
+                <h4>⚙️ Fluid Properties</h4>
+                <div class="property-group">
+                    <div class="property-label">
+                        <span>Saturation</span>
+                        <span id="satValue">70%</span>
+                    </div>
+                    <input type="range" id="saturation" class="property-slider" min="0" max="100" value="70">
+                </div>
+                <div class="property-group">
+                    <div class="property-label">
+                        <span>Lightness</span>
+                        <span id="lightValue">50%</span>
+                    </div>
+                    <input type="range" id="lightness" class="property-slider" min="20" max="80" value="50">
+                </div>
+            </div>
+
+            <div class="apply-section">
+                <button class="cancel-btn" onclick="closeColorPicker()">Cancel</button>
+                <button class="apply-btn" onclick="applyColors()">Apply Colors</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Display -->
+    <div class="stats">
+        <div>FPS: <span id="fps">60</span></div>
+        <div>Particles: <span id="particleCount">0</span></div>
+        <div>Mouse Vel: <span id="mouseVel">0</span></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Fluid Canvas -->
+        <canvas id="fluidCanvas"></canvas>
+
+        <!-- Hero Content -->
+        <div class="hero-content">
+            <h1>Advanced Fluid Dynamics</h1>
+            <p>Full-spectrum color control! Choose any colors imaginable and watch them dance and swirl like liquid art.</p>
+        </div>
+    </section>
+
+    <!-- Controls -->
+    <div class="controls">
+        <h3>Fluid Controls</h3>
+        <button class="control-btn" onclick="openColorPicker()">🎨 Pick Colors</button>
+        <button class="control-btn" onclick="adjustInfluence(10)">More Influence</button>
+        <button class="control-btn" onclick="adjustInfluence(-10)">Less Influence</button>
+        <button class="control-btn" onclick="toggleTrails()">Toggle Trails</button>
+        <button class="control-btn" onclick="resetSimulation()">Reset Fluid</button>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <script>
+        // Color management
+        let colorMode = 'two-color';
+        let customColors = {
+            color1: '#3B82F6',
+            color2: '#F97316',
+            saturation: 70,
+            lightness: 50
+        };
+
+        // Quick color presets
+        const quickColorPresets = [
+            '#3B82F6', '#F97316', '#EF4444', '#10B981',
+            '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B',
+            '#6366F1', '#84CC16', '#F43F5E', '#06B6D4',
+            '#A855F7', '#22D3EE', '#F97316', '#34D399'
+        ];
+
+        // Simple CSS-based color picker
+        function initColorPickers() {
+            // Set up event listeners for the spectrum gradients
+            setupColorPicker('spectrum1', 'preview1', 'colorInput1', 1);
+            setupColorPicker('spectrum2', 'preview2', 'colorInput2', 2);
+
+            // Set up native color inputs
+            document.getElementById('colorInput1').addEventListener('change', (e) => {
+                updateColorFromInput(1, e.target.value);
+            });
+
+            document.getElementById('colorInput2').addEventListener('change', (e) => {
+                updateColorFromInput(2, e.target.value);
+            });
+
+            // Create quick color buttons
+            createQuickColorButtons();
+        }
+
+        function setupColorPicker(spectrumId, previewId, inputId, colorIndex) {
+            const spectrum = document.getElementById(spectrumId);
+            const slider = document.getElementById('slider' + colorIndex);
+
+            spectrum.addEventListener('click', (e) => {
+                const rect = spectrum.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+
+                // Update slider position
+                slider.style.left = (x * 100) + '%';
+                slider.style.top = (y * 100) + '%';
+
+                // Get color from position
+                const color = getColorFromPosition(x, y);
+                updateColorFromPicker(colorIndex, color);
+            });
+
+            // Touch support
+            spectrum.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const rect = spectrum.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = (touch.clientX - rect.left) / rect.width;
+                const y = (touch.clientY - rect.top) / rect.height;
+
+                // Update slider position
+                slider.style.left = (x * 100) + '%';
+                slider.style.top = (y * 100) + '%';
+
+                // Get color from position
+                const color = getColorFromPosition(x, y);
+                updateColorFromPicker(colorIndex, color);
+            });
+        }
+
+        function getColorFromPosition(x, y) {
+            // Calculate HSL from position
+            const hue = x * 360;
+            const lightness = 100 - (y * 80); // 100% to 20%
+            const saturation = 100;
+
+            console.log(`Getting color from position: x=${x}, y=${y}, hue=${hue}, lightness=${lightness}`);
+
+            // Convert HSL to RGB to Hex
+            const color = hslToHex(hue, saturation, lightness);
+            console.log('Generated color:', color);
+            return color;
+        }
+
+        function updateColorFromPicker(colorIndex, color) {
+            console.log(`Updating color for index ${colorIndex} with color ${color}`);
+
+            const previewId = colorIndex === 1 ? 'preview1' : 'preview2';
+            const inputId = colorIndex === 1 ? 'colorInput1' : 'colorInput2';
+            const sliderId = 'slider' + colorIndex;
+
+            const preview = document.getElementById(previewId);
+            const input = document.getElementById(inputId);
+            const slider = document.getElementById(sliderId);
+
+            console.log(`Found elements: preview=${preview}, input=${input}, slider=${slider}`);
+
+            if (preview) {
+                preview.style.backgroundColor = color;
+                preview.setAttribute('data-color', color);
+                console.log(`Updated preview background to ${color}`);
+            }
+
+            if (input) {
+                input.value = color;
+                console.log(`Updated input value to ${color}`);
+            }
+
+            if (colorIndex === 1) {
+                customColors.color1 = color;
+                console.log(`Updated customColors.color1 to ${color}`);
+            } else {
+                customColors.color2 = color;
+                console.log(`Updated customColors.color2 to ${color}`);
+            }
+
+            updateQuickColorSelection(colorIndex, color);
+            console.log(`Color update complete for index ${colorIndex}`);
+        }
+
+        function updateColorFromInput(colorIndex, color) {
+            updateColorFromPicker(colorIndex, color);
+        }
+
+        function updateQuickColorSelection(colorIndex, color) {
+            const quickColorsId = colorIndex === 1 ? 'quickColors1' : 'quickColors2';
+            const quickColors = document.getElementById(quickColorsId);
+
+            Array.from(quickColors.children).forEach(btn => {
+                btn.classList.toggle('selected',
+                    btn.style.backgroundColor.toUpperCase() === color.toUpperCase());
+            });
+        }
+
+        function createQuickColorButtons() {
+            const quickColors1 = document.getElementById('quickColors1');
+            const quickColors2 = document.getElementById('quickColors2');
+
+            quickColorPresets.forEach(color => {
+                const btn1 = document.createElement('div');
+                btn1.className = 'quick-color';
+                btn1.style.backgroundColor = color;
+                btn1.onclick = () => setQuickColor(1, color);
+                quickColors1.appendChild(btn1);
+
+                const btn2 = document.createElement('div');
+                btn2.className = 'quick-color';
+                btn2.style.backgroundColor = color;
+                btn2.onclick = () => setQuickColor(2, color);
+                quickColors2.appendChild(btn2);
+            });
+        }
+
+        function setQuickColor(colorIndex, color) {
+            if (colorIndex === 1) {
+                customColors.color1 = color;
+                const preview = document.getElementById('preview1');
+                preview.style.backgroundColor = color;
+                preview.setAttribute('data-color', color);
+                spectrumPicker1.currentColor = color;
+                spectrumPicker1.updateQuickColorSelection();
+            } else {
+                customColors.color2 = color;
+                const preview = document.getElementById('preview2');
+                preview.style.backgroundColor = color;
+                preview.setAttribute('data-color', color);
+                spectrumPicker2.currentColor = color;
+                spectrumPicker2.updateQuickColorSelection();
+            }
+        }
+
+        function openColorPicker() {
+            document.getElementById('colorModal').classList.add('active');
+        }
+
+        function closeColorPicker() {
+            document.getElementById('colorModal').classList.remove('active');
+        }
+
+        function setColorMode(mode) {
+            colorMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Show/hide second color section
+            document.getElementById('color2Section').style.display =
+                mode === 'single' ? 'none' : 'block';
+        }
+
+        function applyColors() {
+            particles.forEach(particle => particle.updateColor());
+            closeColorPicker();
+
+            // Visual feedback
+            console.log('Colors applied:', customColors);
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function hexToHsl(hex) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return { h: 0, s: 70, l: 50 };
+
+            const r = rgb.r / 255;
+            const g = rgb.g / 255;
+            const b = rgb.b / 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        // Canvas setup
+        const canvas = document.getElementById('fluidCanvas');
+        const ctx = canvas.getContext('2d');
+        const cursor = document.getElementById('customCursor');
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Fluid simulation variables
+        let particles = [];
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+        let prevMouseX = mouseX;
+        let prevMouseY = mouseY;
+        let mouseVelX = 0;
+        let mouseVelY = 0;
+        let influenceRadius = 120;
+        let trailsEnabled = true;
+
+        // Performance tracking
+        let frameCount = 0;
+        let fps = 60;
+        let lastTime = performance.now();
+
+        // Enhanced fluid particle class
+        class FluidParticle {
+            constructor(x, y, colorIndex = 0) {
+                this.x = x;
+                this.y = y;
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = 2 + Math.random() * 2;
+                this.colorIndex = colorIndex;
+                this.mass = 1 + Math.random() * 0.5;
+
+                this.updateColor();
+            }
+
+            updateColor() {
+                let hexColor;
+
+                if (colorMode === 'single') {
+                    hexColor = customColors.color1;
+                } else if (colorMode === 'gradient') {
+                    hexColor = this.colorIndex % 2 === 0 ? customColors.color1 : customColors.color2;
+                } else {
+                    hexColor = this.colorIndex % 2 === 0 ? customColors.color1 : customColors.color2;
+                }
+
+                const hsl = hexToHsl(hexColor);
+                this.hue = hsl.h;
+                this.saturation = customColors.saturation;
+                this.lightness = customColors.lightness;
+            }
+
+            update() {
+                // Calculate distance to mouse
+                const dx = this.x - mouseX;
+                const dy = this.y - mouseY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Mouse influence zone
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+
+                    // Calculate tangent for swirling motion
+                    const tangentX = -Math.sin(angle);
+                    const tangentY = Math.cos(angle);
+
+                    // Apply swirling force
+                    const swirlStrength = mouseVelX * tangentX + mouseVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (mouseVelX * tangentY - mouseVelY * tangentX) * influence * 0.3 / this.mass;
+
+                    // Add radial force for mixing
+                    const radialForce = Math.min(mouseVelX * mouseVelX + mouseVelY * mouseVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+                }
+
+                // Spring force back to original position
+                const springForce = 0.005;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+
+                // Apply velocity with damping
+                const damping = 0.92;
+                this.vx *= damping;
+                this.vy *= damping;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Boundary collision
+                if (this.x < this.radius || this.x > canvas.width - this.radius) {
+                    this.vx *= -0.7;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+                if (this.y < this.radius || this.y > canvas.height - this.radius) {
+                    this.vy *= -0.7;
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                }
+            }
+
+            draw() {
+                const velocityMagnitude = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                const alpha = Math.min(0.8, 0.4 + velocityMagnitude * 0.02);
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${alpha})`;
+                ctx.fill();
+
+                // Add glow effect for fast-moving particles
+                if (velocityMagnitude > 2) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${alpha * 0.3})`;
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Initialize particle grid
+        function initParticles() {
+            particles = [];
+            const spacing = 15;
+
+            for (let x = spacing; x < canvas.width; x += spacing) {
+                for (let y = spacing; y < canvas.height; y += spacing) {
+                    const colorIndex = (x + y) % (spacing * 2) < spacing ? 0 : 1;
+                    particles.push(new FluidParticle(x, y, colorIndex));
+                }
+            }
+
+            document.getElementById('particleCount').textContent = particles.length;
+        }
+
+        // Mouse movement handlers
+        document.addEventListener('mousemove', (e) => {
+            prevMouseX = mouseX;
+            prevMouseY = mouseY;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            mouseVelX = mouseX - prevMouseX;
+            mouseVelY = mouseY - prevMouseY;
+
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+
+            const velocity = Math.sqrt(mouseVelX * mouseVelX + mouseVelY * mouseVelY);
+            document.getElementById('mouseVel').textContent = velocity.toFixed(1);
+        });
+
+        // Animation loop
+        function animate() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                document.getElementById('fps').textContent = fps;
+            }
+
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Control functions
+        function adjustInfluence(delta) {
+            influenceRadius = Math.max(50, Math.min(200, influenceRadius + delta));
+            console.log('Influence radius:', influenceRadius);
+        }
+
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+            const btn = document.querySelectorAll('.control-btn')[3];
+            btn.classList.toggle('active');
+        }
+
+        function resetSimulation() {
+            initParticles();
+            particles.forEach(particle => particle.updateColor());
+        }
+
+        // Property sliders
+        document.getElementById('saturation').addEventListener('input', (e) => {
+            customColors.saturation = e.target.value;
+            document.getElementById('satValue').textContent = e.target.value + '%';
+        });
+
+        document.getElementById('lightness').addEventListener('input', (e) => {
+            customColors.lightness = e.target.value;
+            document.getElementById('lightValue').textContent = e.target.value + '%';
+        });
+
+        // Mouse hover effect for cursor
+        document.addEventListener('mousedown', () => {
+            cursor.classList.add('large');
+        });
+
+        document.addEventListener('mouseup', () => {
+            cursor.classList.remove('large');
+        });
+
+        // Hide cursor on touch devices
+        if ('ontouchstart' in window) {
+            cursor.style.display = 'none';
+            document.body.style.cursor = 'auto';
+        }
+
+        // Initialize everything
+        initColorPickers();
+        initParticles();
+        animate();
+
+        console.log('Advanced Fluid Dynamics loaded');
+        console.log('Click "Pick Colors" to open the full-spectrum color picker!');
+    </script>
+</body>
+</html>

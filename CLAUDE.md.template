@@ -1,0 +1,421 @@
+# {{PROJECT_NAME}} Development Guide
+
+**LED Breadcrumbs System for AI Developers**
+
+---
+
+## ⚠️ FIRST TIME HERE? READ THIS FIRST!
+
+**👉 Start with `.claude/START-HERE.md` - Contains mandatory instructions for EVERY Claude session**
+
+This document provides {{PROJECT_NAME}}-specific context. START-HERE.md provides the universal development process.
+
+---
+
+## What is {{PROJECT_NAME}}?
+
+**{{PROJECT_NAME}}** is [brief description of what this project does].
+
+### Project Purpose
+
+[Describe the main purpose and goals of this project]
+
+---
+
+## Project Structure
+
+```
+{{PROJECT_PATH}}\
+├── .claude/                        # Development workflow & agents
+│   ├── agents/                     # 6-agent development team
+│   ├── START-HERE.md               # READ THIS FIRST!
+│   ├── MANDATORY-DEV-PROCESS.md    # The ONLY approved workflow
+│   ├── AUTO-TEST-PROTOCOL.md       # Testing requirements
+│   └── QUICK-REFERENCE.md          # Command cheat sheet
+├── Docs/                           # System documentation
+│   ├── SYSTEM-BREAKTHROUGHS.md     # The two critical discoveries
+│   └── BUILDING-AI-AGENT-TEAMS.md  # How to build agent systems
+├── [YOUR PROJECT STRUCTURE HERE]
+└── CLAUDE.md                       # This file
+```
+
+---
+
+## The LED Breadcrumbs System
+
+### What Are LED Breadcrumbs?
+
+Execution trail markers that create a log showing exactly what your code did:
+
+```
+✅ LED {{LED_RANGE_START}}00: user_clicked_button [ComponentName]
+✅ LED {{LED_RANGE_START}}10: api_call_started [ComponentName] {"endpoint":"/api/endpoint"}
+❌ LED {{LED_RANGE_START}}12 FAILED [ComponentName]: api_timeout - Request took 5000ms
+```
+
+**Why they matter:**
+- AI agents can read structured logs and debug precisely
+- 3-hour debugging sessions reduced to 5 minutes
+- "Where did it fail?" answered instantly
+
+### The Two Breakthroughs
+
+**See `Docs/SYSTEM-BREAKTHROUGHS.md` for the full story**
+
+**Breakthrough #1: Agent Task Confirmation**
+- Agent confirms understanding before starting
+- Creates memory checkpoint that persists
+- Saves 90% of tokens (no re-explaining)
+- Prevents Claude from forgetting the process
+
+**Breakthrough #2: Test Validation**
+- 3 hours wasted debugging perfect code with wrong tests
+- Test-creation agent verifies selectors exist before writing tests
+- Tests can never succeed → Tests that actually work
+
+---
+
+## Development Workflow
+
+### For Code Development
+
+**Use the agent-based workflow:**
+
+```
+Use developer agent for task-XXX
+  ↓
+Developer: "I understand. I will: [confirmation]"
+  ↓
+Developer: [Implements with LED breadcrumbs + tests]
+  ↓
+Developer: "Done. RAW proof: [test output]"
+  ↓
+Use quality agent to verify task-XXX
+  ↓
+Quality: [Verifies independently] → APPROVED / NEEDS_FIX
+  ↓
+Main Claude: [Spot-checks both reports]
+  ↓
+Approve to user if verified ✅
+```
+
+### For Documentation
+
+**Standard development process:**
+
+1. **Research** - WebSearch/WebFetch for similar docs
+2. **Write** - Create/edit documentation
+3. **Review** - Check for clarity and completeness
+4. **Commit** - Save with clear message
+
+**No tests needed** for documentation (unless writing code examples).
+
+---
+
+## Key Documents to Know
+
+### Development Process
+
+- **`.claude/START-HERE.md`** - MANDATORY reading for every session
+- **`.claude/MANDATORY-DEV-PROCESS.md`** - The RESEARCH → CODE+LED → TEST loop
+- **`.claude/AUTO-TEST-PROTOCOL.md`** - Never ask user to test
+- **`.claude/QUICK-REFERENCE.md`** - Commands cheat sheet
+
+### System Innovation
+
+- **`Docs/SYSTEM-BREAKTHROUGHS.md`** - The story of our discoveries
+- **`Docs/BUILDING-AI-AGENT-TEAMS.md`** - How to replicate the system
+
+---
+
+## LED Ranges for {{PROJECT_NAME}}
+
+### How to Define Your LED Ranges
+
+**LED ranges categorize the OPERATIONS that happen in YOUR project.**
+
+**Process:**
+
+1. **List the actual operations in your project**
+   - What does your code DO?
+   - What are the main workflows?
+   - What could fail that you'd need to debug?
+
+2. **Group related operations**
+   - Operations that happen together
+   - Similar types of actions
+   - Logical debugging categories
+
+3. **Assign ranges to each group**
+   - Use consistent numbering (e.g., 1000s blocks)
+   - Make them memorable and meaningful
+
+### Reference Examples
+
+**DebugLayer (Website):** 30000-39999
+- 30000-30099: Page lifecycle (mount, hydration, unmount)
+- 30100-30199: User interactions (clicks, inputs, navigation)
+- 30200-30299: API calls (requests, responses, caching)
+- 30300-30399: Component rendering (state, props, effects)
+- 30400-30499: Form submissions (validation, errors)
+
+**VoiceCoach-v2 (Complex Project):** See D:\Projects\Ai\VoiceCoach-v2
+- Study this for a real-world example with many operations
+- Notice how ranges reflect actual workflows
+- Use as inspiration for organizing YOUR operations
+
+### Your {{PROJECT_NAME}} LED Ranges
+
+**Define based on YOUR project's actual operations:**
+
+Example starting point (customize these!):
+
+- **[Range]**: [What operation? e.g., User authentication flow]
+- **[Range]**: [What operation? e.g., Database queries]
+- **[Range]**: [What operation? e.g., API request handling]
+- **[Range]**: [What operation? e.g., Data processing pipeline]
+- **[Range]**: [What operation? e.g., File upload/download]
+- **[Range]**: [What operation? e.g., Background jobs]
+- **[Range]**: [What operation? e.g., Real-time updates]
+- **[Range]**: [What operation? e.g., Error handling]
+
+**Note:** The numbers don't matter. What matters is that they organize YOUR operations in a way that makes debugging easier.
+
+### LED Range Best Practices
+
+✅ **DO:**
+- Define ranges based on actual operations in your code
+- Use ranges that make debugging easier
+- Group related operations together
+- Look at other projects for organizational ideas
+
+❌ **DON'T:**
+- Copy ranges from other projects without thinking
+- Use generic categories that don't match your operations
+- Assign ranges before understanding your workflows
+
+---
+
+## The Agent Team
+
+### Core Development Agents
+
+**Developer Agent** (Sonnet)
+- Implements features with LED breadcrumbs
+- Writes Playwright tests (for UI) or unit tests
+- **Critical feature:** Task confirmation before starting
+- Provides RAW test output as proof
+
+**Quality Agent** (Haiku)
+- Independent verification (doesn't trust developer)
+- Re-runs tests independently
+- Compares results
+- Reports: APPROVED / NEEDS_FIX / ESCALATE
+
+**Test-Creation Agent** (Sonnet)
+- Testing specialist
+- **Never invents selectors** - always verifies they exist
+- Prevents the 3-hour test crisis
+- Writes tests that can actually succeed
+
+### Support Agents
+
+**Research Agent** (Sonnet)
+- Finds proven solutions when stuck
+- Provides 3-5 approaches with pros/cons
+- Time limit: 15 minutes
+
+**Debugger Agent** (Sonnet)
+- Root cause analysis from LED logs
+- Diagnoses but doesn't fix
+- Time limit: 15 minutes
+
+**Environment Agent** (Haiku)
+- Configuration troubleshooting
+- Dependencies, .env issues
+- Time limit: 15 minutes
+
+**See:** `.claude/agents/*.md` for complete specifications
+
+---
+
+## Common Tasks
+
+### Development
+
+```bash
+# Use developer agent for complex features
+Use developer agent for task-123
+
+# Follow with quality verification
+Use quality agent to verify task-123
+```
+
+**Remember:**
+- Developer confirms understanding first (memory lock!)
+- Developer provides RAW test proof
+- Quality verifies independently
+- Main Claude spot-checks before approving
+
+### Testing
+
+**MANDATORY: All code must have appropriate tests**
+
+```bash
+# Run tests
+[your test command here]
+
+# Debug failed tests
+cat breadcrumb-debug.log
+
+# Filter for errors
+grep "❌" breadcrumb-debug.log
+```
+
+**Never report feature complete without passing tests.**
+
+---
+
+## Security & Best Practices
+
+### API Key Protection
+
+```typescript
+// ✅ Safe
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+  throw new Error("API_KEY not found in .env");
+}
+
+// ❌ Never
+const apiKey = "hardcoded-key-here";  // DON'T DO THIS!
+```
+
+### LED Logging Safety
+
+```typescript
+// ✅ Safe
+trail.light(LED_RANGES.AUTH.LOGIN, 'login_attempt', {
+  email: user.email
+});
+
+// ❌ Never log sensitive data
+trail.light(LED_RANGES.AUTH.LOGIN, 'login_attempt', {
+  email: user.email,
+  password: user.password  // NEVER LOG PASSWORDS!
+});
+```
+
+### File Naming
+
+**Always use hyphens:**
+
+```bash
+# ✅ Correct
+my-component.tsx
+user-profile.ts
+
+# ❌ Wrong
+my_component.tsx
+userProfile.ts
+```
+
+---
+
+## Git Workflow
+
+### Commit Messages
+
+```bash
+git commit -m "$(cat <<'EOF'
+Brief title describing the change
+
+- Bullet point of what changed
+- Another detail if needed
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+### What to Commit
+
+**Always commit:**
+- Source code
+- Documentation
+- Configuration files
+- Examples
+
+**Never commit:**
+- `.env` files
+- API keys
+- `node_modules/` or similar dependency directories
+- Log files (`breadcrumb-debug.log`)
+- Session files
+
+---
+
+## Quick Reference
+
+```bash
+# Development
+[your dev commands here]
+
+# Testing
+[your test commands here]
+
+# Debugging
+cat breadcrumb-debug.log              # View all LEDs
+grep "❌" breadcrumb-debug.log        # Errors only
+grep "LED {{LED_RANGE_START}}2" breadcrumb-debug.log   # Specific category
+
+# Agent workflow
+Use developer agent for task-XXX      # Implement
+Use quality agent to verify task-XXX   # Verify
+Use test-creation agent for tests      # When tests needed
+```
+
+---
+
+## Success Criteria
+
+### You're doing it right when:
+
+- ✅ Agents confirm understanding before starting
+- ✅ All code has LED breadcrumbs at key points
+- ✅ Tests verify tests (no invented selectors!)
+- ✅ Quality agent catches developer mistakes
+- ✅ User only sees working features
+- ✅ Documentation is clear and helpful
+
+### You're doing it wrong when:
+
+- ❌ Skipping agent confirmation
+- ❌ Trusting test reports without verification
+- ❌ Writing tests without verifying selectors
+- ❌ Asking user to test your code
+- ❌ Debugging working code with wrong tests
+- ❌ Over-complicating simple tasks
+
+---
+
+## Remember
+
+> **"LED Breadcrumbs + AI Agent Teams = Self-healing development that never wastes your time"**
+
+**Two innovations make this work:**
+1. Agent task confirmation (prevents memory loss)
+2. Test validation (prevents impossible tests)
+
+**Three verification layers ensure quality:**
+1. Developer tests with LEDs
+2. Quality verifies independently
+3. Main Claude spot-checks proof
+
+**Result:** Development that actually works.
+
+---
+
+**Now go read `.claude/START-HERE.md` and start building!** 🚀

@@ -1,0 +1,213 @@
+  Instructions for New Claude: Create Project from Template
+
+  I want to create a new project using the multi-agent template.
+
+  PROJECT DETAILS:
+  - Name: [YOUR_PROJECT_NAME]
+  - Location: D:\Projects\Ai\[YOUR_PROJECT_NAME]
+  - Tech Stack: [UNKNOWN YET / To be determined / OR specify if known]
+
+  STEPS:
+
+  1. COPY TEMPLATE
+     - Copy D:\Projects\Ai\.claude-project-template to new location
+     - Rename to [YOUR_PROJECT_NAME]
+
+  2. MINIMAL CLAUDE.md CUSTOMIZATION
+     - Read CLAUDE.md.template
+     - Replace {{PROJECT_NAME}} with actual project name
+     - For LED ranges: Use {{LED_RANGE_START}} = 10000 (we'll define ranges as we build)
+     - For tech stack: If unknown, use: "Tech stack: To be determined during development"
+     - Save as CLAUDE.md
+
+     NOTE: We can update these details later as the project evolves!
+
+  3. KEEP QUICK-REFERENCE.md GENERIC
+     - The template QUICK-REFERENCE.md already has generic examples
+     - Works with any tech stack (npm/python/cargo examples included)
+     - We'll customize LED ranges as we identify operation categories
+
+  4. VERIFY AGENT SYSTEM READY
+     - Confirm .claude/AGENTS-GUIDE.md exists (340 lines)
+     - Confirm .claude/hooks/ has 3 files
+     - Confirm .claude/agents/ has 6 agent files
+
+  5. TEST AGENT WORKFLOW
+     - Try: "Use developer agent for task-1: Help me decide on tech stack for [project purpose]"
+     - The developer agent can HELP choose tech stack through research!
+     - OR try: "Use research agent to recommend tech stacks for [project description]"
+
+  6. REPORT READY
+     - Confirm template copied and minimally customized
+     - Confirm agent system verified
+     - Note: Tech stack and LED ranges will be defined as we build
+
+  The agent system works BEFORE you know the tech stack. We can use agents to help
+  decide architecture, then update CLAUDE.md and LED ranges later!
+
+  Proceed with step 1.
+
+  ---
+  What Claude Will Do (Tech Stack Unknown)
+
+  Scenario 1: No Tech Stack Defined Yet
+
+  CLAUDE.md will have:
+
+  ## Project Context
+  **Name:** MyNewProject
+  **Tech Stack:** To be determined - evaluating options for [web app/CLI tool/API/etc.]
+  **Status:** Planning phase
+
+  ## LED Ranges - MyNewProject
+  **Note:** Ranges will be defined as architecture emerges during development.
+  Placeholder range: 10000-19999 for initial development.
+
+  ## Development Approach
+  - Use research agent to evaluate tech stack options
+  - Use developer agent for prototyping once stack chosen
+  - Update this file as architecture solidifies
+
+  What This Enables:
+
+  1. Agent system works immediately - No tech stack needed to use agents
+  2. Research agent can help choose stack - "Use research agent to recommend tech stacks for
+  e-commerce site"
+  3. LED ranges evolve naturally - As you build features, you'll see what operation categories
+  exist
+  4. CLAUDE.md grows with project - Living document that gets refined
+
+  ---
+  Scenario 2: Project Purpose Known, Stack Unknown
+
+  More specific instructions:
+
+  Create new project from template:
+
+  PROJECT:
+  - Name: TaskTrackerPro
+  - Purpose: Team task management with real-time updates
+  - Tech Stack: UNKNOWN - need to decide between:
+    * Next.js + Supabase
+    * Django + PostgreSQL + React
+    * Rails + Hotwire
+
+  APPROACH:
+  1. Copy template to D:\Projects\Ai\TaskTrackerPro
+  2. Customize CLAUDE.md with:
+     - Name: TaskTrackerPro
+     - Purpose: [as above]
+     - Tech Stack: "Evaluating options - see tech-stack-decision.md"
+     - LED Range Start: 10000 (will refine after architecture chosen)
+  3. Create tech-stack-decision.md documenting evaluation criteria
+  4. Use research agent: "Research tech stack options for real-time task management"
+  5. After stack chosen: Update CLAUDE.md and define proper LED ranges
+
+  Proceed - the agent system will help us make architecture decisions!
+
+  ---
+  Benefits of "Unknown Stack" Approach
+
+  Agents Can Help You Decide:
+
+  User: "Use research agent to recommend tech stacks for [project type]"
+           ↓
+  Research Agent: Provides 3-5 options with pros/cons
+           ↓
+  User: "Use research agent to deep-dive on [chosen option]"
+           ↓
+  Research Agent: Provides implementation patterns, gotchas, examples
+           ↓
+  User: "Use developer agent for task-1: Set up [chosen stack] project structure"
+           ↓
+  Developer Agent: Creates initial project files
+
+  LED Ranges Emerge Naturally:
+
+  As you build, you'll discover your operation categories:
+  - First API call → Realize you need LED range for "External APIs"
+  - First database query → Realize you need LED range for "Database"
+  - First auth flow → Realize you need LED range for "Authentication"
+
+  Then update QUICK-REFERENCE.md with actual ranges based on what you're building.
+
+  ---
+  Recommended Workflow for New Projects
+
+  Phase 1: Template Setup (5 minutes)
+
+  1. Copy template
+  2. Minimal CLAUDE.md customization (name + "stack TBD")
+  3. Verify agent system ready
+
+  Phase 2: Architecture Decisions (with agents!)
+
+  4. Use research agent to evaluate tech stack options
+  5. Use research agent to research architecture patterns
+  6. Document decisions in project files
+
+  Phase 3: Build Begins
+
+  7. Update CLAUDE.md with chosen stack
+  8. Use developer agent for initial setup
+  9. Define LED ranges as operation categories emerge
+  10. Update QUICK-REFERENCE.md with actual ranges
+
+  Phase 4: Ongoing Development
+
+  11. Use developer + quality agent workflow for all features
+  12. Refine LED ranges as architecture solidifies
+  13. Update CLAUDE.md as patterns emerge
+
+  ---
+  Updated Simple Instructions
+
+  Here's the simplest version:
+
+  Create new project from template:
+
+  Name: [PROJECT_NAME]
+  Purpose: [Brief description]
+  Tech Stack: Unknown yet
+
+  Steps:
+  1. Copy D:\Projects\Ai\.claude-project-template → D:\Projects\Ai\[PROJECT_NAME]
+  2. Edit CLAUDE.md.template:
+     - Replace {{PROJECT_NAME}} → actual name
+     - Replace tech stack section → "To be determined"
+     - Replace LED ranges → "Will define as architecture emerges (starting at 10000)"
+     - Save as CLAUDE.md
+  3. Verify: Read .claude/AGENTS-GUIDE.md to confirm agent system ready
+  4. First task: "Use research agent to recommend tech stacks for [project purpose]"
+
+  The agent system works NOW. We'll define specifics as we build!
+
+  ---
+  Key Insight
+
+  The template doesn't need tech stack to be functional!
+
+  - ✅ Agent system works with generic setup
+  - ✅ Research agent can HELP choose stack
+  - ✅ LED ranges can start generic (10000-19999)
+  - ✅ Everything gets refined as you build
+  - ✅ CLAUDE.md is a living document
+
+  Think of it as: Template provides the scaffolding, agents help you build the house, and you
+  document it as you go!
+  
+  ====
+  
+    Quick Verification Command
+
+  After setup, verify everything with:
+
+  Verify the agent system is ready:
+  1. Read .claude/AGENTS-GUIDE.md and confirm it exists
+  2. List files in .claude/hooks/ and confirm 3 hook files present
+  3. List files in .claude/agents/ and confirm 6+ agent files present
+  4. Try: "Use developer agent for task-1: Create a test file"
+  5. Confirm developer agent responds with structured report
+
+  If all 5 checks pass, project is ready!
+  

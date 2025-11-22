@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Puck Interaction - Image Reveal v11</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            cursor: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Background Layer - Coupon */
+        #backgroundCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        /* Main Image Layer - Particles */
+        #fluidCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: transparent;
+        }
+
+        /* Universal Puck */
+        .universal-puck {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%,
+                rgba(255,255,255,0.9),
+                rgba(255,255,255,0.5),
+                rgba(255,255,255,0.1));
+            border: 4px solid rgba(255,255,255,0.8);
+            box-shadow: 0 0 30px rgba(255,255,255,0.6),
+                        0 0 60px rgba(255,255,255,0.3),
+                        inset 0 0 20px rgba(255,255,255,0.2);
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+            transition: none;
+            display: block;
+            backdrop-filter: blur(3px);
+        }
+
+        .universal-puck.dragging {
+            transform: translate(-50%, -50%) scale(1.15);
+            box-shadow: 0 0 40px rgba(255,255,255,0.8),
+                        0 0 80px rgba(255,255,255,0.4),
+                        inset 0 0 25px rgba(255,255,255,0.3);
+            background: radial-gradient(circle at 30% 30%,
+                rgba(255,255,255,1),
+                rgba(255,255,255,0.7),
+                rgba(255,255,255,0.2));
+        }
+
+        .universal-puck::before {
+            content: '';
+            position: absolute;
+            inset: 15px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 40%,
+                transparent,
+                rgba(255,255,255,0.4));
+        }
+
+        .universal-puck::after {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 0 10px rgba(255,255,255,0.5) inset;
+        }
+
+        /* Instructions */
+        .puck-instructions {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            z-index: 50;
+            max-width: 400px;
+        }
+
+        .puck-instructions h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .puck-instructions p {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+
+        /* Stats Display */
+        .stats {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+            opacity: 0.9;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .controls h3 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .control-btn {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        /* Loading indicator */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            text-align: center;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .universal-puck {
+                width: 60px;
+                height: 60px;
+                border-width: 3px;
+            }
+
+            .universal-puck::before {
+                inset: 10px;
+            }
+
+            .puck-instructions {
+                top: 1rem;
+                max-width: 300px;
+                padding: 0.75rem 1rem;
+            }
+
+            .controls {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 0.75rem;
+            }
+
+            .stats {
+                top: 1rem;
+                right: 1rem;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Universal Puck -->
+    <div class="universal-puck" id="universalPuck"></div>
+
+    <!-- Loading indicator -->
+    <div class="loading" id="loading">
+        Loading image system...
+    </div>
+
+    <!-- Puck Instructions -->
+    <div class="puck-instructions" id="puckInstructions">
+        <h4>🎮 Universal Puck Control</h4>
+        <p>Click and drag the glowing puck to interact with the liquid bristles. Works on all devices!</p>
+    </div>
+
+    <!-- Stats Display -->
+    <div class="stats">
+        <div>FPS: <span id="fps">60</span></div>
+        <div>Particles: <span id="particleCount">0</span></div>
+        <div>Puck Vel: <span id="puckVel">0</span></div>
+        <div>Status: <span id="status">Initializing</span></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Background Canvas (Coupon Layer) -->
+        <canvas id="backgroundCanvas"></canvas>
+
+        <!-- Main Image Layer (Particles) -->
+        <canvas id="fluidCanvas"></canvas>
+    </section>
+
+    <!-- Controls -->
+    <div class="controls">
+        <h3>Universal Puck Controls v11</h3>
+        <button class="control-btn" onclick="adjustInfluence(10)">More Influence</button>
+        <button class="control-btn" onclick="adjustInfluence(-10)">Less Influence</button>
+        <button class="control-btn" onclick="toggleTrails()">Toggle Trails</button>
+        <button class="control-btn active" onclick="resetSimulation()">Reset Image</button>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('fluidCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('backgroundCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const universalPuck = document.getElementById('universalPuck');
+        const loading = document.getElementById('loading');
+
+        // Image configuration
+        const IMAGE_SIZE = 700; // 700x700 as requested
+        const IMAGE_URL = 'https://raw.githubusercontent.com/Bladed3d/images/main/angel-07.png'; // Your angel image
+
+        // Universal puck variables
+        let puckActive = false;
+        let puckX = 0;
+        let puckY = 0;
+        let prevPuckX = 0;
+        let prevPuckY = 0;
+        let puckVelX = 0;
+        let puckVelY = 0;
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            drawCouponBackground(); // Redraw coupon when resized
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Draw coupon background with 3 lines of text (from v8)
+        function drawCouponBackground() {
+            bgCtx.fillStyle = '#0a0a0a';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            // Draw coupon text
+            bgCtx.fillStyle = '#fe0048';
+            bgCtx.font = 'bold 56px Arial';
+            bgCtx.textAlign = 'center';
+            bgCtx.textBaseline = 'middle';
+
+            // 3 lines of text: "Coupon Code", "BlackFriday21", "Save 30%"
+            bgCtx.fillText('Coupon Code', bgCanvas.width / 2, bgCanvas.height / 2 - 60);
+            bgCtx.fillText('BlackFriday21', bgCanvas.width / 2, bgCanvas.height / 2);
+            bgCtx.fillText('Save 30%', bgCanvas.width / 2, bgCanvas.height / 2 + 60);
+
+            document.getElementById('status').textContent = 'Background ready';
+        }
+
+        // Fluid simulation variables - using puck position instead of mouse
+        let particles = [];
+        let mouseX = canvas.width / 2; // Keep for compatibility but use puck
+        let mouseY = canvas.height / 2;
+        let prevMouseX = mouseX;
+        let prevMouseY = mouseY;
+        let mouseVelX = 0; // Keep for compatibility but use puck
+        let mouseVelY = 0;
+        let influenceRadius = 120;
+        let trailsEnabled = false;
+        let imageLoaded = false;
+        let sourceImage = null;
+
+        // Performance tracking
+        let frameCount = 0;
+        let fps = 60;
+        let lastTime = performance.now();
+
+        // GROK FIX: Global grid variables for draw method access
+        let gridCols, gridRows;
+
+        // GROK FIX 4: Global scale variables for image pre-resizing
+        let scaledWidth, scaledHeight;
+
+        // Image particle class - FINAL VERSION: No rotation for clean edges
+        class ImageParticle {
+            constructor(x, y, gridX, gridY, pieceWidth, pieceHeight, renderWidth, renderHeight, offsetX, offsetY, scaledWidth, scaledHeight) {
+                this.x = x;
+                this.y = y;
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = 2; // Back to normal radius from v7
+                this.mass = 1 + Math.random() * 0.5; // Normal mass from v7
+
+                // Image piece properties
+                this.gridX = gridX;
+                this.gridY = gridY;
+
+                // Physics sizing (for overlap to eliminate cracks)
+                this.pieceWidth = pieceWidth;
+                this.pieceHeight = pieceHeight;
+
+                // Actual rendered dimensions (properly scaled)
+                this.renderWidth = renderWidth;
+                this.renderHeight = renderHeight;
+
+                // Offsets for proper image positioning
+                this.offsetX = offsetX;
+                this.offsetY = offsetY;
+                this.scaledWidth = scaledWidth;
+                this.scaledHeight = scaledHeight;
+
+                // FIXED: No rotation for clean, square edges
+                this.rotation = 0;
+            }
+
+            update() {
+                // Use puck position for universal interaction
+                const dx = this.x - puckX;
+                const dy = this.y - puckY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Puck influence zone (same physics as v7)
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+
+                    // Calculate tangent for swirling motion
+                    const tangentX = -Math.sin(angle);
+                    const tangentY = Math.cos(angle);
+
+                    // Apply swirling force using puck velocity
+                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+
+                    // Add radial force for mixing
+                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+                }
+
+                // Spring force back to original position
+                const springForce = 0.005;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+
+                // Apply velocity with damping
+                const damping = 0.92;
+                this.vx *= damping;
+                this.vy *= damping;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // FIXED: No rotation updates - keep bristles square
+                // This ensures clean edges that fit together perfectly
+
+                // Boundary collision
+                if (this.x < this.radius || this.x > canvas.width - this.radius) {
+                    this.vx *= -0.7;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+                if (this.y < this.radius || this.y > canvas.height - this.radius) {
+                    this.vy *= -0.7;
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                }
+            }
+
+            draw() {
+                if (!imageLoaded || !sourceImage) return;
+
+                ctx.save();
+
+                // Image smoothing already disabled globally (GROK FIX)
+
+                // FIXED: No rotation - move to position but keep square orientation
+                // V10: Let Canvas handle exact positions (now integers)
+                ctx.translate(this.x, this.y);
+                // ctx.rotate(this.rotation) // REMOVED: This was causing the cracks!
+
+                try {
+                    // GROK FIX: Correct source image piece calculation using actual sourceImage dimensions
+                    const sourcePieceWidth = sourceImage.width / gridCols;
+                    const sourcePieceHeight = sourceImage.height / gridRows;
+                    const sourceX = this.gridX * sourcePieceWidth;
+                    const sourceY = this.gridY * sourcePieceHeight;
+
+                    // Draw image piece with proper scaling - NO ROTATION
+                    ctx.drawImage(
+                        sourceImage,
+                        sourceX,                                     // Source x
+                        sourceY,                                     // Source y
+                        sourcePieceWidth,                            // Source width
+                        sourcePieceHeight,                           // Source height
+                        -this.renderWidth / 2,                       // Destination x (centered)
+                        -this.renderHeight / 2,                      // Destination y (centered)
+                        this.renderWidth,                            // Destination width
+                        this.renderHeight                            // Destination height
+                    );
+                } catch (error) {
+                    console.error('Error drawing image piece:', error);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Load and process image
+        function loadImage() {
+            document.getElementById('status').textContent = 'Loading image...';
+
+            const img = new Image();
+
+            // Try without crossOrigin first (local server might work better)
+            img.onload = function() {
+                // GROK FIX 4: Pre-resize source images to match grid exactly
+                // Calculate actual scale based on image aspect ratio
+                const imageAspect = img.width / img.height;
+                if (imageAspect > 1) {
+                    scaledWidth = IMAGE_SIZE;
+                    scaledHeight = IMAGE_SIZE / imageAspect;
+                } else {
+                    scaledHeight = IMAGE_SIZE;
+                    scaledWidth = IMAGE_SIZE * imageAspect;
+                }
+
+                const resizedCanvas = document.createElement('canvas');
+                resizedCanvas.width = Math.floor(scaledWidth); // Force integer
+                resizedCanvas.height = Math.floor(scaledHeight);
+                const resizedCtx = resizedCanvas.getContext('2d');
+                resizedCtx.imageSmoothingEnabled = false;
+                resizedCtx.drawImage(img, 0, 0, resizedCanvas.width, resizedCanvas.height);
+                sourceImage = resizedCanvas; // Use this for perfect division
+
+                imageLoaded = true;
+
+                // Hide loading indicator
+                loading.style.display = 'none';
+
+                // Initialize particles once image is loaded
+                initImageParticles();
+
+                document.getElementById('status').textContent = 'Image pre-resized, creating perfect bristles...';
+                console.log('Image loaded and pre-resized successfully:', Math.floor(scaledWidth) + 'x' + Math.floor(scaledHeight));
+            };
+
+            img.onerror = function() {
+                console.error('Failed to load image, trying with CORS...');
+                // Try with CORS as fallback
+                const img2 = new Image();
+                img2.crossOrigin = 'anonymous';
+
+                img2.onload = function() {
+                    sourceImage = img2;
+                    imageLoaded = true;
+                    loading.style.display = 'none';
+                    initImageParticles();
+                    document.getElementById('status').textContent = 'Image loaded (CORS), creating perfect bristles...';
+                    console.log('Image loaded successfully with CORS');
+                };
+
+                img2.onerror = function() {
+                    console.error('CORS also failed, creating demo image...');
+                    createDemoImage();
+                };
+
+                img2.src = IMAGE_URL;
+            };
+
+            img.src = IMAGE_URL;
+        }
+
+        // Create a demo image as fallback
+        function createDemoImage() {
+            console.log('Creating demo gradient image as fallback...');
+
+            const demoCanvas = document.createElement('canvas');
+            demoCanvas.width = IMAGE_SIZE;
+            demoCanvas.height = IMAGE_SIZE;
+            const demoCtx = demoCanvas.getContext('2d');
+
+            console.log('Demo canvas created:', IMAGE_SIZE + 'x' + IMAGE_SIZE);
+
+            // Create a beautiful gradient pattern that works well with the fluid effect
+            const gradient = demoCtx.createRadialGradient(
+                IMAGE_SIZE/2, IMAGE_SIZE/2, 0,
+                IMAGE_SIZE/2, IMAGE_SIZE/2, IMAGE_SIZE/2
+            );
+            gradient.addColorStop(0, '#fe0048');
+            gradient.addColorStop(0.25, '#fe802d');
+            gradient.addColorStop(0.5, '#fbbf24');
+            gradient.addColorStop(0.75, '#a855f7');
+            gradient.addColorStop(1, '#3b82f6');
+
+            demoCtx.fillStyle = gradient;
+            demoCtx.fillRect(0, 0, IMAGE_SIZE, IMAGE_SIZE);
+
+            console.log('Gradient applied to demo canvas');
+
+            // Add some pattern for visual interest
+            demoCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            demoCtx.lineWidth = 2;
+            for (let i = 0; i < IMAGE_SIZE; i += 50) {
+                demoCtx.beginPath();
+                demoCtx.moveTo(i, 0);
+                demoCtx.lineTo(i, IMAGE_SIZE);
+                demoCtx.stroke();
+                demoCtx.beginPath();
+                demoCtx.moveTo(0, i);
+                demoCtx.lineTo(IMAGE_SIZE, i);
+                demoCtx.stroke();
+            }
+
+            // Add text in center
+            demoCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            demoCtx.font = 'bold 48px Arial';
+            demoCtx.textAlign = 'center';
+            demoCtx.textBaseline = 'middle';
+            demoCtx.fillText('UNIVERSAL v11', IMAGE_SIZE/2, IMAGE_SIZE/2);
+
+            console.log('Text added to demo image');
+
+            // Convert to image
+            const dataURL = demoCanvas.toDataURL();
+            console.log('Demo canvas converted to data URL, length:', dataURL.length);
+
+            const demoImg = new Image();
+            demoImg.onload = function() {
+                console.log('Demo image loaded successfully');
+                sourceImage = demoImg;
+                imageLoaded = true;
+                loading.style.display = 'none';
+                initImageParticles();
+                document.getElementById('status').textContent = 'Demo image created, perfect bristles ready!';
+                console.log('Demo image processing complete');
+            };
+
+            demoImg.onerror = function() {
+                console.error('Demo image failed to load');
+                document.getElementById('status').textContent = 'Demo image creation failed!';
+            };
+
+            demoImg.src = dataURL;
+        }
+
+        // Initialize image particle grid - PRODUCTION VERSION: High density with all fixes
+        function initImageParticles() {
+            if (!imageLoaded) return;
+
+            particles = [];
+
+            // GROK FIX 2: Force integer positioning for entire image
+            const imageX = Math.floor((canvas.width - IMAGE_SIZE) / 2);
+            const imageY = Math.floor((canvas.height - IMAGE_SIZE) / 2);
+
+            // V10: PRODUCTION - High density grid (7px spacing) with all Grok fixes
+            const spacing = 7; // Perfect for 700px image = 100 columns
+            const overlap = 1.0; // V10: Remove overlap - Grok fixes should handle seams
+
+            // V10: High density grid for production performance
+            gridCols = Math.floor(IMAGE_SIZE / spacing); // = 100 exactly
+            gridRows = Math.floor(IMAGE_SIZE / spacing); // = 100 exactly
+            const pieceWidth = spacing; // Perfect 7px pieces
+            const pieceHeight = spacing;
+
+            document.getElementById('status').textContent = `Creating ${gridCols * gridRows} production bristles...`;
+
+            // Scale already calculated in loadImage() with pre-resizing (GROK FIX 4)
+
+            // Center the scaled image in the 700x700 area
+            const offsetX = (IMAGE_SIZE - scaledWidth) / 2;
+            const offsetY = (IMAGE_SIZE - scaledHeight) / 2;
+
+            // Create particle grid covering the image area
+            for (let gridY = 0; gridY < gridRows; gridY++) {
+                for (let gridX = 0; gridX < gridCols; gridX++) {
+                    // V10: Production density with perfect integer positioning
+                    const x = imageX + offsetX + (gridX * spacing) + (spacing / 2); // Perfect centers
+                    const y = imageY + offsetY + (gridY * spacing) + (spacing / 2);
+
+                    particles.push(new ImageParticle(
+                        x, y,
+                        gridX, gridY,
+                        pieceWidth, pieceHeight,
+                        (scaledWidth / gridCols), // V10: No overlap needed - Grok fixes handle seams
+                        (scaledHeight / gridRows), // Back to 1.0x for production
+                        offsetX, offsetY, // offsets for source image
+                        scaledWidth, scaledHeight // scaled dimensions
+                    ));
+                }
+            }
+
+            document.getElementById('particleCount').textContent = particles.length;
+            document.getElementById('status').textContent = `UNIVERSAL PUCK: High density bristles ready! Influence: ${influenceRadius}px`;
+
+            console.log('V11 UNIVERSAL VERSION:');
+            console.log('- Created', particles.length, 'high-density bristles (100x100 = 10,000)');
+            console.log('- Perfect spacing: 7px (700/7 = 100 exact division)');
+            console.log('- Universal puck interaction for all devices');
+            console.log('- No device detection needed - same experience everywhere');
+            console.log('- Production ready for ambient videos');
+        }
+
+        // Universal puck interaction handlers - improved for mobile
+        function handlePuckStart(e) {
+            console.log('Puck start:', e.type);
+
+            // Hide instructions after first interaction
+            const instructions = document.getElementById('puckInstructions');
+            if (instructions) {
+                instructions.style.display = 'none';
+            }
+
+            // Get client coordinates from mouse or touch
+            let clientX, clientY;
+            if (e.type === 'touchstart') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            // Activate and position puck
+            puckActive = true;
+            puckX = clientX;
+            puckY = clientY;
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+
+            universalPuck.style.left = puckX + 'px';
+            universalPuck.style.top = puckY + 'px';
+            universalPuck.classList.add('dragging');
+
+            console.log('Puck activated at:', puckX, puckY);
+        }
+
+        function handlePuckMove(e) {
+            if (!puckActive) return;
+
+            let clientX, clientY;
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+            puckX = clientX;
+            puckY = clientY;
+
+            // Update puck position
+            universalPuck.style.left = puckX + 'px';
+            universalPuck.style.top = puckY + 'px';
+
+            // Calculate puck velocity
+            puckVelX = puckX - prevPuckX;
+            puckVelY = puckY - prevPuckY;
+
+            // Update velocity display
+            const velocity = Math.sqrt(puckVelX * puckVelX + puckVelY * puckVelY);
+            const velDisplay = document.getElementById('puckVel');
+            if (velDisplay) {
+                velDisplay.textContent = velocity.toFixed(1);
+            }
+        }
+
+        function handlePuckEnd(e) {
+            if (!puckActive) return;
+
+            console.log('Puck end:', e.type);
+            puckActive = false;
+            puckVelX = 0;
+            puckVelY = 0;
+            universalPuck.classList.remove('dragging');
+        }
+
+        // Event listeners - improved for mobile compatibility
+        // Mouse events (for desktop)
+        document.addEventListener('mousedown', handlePuckStart);
+        document.addEventListener('mousemove', handlePuckMove);
+        document.addEventListener('mouseup', handlePuckEnd);
+
+        // Touch events (for mobile) - removed passive: false for better compatibility
+        document.addEventListener('touchstart', function(e) {
+            handlePuckStart(e);
+            e.preventDefault(); // Prevent default only after handling
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            handlePuckMove(e);
+            e.preventDefault(); // Prevent default only after handling
+        });
+
+        document.addEventListener('touchend', function(e) {
+            handlePuckEnd(e);
+        });
+
+        // Additional touch events for better mobile support
+        document.addEventListener('touchcancel', function(e) {
+            handlePuckEnd(e);
+        });
+
+        // Animation loop
+        function animate() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                document.getElementById('fps').textContent = fps;
+            }
+
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Control functions
+        function adjustInfluence(delta) {
+            influenceRadius = Math.max(50, Math.min(300, influenceRadius + delta));
+            console.log('Influence radius:', influenceRadius);
+
+            // Update visual feedback
+            document.getElementById('status').textContent = `Influence radius: ${influenceRadius}px`;
+
+            // Update button highlights
+            updateInfluenceButtons();
+        }
+
+        function updateInfluenceButtons() {
+            const moreBtn = document.querySelectorAll('.control-btn')[0];
+            const lessBtn = document.querySelectorAll('.control-btn')[1];
+
+            // Reset both buttons
+            moreBtn.classList.remove('active');
+            lessBtn.classList.remove('active');
+
+            // Highlight based on current influence level
+            if (influenceRadius >= 250) {
+                moreBtn.classList.add('active');
+            } else if (influenceRadius <= 75) {
+                lessBtn.classList.add('active');
+            }
+        }
+
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+            const btn = document.querySelectorAll('.control-btn')[3]; // Updated index after influence buttons
+            btn.classList.toggle('active');
+            console.log('Trails:', trailsEnabled);
+        }
+
+        function resetSimulation() {
+            if (imageLoaded) {
+                initImageParticles();
+                console.log('Universal bristles reset');
+            }
+        }
+
+        // GROK FIX 4: Calculate image dimensions before loading
+        function calculateImageDimensions() {
+            // We don't know the actual image dimensions yet, but we can calculate target dimensions
+            // Use IMAGE_SIZE as target for both dimensions (will be adjusted in loadImage)
+            scaledWidth = IMAGE_SIZE;
+            scaledHeight = IMAGE_SIZE;
+        }
+
+        // Initialize everything
+        drawCouponBackground(); // Draw background first
+        calculateImageDimensions(); // Calculate target dimensions
+
+        // Start image loading with fallback timeout
+        console.log('Starting image loading process...');
+        loadImage();
+
+        // Fallback timeout - if image doesn't load in 3 seconds, create a simple demo
+        setTimeout(() => {
+            if (!imageLoaded) {
+                console.log('Image loading timeout, creating simple demo...');
+                createSimpleDemo();
+            }
+        }, 3000);
+
+        animate(); // Start animation loop
+
+        // Initialize influence button state
+        setTimeout(() => {
+            updateInfluenceButtons();
+        }, 100);
+
+        // Simple demo creation as ultimate fallback
+        function createSimpleDemo() {
+            console.log('Creating ultimate fallback demo...');
+
+            // Create a simple colored square as demo image
+            const simpleCanvas = document.createElement('canvas');
+            simpleCanvas.width = IMAGE_SIZE;
+            simpleCanvas.height = IMAGE_SIZE;
+            const simpleCtx = simpleCanvas.getContext('2d');
+
+            // Just fill with a solid color
+            simpleCtx.fillStyle = '#fe0048';
+            simpleCtx.fillRect(0, 0, IMAGE_SIZE, IMAGE_SIZE);
+
+            // Add simple text
+            simpleCtx.fillStyle = 'white';
+            simpleCtx.font = 'bold 60px Arial';
+            simpleCtx.textAlign = 'center';
+            simpleCtx.textBaseline = 'middle';
+            simpleCtx.fillText('DEMO', IMAGE_SIZE/2, IMAGE_SIZE/2 - 30);
+            simpleCtx.fillText('v11', IMAGE_SIZE/2, IMAGE_SIZE/2 + 30);
+
+            // Use the simple demo
+            const simpleImg = new Image();
+            simpleImg.onload = function() {
+                console.log('Simple demo created and loaded');
+                sourceImage = simpleImg;
+                imageLoaded = true;
+                loading.style.display = 'none';
+                initImageParticles();
+                document.getElementById('status').textContent = 'Simple demo loaded - bristles ready!';
+            };
+            simpleImg.src = simpleCanvas.toDataURL();
+        }
+
+        console.log('Universal Puck Interaction loaded - Version 11');
+        console.log('UNIVERSAL: Single puck system for desktop + mobile');
+        console.log('No device detection needed - same experience everywhere!');
+        console.log('Loading image:', IMAGE_URL);
+    </script>
+</body>
+</html>

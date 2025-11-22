@@ -1,0 +1,32 @@
+To address the visible lines between the bristles (the small squares making up the image), which appear to stem from anti-aliasing/interpolation during rendering or minor gaps due to non-integer calculations, here are targeted fixes to make the image appear solid. These changes focus on ensuring pixel-perfect alignment, disabling smoothing for crisp edges, and correcting source image sampling for generality (even if you're currently using the demo image). The goal is to maintain the fluid paint effect while eliminating the edge fading or seams, keeping the system efficient for producing motion graphics in your ambient music videos.
+Key Changes to the Code
+Apply these modifications to the <script> section of your HTML file. I'll explain each one, including why it helps.
+
+Disable Image Smoothing on the Canvas Context
+This prevents bilinear interpolation, which can cause fading or softening at the edges of each bristle, making seams visible. Nearest-neighbor rendering will keep edges sharp and matching.
+Add this line right after const ctx = canvas.getContext('2d');:textctx.imageSmoothingEnabled = false;
+Change Spacing to Ensure Integer Divisions
+The current spacing = 6 leads to non-integer piece sizes (e.g., ~5.98px), causing subpixel rendering issues and potential tiny gaps where the dark background peeks through. Switching to spacing = 7 makes everything divide evenly for a 700px image (700 / 7 = 100 grid columns, piece size = 7px exact). This results in ~10,000 particles (down from ~13,689), which is still performant on your 4090 setup.
+Change:textconst spacing = 7; // Was 6; ensures integer math for solid imageIn initImageParticles(), change Math.ceil(IMAGE_SIZE / spacing) to Math.floor(IMAGE_SIZE / spacing) if you want to strictly avoid any remainder (though with 7, it's exact).
+Correct Source Image Piece Calculation
+The current code uses scaledWidth for source coordinates, which is incorrect if the loaded image isn't exactly the target size—it can lead to mismatched sampling and artifacts. Update to use the actual sourceImage dimensions. This ensures proper portioning without distortion, especially if you swap in custom images for your stories.
+In the draw() method of ImageParticle, replace the source calculation block with:textconst sourcePieceWidth = sourceImage.width / gridCols;
+const sourcePieceHeight = sourceImage.height / gridRows;
+const sourceX = this.gridX * sourcePieceWidth;
+const sourceY = this.gridY * sourcePieceHeight;Note: Move gridCols and gridRows to global scope (define them outside the function, right after let particles = [];) so they're accessible here. In initImageParticles(), just assign to them instead of const.
+Optional: Snap Positions to Pixels for Extra Crispness
+If lines persist when the image is static, add rounding to particle positions during drawing to align with the pixel grid (reducing anti-aliasing seams). This might introduce minor jitter during motion but ensures solidity at rest.
+In draw(), change ctx.translate(this.x, this.y); to:textctx.translate(Math.round(this.x), Math.round(this.y));
+
+Additional Recommendations
+
+Pre-Resize Images for Consistency: To further avoid interpolation issues with non-demo images, add this after img.onload = function() { ... } in loadImage() (before setting sourceImage = img;):textconst resizedCanvas = document.createElement('canvas');
+resizedCanvas.width = scaledWidth;
+resizedCanvas.height = scaledHeight;
+const resizedCtx = resizedCanvas.getContext('2d');
+resizedCtx.imageSmoothingEnabled = false; // Match main canvas
+resizedCtx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
+sourceImage = resizedCanvas;Update scaledWidth = Math.floor(scaledWidth); and scaledHeight = Math.floor(scaledHeight); just before this to force integers.
+Testing and Iteration: Reload the page after changes. Use the stats panel to monitor FPS/particle count—aim for 30+ FPS to keep renders smooth for your 1-hour videos. If lines still appear, toggle trails off (as trails can exaggerate seams) or experiment with a small overlap in rendering by setting this.renderWidth = (scaledWidth / gridCols) * 1.01; in the constructor (1% overlap hides gaps without noticeable artifacts).
+
+These tweaks should make the revealed image solid and seamless, enhancing the user experience in your story arcs by providing clean motion graphics.

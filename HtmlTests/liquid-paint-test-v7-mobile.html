@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Liquid Paint - Virtual Disk Interaction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            cursor: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Fluid Canvas */
+        #fluidCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        /* Mobile Virtual Disk */
+        .mobile-disk {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+            border: 3px solid rgba(255,255,255,0.6);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4), 0 0 40px rgba(255,255,255,0.2);
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+            transition: none;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+
+        .mobile-disk.active {
+            display: block;
+        }
+
+        .mobile-disk.dragging {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 30px rgba(255,255,255,0.6), 0 0 60px rgba(255,255,255,0.3);
+        }
+
+        .mobile-disk::before {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 40%, transparent, rgba(255,255,255,0.3));
+        }
+
+        /* Content Overlay - No title */
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 600px;
+            pointer-events: none;
+            display: none; /* Hidden by default */
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 8vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: white;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Color Picker Modal */
+        .color-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-modal.active {
+            display: flex;
+        }
+
+        .color-picker-container {
+            background: rgba(20, 20, 20, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        .color-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .color-header h3 {
+            font-size: 1.5rem;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .close-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 0, 72, 0.2);
+            border-color: #fe0048;
+            transform: rotate(90deg);
+        }
+
+        /* Larger close button for mobile */
+        @media (max-width: 768px) {
+            .close-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+        }
+
+        .color-modes {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 60px;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        .color-section {
+            margin-bottom: 2rem;
+        }
+
+        .color-section h4 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Fixed CSS-based Spectrum Color Picker */
+        .color-picker-wrapper {
+            margin-bottom: 1rem;
+        }
+
+        .spectrum-gradient {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            cursor: crosshair;
+            margin-bottom: 1rem;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right,
+                hsl(0, 100%, 50%),
+                hsl(60, 100%, 50%),
+                hsl(120, 100%, 50%),
+                hsl(180, 100%, 50%),
+                hsl(240, 100%, 50%),
+                hsl(300, 100%, 50%),
+                hsl(360, 100%, 50%)
+            );
+            background-size: 100% 100%;
+        }
+
+        .spectrum-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom,
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(255, 255, 255, 0) 50%,
+                rgba(0, 0, 0, 0) 50%,
+                rgba(0, 0, 0, 0.8) 100%
+            );
+            border-radius: 12px;
+            pointer-events: none; /* Allow clicks to pass through */
+        }
+
+        .color-preview {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .color-box {
+            flex: 1;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .color-box:hover {
+            transform: scale(1.05);
+        }
+
+        .color-box::after {
+            content: attr(data-color);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.25rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+            text-align: center;
+        }
+
+        .color-input {
+            width: 60px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .quick-colors {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .quick-color {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .quick-color:hover {
+            transform: scale(1.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .quick-color.selected {
+            border-color: white;
+        }
+
+        .quick-color.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .properties-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .property-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .property-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .property-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .property-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(254, 0, 72, 0.4);
+        }
+
+        .property-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 10px rgba(254, 0, 72, 0.4);
+        }
+
+        .apply-section {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .apply-btn, .cancel-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+
+        .apply-btn {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            color: white;
+        }
+
+        .apply-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(254, 0, 72, 0.4);
+        }
+
+        .cancel-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cancel-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .controls h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .control-btn {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin: 0.75rem 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-height: 50px;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        /* Mobile Instructions */
+        .mobile-instructions {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            z-index: 50;
+            max-width: 300px;
+        }
+
+        .mobile-instructions h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .mobile-instructions p {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+
+        /* Stats Display */
+        .stats {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        .stats div {
+            margin: 0.25rem 0;
+            opacity: 0.9;
+        }
+
+        /* Custom Cursor - Hidden on mobile */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1001;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+            mix-blend-mode: difference;
+            display: none;
+        }
+
+        .custom-cursor.large {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-color: white;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .color-picker-container {
+                padding: 1.5rem;
+                width: 98%;
+                max-height: 95vh;
+            }
+
+            .apply-section {
+                flex-direction: column;
+            }
+
+            .controls {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 1rem;
+            }
+
+            .mobile-instructions {
+                top: 1rem;
+                max-width: 280px;
+                padding: 0.75rem 1rem;
+            }
+
+            .stats {
+                display: none; /* Hide stats on mobile to save space */
+            }
+        }
+
+        /* Performance mode indicator */
+        .performance-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            z-index: 50;
+        }
+
+        @media (max-width: 768px) {
+            .performance-indicator {
+                bottom: 1rem;
+                left: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Virtual Disk -->
+    <div class="mobile-disk" id="mobileDisk"></div>
+
+    <!-- Color Picker Modal -->
+    <div class="color-modal" id="colorModal">
+        <div class="color-picker-container">
+            <div class="color-header">
+                <h3>🎨 Fluid Color Designer</h3>
+                <button class="close-btn" onclick="closeColorPicker()">×</button>
+            </div>
+
+            <div class="color-modes">
+                <button class="mode-btn active" onclick="setColorMode('two-color')">Two Colors</button>
+                <button class="mode-btn" onclick="setColorMode('single')">Single Color</button>
+                <button class="mode-btn" onclick="setColorMode('gradient')">Gradient Mix</button>
+            </div>
+
+            <div class="color-section" id="color1Section">
+                <h4>🫧 Primary Color</h4>
+                <div class="color-picker-wrapper">
+                    <div class="spectrum-gradient" id="spectrum1" data-color-id="1"></div>
+                    <div class="color-preview">
+                        <div class="color-box" id="preview1" data-color="#3B82F6"></div>
+                        <input type="color" id="colorInput1" class="color-input" value="#3B82F6">
+                    </div>
+                </div>
+                <div class="quick-colors" id="quickColors1">
+                    <!-- Quick colors added by JS -->
+                </div>
+            </div>
+
+            <div class="color-section" id="color2Section">
+                <h4>💧 Secondary Color</h4>
+                <div class="color-picker-wrapper">
+                    <div class="spectrum-gradient" id="spectrum2" data-color-id="2"></div>
+                    <div class="color-preview">
+                        <div class="color-box" id="preview2" data-color="#F97316"></div>
+                        <input type="color" id="colorInput2" class="color-input" value="#F97316">
+                    </div>
+                </div>
+                <div class="quick-colors" id="quickColors2">
+                    <!-- Quick colors added by JS -->
+                </div>
+            </div>
+
+            <div class="properties-section">
+                <h4>⚙️ Fluid Properties</h4>
+                <div class="property-group">
+                    <div class="property-label">
+                        <span>Saturation</span>
+                        <span id="satValue">70%</span>
+                    </div>
+                    <input type="range" id="saturation" class="property-slider" min="0" max="100" value="70">
+                </div>
+                <div class="property-group">
+                    <div class="property-label">
+                        <span>Lightness</span>
+                        <span id="lightValue">50%</span>
+                    </div>
+                    <input type="range" id="lightness" class="property-slider" min="20" max="80" value="50">
+                </div>
+            </div>
+
+            <div class="apply-section">
+                <button class="cancel-btn" onclick="closeColorPicker()">Cancel</button>
+                <button class="apply-btn" onclick="applyColors()">Apply Colors</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Instructions -->
+    <div class="mobile-instructions" id="mobileInstructions">
+        <h4>🎮 Touch to Start</h4>
+        <p>Touch anywhere to create the virtual disk. Drag it around to interact with the liquid paint!</p>
+    </div>
+
+    <!-- Performance Indicator -->
+    <div class="performance-indicator" id="performanceIndicator">
+        Mobile Mode • 300 particles
+    </div>
+
+    <!-- Hero Section - No title -->
+    <section class="hero">
+        <!-- Fluid Canvas -->
+        <canvas id="fluidCanvas"></canvas>
+
+        <!-- Hero Content (Hidden) -->
+        <div class="hero-content">
+            <h1>Advanced Fluid Dynamics</h1>
+            <p>Full-spectrum color control! Choose any colors imaginable and watch them dance and swirl like liquid art.</p>
+        </div>
+    </section>
+
+    <!-- Controls -->
+    <div class="controls">
+        <h3>Fluid Controls</h3>
+        <button class="control-btn" onclick="openColorPicker()">🎨 Pick Colors</button>
+        <button class="control-btn" onclick="adjustInfluence(10)">More Influence</button>
+        <button class="control-btn" onclick="adjustInfluence(-10)">Less Influence</button>
+        <button class="control-btn" onclick="toggleTrails()">Toggle Trails</button>
+        <button class="control-btn" onclick="resetSimulation()">Reset Fluid</button>
+    </div>
+
+    <!-- Stats Display -->
+    <div class="stats">
+        <div>FPS: <span id="fps">60</span></div>
+        <div>Particles: <span id="particleCount">0</span></div>
+        <div>Disk Vel: <span id="mouseVel">0</span></div>
+    </div>
+
+    <!-- Custom Cursor (Hidden on mobile) -->
+    <div class="custom-cursor" id="customCursor"></div>
+
+    <script>
+        // Mobile detection - improved for device emulator testing
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768;
+
+        // Color management
+        let colorMode = 'two-color';
+        let customColors = {
+            color1: '#3B82F6',
+            color2: '#F97316',
+            saturation: 70,
+            lightness: 50
+        };
+
+        // Quick color presets
+        const quickColorPresets = [
+            '#3B82F6', '#F97316', '#EF4444', '#10B981',
+            '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B',
+            '#6366F1', '#84CC16', '#F43F5E', '#06B6D4',
+            '#A855F7', '#22D3EE', '#F97316', '#34D399'
+        ];
+
+        // Simple CSS-based color picker
+        function initColorPickers() {
+            // Set up event listeners for the spectrum gradients
+            setupColorPicker('spectrum1', 'preview1', 'colorInput1', 1);
+            setupColorPicker('spectrum2', 'preview2', 'colorInput2', 2);
+
+            // Set up native color inputs
+            document.getElementById('colorInput1').addEventListener('change', (e) => {
+                updateColorFromInput(1, e.target.value);
+            });
+
+            document.getElementById('colorInput2').addEventListener('change', (e) => {
+                updateColorFromInput(2, e.target.value);
+            });
+
+            // Create quick color buttons
+            createQuickColorButtons();
+        }
+
+        function setupColorPicker(spectrumId, previewId, inputId, colorIndex) {
+            const spectrum = document.getElementById(spectrumId);
+
+            spectrum.addEventListener('click', (e) => {
+                const rect = spectrum.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+
+                // Get color from position
+                const color = getColorFromPosition(x, y);
+                updateColorFromPicker(colorIndex, color);
+            });
+
+            // Touch support
+            spectrum.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const rect = spectrum.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = (touch.clientX - rect.left) / rect.width;
+                const y = (touch.clientY - rect.top) / rect.height;
+
+                // Get color from position
+                const color = getColorFromPosition(x, y);
+                updateColorFromPicker(colorIndex, color);
+            });
+        }
+
+        function getColorFromPosition(x, y) {
+            // Calculate HSL from position
+            const hue = x * 360;
+            const lightness = 100 - (y * 80); // 100% to 20%
+            const saturation = 100;
+
+            // Convert HSL to RGB to Hex
+            return hslToHex(hue, saturation, lightness);
+        }
+
+        function updateColorFromPicker(colorIndex, color) {
+            const previewId = colorIndex === 1 ? 'preview1' : 'preview2';
+            const inputId = colorIndex === 1 ? 'colorInput1' : 'colorInput2';
+
+            const preview = document.getElementById(previewId);
+            const input = document.getElementById(inputId);
+
+            if (preview) {
+                preview.style.backgroundColor = color;
+                preview.setAttribute('data-color', color);
+            }
+
+            if (input) {
+                input.value = color;
+            }
+
+            if (colorIndex === 1) {
+                customColors.color1 = color;
+            } else {
+                customColors.color2 = color;
+            }
+
+            updateQuickColorSelection(colorIndex, color);
+        }
+
+        function updateColorFromInput(colorIndex, color) {
+            updateColorFromPicker(colorIndex, color);
+        }
+
+        function updateQuickColorSelection(colorIndex, color) {
+            const quickColorsId = colorIndex === 1 ? 'quickColors1' : 'quickColors2';
+            const quickColors = document.getElementById(quickColorsId);
+
+            Array.from(quickColors.children).forEach(btn => {
+                btn.classList.toggle('selected',
+                    btn.style.backgroundColor.toUpperCase() === color.toUpperCase());
+            });
+        }
+
+        function createQuickColorButtons() {
+            const quickColors1 = document.getElementById('quickColors1');
+            const quickColors2 = document.getElementById('quickColors2');
+
+            quickColorPresets.forEach(color => {
+                const btn1 = document.createElement('div');
+                btn1.className = 'quick-color';
+                btn1.style.backgroundColor = color;
+                btn1.onclick = () => setQuickColor(1, color);
+                quickColors1.appendChild(btn1);
+
+                const btn2 = document.createElement('div');
+                btn2.className = 'quick-color';
+                btn2.style.backgroundColor = color;
+                btn2.onclick = () => setQuickColor(2, color);
+                quickColors2.appendChild(btn2);
+            });
+        }
+
+        function setQuickColor(colorIndex, color) {
+            if (colorIndex === 1) {
+                customColors.color1 = color;
+                const preview = document.getElementById('preview1');
+                preview.style.backgroundColor = color;
+                preview.setAttribute('data-color', color);
+                document.getElementById('colorInput1').value = color;
+                updateQuickColorSelection(1, color);
+            } else {
+                customColors.color2 = color;
+                const preview = document.getElementById('preview2');
+                preview.style.backgroundColor = color;
+                preview.setAttribute('data-color', color);
+                document.getElementById('colorInput2').value = color;
+                updateQuickColorSelection(2, color);
+            }
+        }
+
+        function openColorPicker() {
+            document.getElementById('colorModal').classList.add('active');
+        }
+
+        function closeColorPicker() {
+            document.getElementById('colorModal').classList.remove('active');
+        }
+
+        function setColorMode(mode) {
+            colorMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Show/hide second color section
+            document.getElementById('color2Section').style.display =
+                mode === 'single' ? 'none' : 'block';
+        }
+
+        function applyColors() {
+            particles.forEach(particle => particle.updateColor());
+            closeColorPicker();
+
+            // Visual feedback
+            console.log('Colors applied:', customColors);
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function hexToHsl(hex) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return { h: 0, s: 70, l: 50 };
+
+            const r = rgb.r / 255;
+            const g = rgb.g / 255;
+            const b = rgb.b / 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        function hslToHex(h, s, l) {
+            h = h / 360;
+            s = s / 100;
+            l = l / 100;
+
+            let r, g, b;
+
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+
+            const toHex = x => {
+                const hex = Math.round(x * 255).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            };
+
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        // Canvas setup
+        const canvas = document.getElementById('fluidCanvas');
+        const ctx = canvas.getContext('2d');
+        const cursor = document.getElementById('customCursor');
+        const mobileDisk = document.getElementById('mobileDisk');
+
+        // Mobile disk variables
+        let diskActive = false;
+        let diskX = 0;
+        let diskY = 0;
+        let prevDiskX = 0;
+        let prevDiskY = 0;
+        let diskVelX = 0;
+        let diskVelY = 0;
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Fluid simulation variables
+        let particles = [];
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+        let prevMouseX = mouseX;
+        let prevMouseY = mouseY;
+        let mouseVelX = 0;
+        let mouseVelY = 0;
+        let influenceRadius = 120;
+        let trailsEnabled = true;
+
+        // Performance tracking
+        let frameCount = 0;
+        let fps = 60;
+        let lastTime = performance.now();
+
+        // Determine particle count based on device
+        function getParticleCount() {
+            if (isMobile) {
+                // Mobile optimized: 300 particles
+                return 300;
+            } else {
+                // Desktop: 800+ particles
+                return 800;
+            }
+        }
+
+        // Enhanced fluid particle class
+        class FluidParticle {
+            constructor(x, y, colorIndex = 0) {
+                this.x = x;
+                this.y = y;
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = 2 + Math.random() * 2;
+                this.colorIndex = colorIndex;
+                this.mass = 1 + Math.random() * 0.5;
+
+                this.updateColor();
+            }
+
+            updateColor() {
+                let hexColor;
+
+                if (colorMode === 'single') {
+                    hexColor = customColors.color1;
+                } else if (colorMode === 'gradient') {
+                    hexColor = this.colorIndex % 2 === 0 ? customColors.color1 : customColors.color2;
+                } else {
+                    hexColor = this.colorIndex % 2 === 0 ? customColors.color1 : customColors.color2;
+                }
+
+                const hsl = hexToHsl(hexColor);
+                this.hue = hsl.h;
+                this.saturation = customColors.saturation;
+                this.lightness = customColors.lightness;
+            }
+
+            update() {
+                // Use disk position on mobile, mouse position on desktop
+                const targetX = isMobile ? diskX : mouseX;
+                const targetY = isMobile ? diskY : mouseY;
+
+                // Calculate distance to interaction point
+                const dx = this.x - targetX;
+                const dy = this.y - targetY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Influence zone
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+
+                    // Calculate tangent for swirling motion
+                    const tangentX = -Math.sin(angle);
+                    const tangentY = Math.cos(angle);
+
+                    // Use disk velocity on mobile, mouse velocity on desktop
+                    const velX = isMobile ? diskVelX : mouseVelX;
+                    const velY = isMobile ? diskVelY : mouseVelY;
+
+                    // Apply swirling force
+                    const swirlStrength = velX * tangentX + velY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (velX * tangentY - velY * tangentX) * influence * 0.3 / this.mass;
+
+                    // Add radial force for mixing
+                    const radialForce = Math.min(velX * velX + velY * velY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+                }
+
+                // Spring force back to original position
+                const springForce = 0.005;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+
+                // Apply velocity with damping
+                const damping = 0.92;
+                this.vx *= damping;
+                this.vy *= damping;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Boundary collision
+                if (this.x < this.radius || this.x > canvas.width - this.radius) {
+                    this.vx *= -0.7;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+                if (this.y < this.radius || this.y > canvas.height - this.radius) {
+                    this.vy *= -0.7;
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                }
+            }
+
+            draw() {
+                const velocityMagnitude = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                const alpha = Math.min(0.8, 0.4 + velocityMagnitude * 0.02);
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${alpha})`;
+                ctx.fill();
+
+                // Add glow effect for fast-moving particles
+                if (velocityMagnitude > 2) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, ${alpha * 0.3})`;
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Initialize particle grid
+        function initParticles() {
+            particles = [];
+            const targetCount = getParticleCount();
+
+            // Calculate spacing based on target particle count
+            const spacing = Math.max(20, Math.min(40, Math.sqrt((canvas.width * canvas.height) / (targetCount * 4))));
+
+            for (let x = spacing; x < canvas.width; x += spacing) {
+                for (let y = spacing; y < canvas.height; y += spacing) {
+                    const colorIndex = (x + y) % (spacing * 2) < spacing ? 0 : 1;
+                    particles.push(new FluidParticle(x, y, colorIndex));
+
+                    // Stop if we reach target count
+                    if (particles.length >= targetCount) {
+                        break;
+                    }
+                }
+                if (particles.length >= targetCount) {
+                    break;
+                }
+            }
+
+            document.getElementById('particleCount').textContent = particles.length;
+        }
+
+        // Mobile touch handling
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+
+            // Hide instructions after first touch
+            const instructions = document.getElementById('mobileInstructions');
+            if (instructions) {
+                instructions.style.display = 'none';
+            }
+
+            // Activate and position disk
+            diskActive = true;
+            diskX = touch.clientX;
+            diskY = touch.clientY;
+            prevDiskX = diskX;
+            prevDiskY = diskY;
+
+            mobileDisk.style.left = diskX + 'px';
+            mobileDisk.style.top = diskY + 'px';
+            mobileDisk.classList.add('active', 'dragging');
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!diskActive) return;
+
+            const touch = e.touches[0];
+            prevDiskX = diskX;
+            prevDiskY = diskY;
+            diskX = touch.clientX;
+            diskY = touch.clientY;
+
+            // Update disk position
+            mobileDisk.style.left = diskX + 'px';
+            mobileDisk.style.top = diskY + 'px';
+
+            // Calculate disk velocity
+            diskVelX = diskX - prevDiskX;
+            diskVelY = diskY - prevDiskY;
+
+            // Update velocity display
+            const velocity = Math.sqrt(diskVelX * diskVelX + diskVelY * diskVelY);
+            const velDisplay = document.getElementById('mouseVel');
+            if (velDisplay) {
+                velDisplay.textContent = velocity.toFixed(1);
+            }
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            diskActive = false;
+            diskVelX = 0;
+            diskVelY = 0;
+            mobileDisk.classList.remove('dragging');
+
+            // Gradually fade disk after release
+            setTimeout(() => {
+                if (!diskActive) {
+                    mobileDisk.classList.remove('active');
+                }
+            }, 1000);
+        }
+
+        // Desktop mouse movement handlers
+        document.addEventListener('mousemove', (e) => {
+            if (isMobile) return;
+
+            prevMouseX = mouseX;
+            prevMouseY = mouseY;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            mouseVelX = mouseX - prevMouseX;
+            mouseVelY = mouseY - prevMouseY;
+
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+
+            const velocity = Math.sqrt(mouseVelX * mouseVelX + mouseVelY * mouseVelY);
+            document.getElementById('mouseVel').textContent = velocity.toFixed(1);
+        });
+
+        // Mouse event handlers for device emulator testing
+        function handleMouseDown(e) {
+            if (!isMobile) return;
+            e.preventDefault();
+
+            // Hide instructions after first click
+            const instructions = document.getElementById('mobileInstructions');
+            if (instructions) {
+                instructions.style.display = 'none';
+            }
+
+            // Activate and position disk
+            diskActive = true;
+            diskX = e.clientX;
+            diskY = e.clientY;
+            prevDiskX = diskX;
+            prevDiskY = diskY;
+
+            mobileDisk.style.left = diskX + 'px';
+            mobileDisk.style.top = diskY + 'px';
+            mobileDisk.classList.add('active', 'dragging');
+        }
+
+        function handleMouseMove(e) {
+            if (!isMobile || !diskActive) return;
+            e.preventDefault();
+
+            prevDiskX = diskX;
+            prevDiskY = diskY;
+            diskX = e.clientX;
+            diskY = e.clientY;
+
+            // Update disk position
+            mobileDisk.style.left = diskX + 'px';
+            mobileDisk.style.top = diskY + 'px';
+
+            // Calculate disk velocity
+            diskVelX = diskX - prevDiskX;
+            diskVelY = diskY - prevDiskY;
+
+            // Update velocity display
+            const velocity = Math.sqrt(diskVelX * diskVelX + diskVelY * diskVelY);
+            const velDisplay = document.getElementById('mouseVel');
+            if (velDisplay) {
+                velDisplay.textContent = velocity.toFixed(1);
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (!isMobile) return;
+            e.preventDefault();
+            diskActive = false;
+            diskVelX = 0;
+            diskVelY = 0;
+            mobileDisk.classList.remove('dragging');
+
+            // Gradually fade disk after release
+            setTimeout(() => {
+                if (!diskActive) {
+                    mobileDisk.classList.remove('active');
+                }
+            }, 1000);
+        }
+
+        // Add mouse events for device emulator testing
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        // Set up touch events
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+        // Also allow touch on body
+        document.addEventListener('touchstart', handleTouchStart, { passive: false });
+        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+        document.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+        // Animation loop
+        function animate() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                document.getElementById('fps').textContent = fps;
+            }
+
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            // Update disk color to match selected fluid color
+            if (diskActive) {
+                const hsl = hexToHsl(customColors.color1);
+                mobileDisk.style.background = `radial-gradient(circle at 30% 30%,
+                    hsla(${hsl.h}, ${customColors.saturation}%, ${customColors.lightness}%, 0.8),
+                    hsla(${hsl.h}, ${customColors.saturation}%, ${customColors.lightness}%, 0.4),
+                    hsla(${hsl.h}, ${customColors.saturation}%, ${customColors.lightness}%, 0.1))`;
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Control functions
+        function adjustInfluence(delta) {
+            influenceRadius = Math.max(50, Math.min(200, influenceRadius + delta));
+            console.log('Influence radius:', influenceRadius);
+        }
+
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+            const btn = document.querySelectorAll('.control-btn')[3];
+            btn.classList.toggle('active');
+        }
+
+        function resetSimulation() {
+            initParticles();
+            particles.forEach(particle => particle.updateColor());
+        }
+
+        // Property sliders
+        document.getElementById('saturation').addEventListener('input', (e) => {
+            customColors.saturation = e.target.value;
+            document.getElementById('satValue').textContent = e.target.value + '%';
+        });
+
+        document.getElementById('lightness').addEventListener('input', (e) => {
+            customColors.lightness = e.target.value;
+            document.getElementById('lightValue').textContent = e.target.value + '%';
+        });
+
+        // Mouse hover effect for cursor (desktop only)
+        document.addEventListener('mousedown', () => {
+            if (!isMobile) cursor.classList.add('large');
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isMobile) cursor.classList.remove('large');
+        });
+
+        // Initialize everything based on device
+        if (isMobile) {
+            // Mobile-specific setup
+            cursor.style.display = 'none';
+            document.body.style.cursor = 'auto';
+
+            // Update performance indicator
+            document.getElementById('performanceIndicator').textContent = 'Mobile Mode • 300 particles';
+
+            console.log('Mobile liquid paint initialized with virtual disk interaction');
+        } else {
+            // Desktop-specific setup
+            document.getElementById('mobileInstructions').style.display = 'none';
+            document.getElementById('performanceIndicator').style.display = 'none';
+            cursor.style.display = 'block';
+
+            console.log('Desktop liquid paint initialized with mouse interaction');
+        }
+
+        // Start the simulation
+        initColorPickers();
+        initParticles();
+        animate();
+
+        console.log('Mobile-Optimized Liquid Paint loaded - Version 7');
+        console.log('Mobile users: Touch to create virtual disk, drag to interact!');
+        console.log('Desktop users: Use mouse as before');
+    </script>
+</body>
+</html>

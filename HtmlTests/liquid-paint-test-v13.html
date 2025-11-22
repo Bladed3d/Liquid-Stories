@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile-Optimized Angel Liquid Paint v13</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            cursor: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Background Layer - Coupon */
+        #backgroundCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        /* Main Image Layer - Particles */
+        #fluidCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: transparent;
+        }
+
+        /* Universal Puck - Mobile Optimized */
+        .universal-puck {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%,
+                rgba(255,255,255,0.9),
+                rgba(255,255,255,0.5),
+                rgba(255,255,255,0.1));
+            border: 3px solid rgba(255,255,255,0.8);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5),
+                        0 0 40px rgba(255,255,255,0.3);
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+            transition: none;
+            display: block;
+            left: 50%;
+            top: 50%;
+        }
+
+        .universal-puck.dragging {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 30px rgba(255,255,255,0.8),
+                        0 0 60px rgba(255,255,255,0.5);
+        }
+
+        /* Instructions - Mobile Optimized */
+        .puck-instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 50;
+            max-width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .puck-instructions h4 {
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            opacity: 1;
+        }
+
+        .puck-instructions p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        /* Stats Display - Desktop Only */
+        .stats {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats div {
+            margin: 4px 0;
+            opacity: 0.9;
+        }
+
+        /* Hamburger Menu - Mobile Only */
+        .hamburger-menu {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-menu:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .hamburger-line {
+            width: 24px;
+            height: 2px;
+            background: white;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+
+        /* Mobile Menu Backdrop */
+        .menu-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1002;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-backdrop.active {
+            display: flex;
+        }
+
+        /* Mobile Menu Panel */
+        .menu-panel {
+            background: rgba(20, 20, 20, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .menu-header h3 {
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .close-menu {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-menu:hover {
+            background: rgba(255, 0, 72, 0.2);
+            border-color: #fe0048;
+        }
+
+        .menu-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .menu-control-btn {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            min-height: 50px;
+        }
+
+        .menu-control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .menu-control-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        /* Desktop Controls - Hidden on Mobile */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .controls h3 {
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+
+        .control-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        /* Loading indicator */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            text-align: center;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .stats {
+                display: none; /* Hide stats on mobile */
+            }
+
+            .controls {
+                display: none; /* Hide desktop controls on mobile */
+            }
+
+            .hamburger-menu {
+                display: flex; /* Show hamburger on mobile */
+            }
+
+            .puck-instructions {
+                top: 10px;
+                padding: 10px 16px;
+                font-size: 0.8rem;
+            }
+
+            .universal-puck {
+                width: 50px;
+                height: 50px;
+                border-width: 2px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .hamburger-menu {
+                display: none; /* Hide hamburger on desktop */
+            }
+
+            .menu-backdrop {
+                display: none !important; /* Never show mobile menu on desktop */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading indicator -->
+    <div class="loading" id="loading">
+        Loading angel image system...
+    </div>
+
+    <!-- Puck Instructions -->
+    <div class="puck-instructions" id="puckInstructions">
+        <h4>🎮 Angel Liquid Paint</h4>
+        <p>Touch and drag to interact with the angel!</p>
+    </div>
+
+    <!-- Stats Display - Desktop Only -->
+    <div class="stats">
+        <div>FPS: <span id="fps">60</span></div>
+        <div>Particles: <span id="particleCount">0</span></div>
+        <div>Puck Vel: <span id="puckVel">0</span></div>
+        <div>Status: <span id="status">Initializing</span></div>
+    </div>
+
+    <!-- Desktop Controls - Hidden on Mobile -->
+    <div class="controls">
+        <h3>Angel Controls</h3>
+        <button class="control-btn" onclick="adjustInfluence(10)">More Influence</button>
+        <button class="control-btn" onclick="adjustInfluence(-10)">Less Influence</button>
+        <button class="control-btn" onclick="toggleTrails()">Toggle Trails</button>
+        <button class="control-btn active" onclick="resetSimulation()">Reset Angel</button>
+    </div>
+
+    <!-- Hamburger Menu - Mobile Only -->
+    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <!-- Mobile Menu Backdrop -->
+    <div class="menu-backdrop" id="menuBackdrop" onclick="closeMobileMenu()">
+        <div class="menu-panel" onclick="event.stopPropagation()">
+            <div class="menu-header">
+                <h3>🎮 Angel Controls</h3>
+                <button class="close-menu" onclick="closeMobileMenu()">×</button>
+            </div>
+            <div class="menu-controls">
+                <button class="menu-control-btn" onclick="mobileAdjustInfluence(10)">More Influence</button>
+                <button class="menu-control-btn" onclick="mobileAdjustInfluence(-10)">Less Influence</button>
+                <button class="menu-control-btn" onclick="mobileToggleTrails()">Toggle Trails</button>
+                <button class="menu-control-btn active" onclick="mobileResetSimulation()">Reset Angel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Background Canvas (Coupon Layer) -->
+        <canvas id="backgroundCanvas"></canvas>
+
+        <!-- Main Image Layer (Particles) -->
+        <canvas id="fluidCanvas"></canvas>
+    </section>
+
+    <!-- Universal Puck -->
+    <div class="universal-puck" id="universalPuck"></div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('fluidCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('backgroundCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const universalPuck = document.getElementById('universalPuck');
+        const loading = document.getElementById('loading');
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const menuBackdrop = document.getElementById('menuBackdrop');
+
+        // Image configuration - Your angel image from GitHub
+        const IMAGE_SIZE = 700;
+        const IMAGE_URL = 'https://raw.githubusercontent.com/Bladed3d/images/main/angel-07.png';
+
+        // Universal puck variables
+        let puckActive = false;
+        let puckX = window.innerWidth / 2;
+        let puckY = window.innerHeight / 2;
+        let prevPuckX = puckX;
+        let prevPuckY = puckY;
+        let puckVelX = 0;
+        let puckVelY = 0;
+
+        // Mobile menu state
+        let mobileMenuOpen = false;
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            drawCouponBackground();
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Draw coupon background
+        function drawCouponBackground() {
+            bgCtx.fillStyle = '#0a0a0a';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            bgCtx.fillStyle = '#fe0048';
+            bgCtx.font = 'bold 56px Arial';
+            bgCtx.textAlign = 'center';
+            bgCtx.textBaseline = 'middle';
+
+            bgCtx.fillText('Coupon Code', bgCanvas.width / 2, bgCanvas.height / 2 - 60);
+            bgCtx.fillText('BlackFriday21', bgCanvas.width / 2, bgCanvas.height / 2);
+            bgCtx.fillText('Save 30%', bgCanvas.width / 2, bgCanvas.height / 2 + 60);
+
+            updateStatus('Background ready');
+        }
+
+        // Fluid simulation variables
+        let particles = [];
+        let influenceRadius = 120;
+        let trailsEnabled = false;
+        let imageLoaded = false;
+        let sourceImage = null;
+
+        // Performance tracking
+        let frameCount = 0;
+        let fps = 60;
+        let lastTime = performance.now();
+
+        // Grid variables
+        let gridCols, gridRows;
+        let scaledWidth, scaledHeight;
+
+        // Image particle class
+        class ImageParticle {
+            constructor(x, y, gridX, gridY, pieceWidth, pieceHeight, renderWidth, renderHeight, offsetX, offsetY, scaledWidth, scaledHeight) {
+                this.x = x;
+                this.y = y;
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = 2;
+                this.mass = 1 + Math.random() * 0.5;
+
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.pieceWidth = pieceWidth;
+                this.pieceHeight = pieceHeight;
+                this.renderWidth = renderWidth;
+                this.renderHeight = renderHeight;
+                this.offsetX = offsetX;
+                this.offsetY = offsetY;
+                this.scaledWidth = scaledWidth;
+                this.scaledHeight = scaledHeight;
+                this.rotation = 0;
+            }
+
+            update() {
+                // Use puck position for universal interaction
+                const dx = this.x - puckX;
+                const dy = this.y - puckY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+
+                    const tangentX = -Math.sin(angle);
+                    const tangentY = Math.cos(angle);
+
+                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+
+                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+                }
+
+                const springForce = 0.005;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+
+                const damping = 0.92;
+                this.vx *= damping;
+                this.vy *= damping;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < this.radius || this.x > canvas.width - this.radius) {
+                    this.vx *= -0.7;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+                if (this.y < this.radius || this.y > canvas.height - this.radius) {
+                    this.vy *= -0.7;
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                }
+            }
+
+            draw() {
+                if (!imageLoaded || !sourceImage) return;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                try {
+                    const sourcePieceWidth = sourceImage.width / gridCols;
+                    const sourcePieceHeight = sourceImage.height / gridRows;
+                    const sourceX = this.gridX * sourcePieceWidth;
+                    const sourceY = this.gridY * sourcePieceHeight;
+
+                    ctx.drawImage(
+                        sourceImage,
+                        sourceX, sourceY,
+                        sourcePieceWidth, sourcePieceHeight,
+                        -this.renderWidth / 2, -this.renderHeight / 2,
+                        this.renderWidth, this.renderHeight
+                    );
+                } catch (error) {
+                    console.error('Error drawing image piece:', error);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Load image
+        function loadImage() {
+            updateStatus('Loading angel image...');
+
+            const img = new Image();
+
+            img.onload = function() {
+                // Calculate image dimensions
+                const imageAspect = img.width / img.height;
+                if (imageAspect > 1) {
+                    scaledWidth = IMAGE_SIZE;
+                    scaledHeight = IMAGE_SIZE / imageAspect;
+                } else {
+                    scaledHeight = IMAGE_SIZE;
+                    scaledWidth = IMAGE_SIZE * imageAspect;
+                }
+
+                // Pre-resize for perfect grid division
+                const resizedCanvas = document.createElement('canvas');
+                resizedCanvas.width = Math.floor(scaledWidth);
+                resizedCanvas.height = Math.floor(scaledHeight);
+                const resizedCtx = resizedCanvas.getContext('2d');
+                resizedCtx.imageSmoothingEnabled = false;
+                resizedCtx.drawImage(img, 0, 0, resizedCanvas.width, resizedCanvas.height);
+                sourceImage = resizedCanvas;
+
+                imageLoaded = true;
+                loading.style.display = 'none';
+                initImageParticles();
+                updateStatus('Angel image loaded, creating bristles...');
+                console.log('Angel image loaded successfully');
+            };
+
+            img.onerror = function() {
+                console.error('Failed to load angel image, creating demo...');
+                createDemoAngel();
+            };
+
+            img.src = IMAGE_URL;
+        }
+
+        // Create demo angel as fallback
+        function createDemoAngel() {
+            console.log('Creating demo angel...');
+
+            const demoCanvas = document.createElement('canvas');
+            demoCanvas.width = IMAGE_SIZE;
+            demoCanvas.height = IMAGE_SIZE;
+            const demoCtx = demoCanvas.getContext('2d');
+
+            // Angel-like gradient
+            const gradient = demoCtx.createRadialGradient(
+                IMAGE_SIZE/2, IMAGE_SIZE/3, 0,
+                IMAGE_SIZE/2, IMAGE_SIZE/2, IMAGE_SIZE/2
+            );
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.3, '#ffd700');
+            gradient.addColorStop(0.7, '#fe802d');
+            gradient.addColorStop(1, '#fe0048');
+
+            demoCtx.fillStyle = gradient;
+            demoCtx.fillRect(0, 0, IMAGE_SIZE, IMAGE_SIZE);
+
+            // Angel symbol
+            demoCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            demoCtx.font = 'bold 120px Arial';
+            demoCtx.textAlign = 'center';
+            demoCtx.textBaseline = 'middle';
+            demoCtx.fillText('☤', IMAGE_SIZE/2, IMAGE_SIZE/2);
+
+            // Halo
+            demoCtx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+            demoCtx.lineWidth = 8;
+            demoCtx.beginPath();
+            demoCtx.arc(IMAGE_SIZE/2, IMAGE_SIZE/3, 60, 0, Math.PI * 2);
+            demoCtx.stroke();
+
+            demoCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            demoCtx.font = 'bold 36px Arial';
+            demoCtx.fillText('ANGEL v13', IMAGE_SIZE/2, IMAGE_SIZE - 50);
+
+            const demoImg = new Image();
+            demoImg.onload = function() {
+                sourceImage = demoImg;
+                imageLoaded = true;
+                loading.style.display = 'none';
+                initImageParticles();
+                updateStatus('Demo angel created - bristles ready!');
+            };
+            demoImg.src = demoCanvas.toDataURL();
+        }
+
+        // Initialize particles
+        function initImageParticles() {
+            if (!imageLoaded) return;
+
+            particles = [];
+            const imageX = Math.floor((canvas.width - IMAGE_SIZE) / 2);
+            const imageY = Math.floor((canvas.height - IMAGE_SIZE) / 2);
+
+            const spacing = 7;
+            gridCols = Math.floor(IMAGE_SIZE / spacing);
+            gridRows = Math.floor(IMAGE_SIZE / spacing);
+            const pieceWidth = spacing;
+            const pieceHeight = spacing;
+
+            const offsetX = (IMAGE_SIZE - scaledWidth) / 2;
+            const offsetY = (IMAGE_SIZE - scaledHeight) / 2;
+
+            for (let gridY = 0; gridY < gridRows; gridY++) {
+                for (let gridX = 0; gridX < gridCols; gridX++) {
+                    const x = imageX + offsetX + (gridX * spacing) + (spacing / 2);
+                    const y = imageY + offsetY + (gridY * spacing) + (spacing / 2);
+
+                    particles.push(new ImageParticle(
+                        x, y, gridX, gridY, pieceWidth, pieceHeight,
+                        (scaledWidth / gridCols), (scaledHeight / gridRows),
+                        offsetX, offsetY, scaledWidth, scaledHeight
+                    ));
+                }
+            }
+
+            updateParticleCount();
+            updateStatus(`Angel bristles ready! Influence: ${influenceRadius}px`);
+
+            console.log('Angel bristle system created:', particles.length, 'particles');
+        }
+
+        // Universal puck interaction handlers
+        function handlePuckStart(e) {
+            const instructions = document.getElementById('puckInstructions');
+            if (instructions) {
+                instructions.style.display = 'none';
+            }
+
+            let clientX, clientY;
+            if (e.type === 'touchstart') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            puckActive = true;
+            puckX = clientX;
+            puckY = clientY;
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+
+            universalPuck.style.left = puckX + 'px';
+            universalPuck.style.top = puckY + 'px';
+            universalPuck.classList.add('dragging');
+        }
+
+        function handlePuckMove(e) {
+            if (!puckActive) return;
+
+            let clientX, clientY;
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+            puckX = clientX;
+            puckY = clientY;
+
+            universalPuck.style.left = puckX + 'px';
+            universalPuck.style.top = puckY + 'px';
+
+            puckVelX = puckX - prevPuckX;
+            puckVelY = puckY - prevPuckY;
+
+            updateVelocityDisplay();
+        }
+
+        function handlePuckEnd(e) {
+            if (!puckActive) return;
+            puckActive = false;
+            puckVelX = 0;
+            puckVelY = 0;
+            universalPuck.classList.remove('dragging');
+        }
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            mobileMenuOpen = !mobileMenuOpen;
+            if (mobileMenuOpen) {
+                menuBackdrop.classList.add('active');
+            } else {
+                menuBackdrop.classList.remove('active');
+            }
+        }
+
+        function closeMobileMenu() {
+            mobileMenuOpen = false;
+            menuBackdrop.classList.remove('active');
+        }
+
+        // Mobile control functions
+        function mobileAdjustInfluence(delta) {
+            adjustInfluence(delta);
+            closeMobileMenu();
+        }
+
+        function mobileToggleTrails() {
+            toggleTrails();
+            closeMobileMenu();
+        }
+
+        function mobileResetSimulation() {
+            resetSimulation();
+            closeMobileMenu();
+        }
+
+        // Event listeners
+        document.addEventListener('mousedown', handlePuckStart);
+        document.addEventListener('mousemove', handlePuckMove);
+        document.addEventListener('mouseup', handlePuckEnd);
+
+        document.addEventListener('touchstart', function(e) {
+            handlePuckStart(e);
+            e.preventDefault();
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            handlePuckMove(e);
+            e.preventDefault();
+        });
+
+        document.addEventListener('touchend', function(e) {
+            handlePuckEnd(e);
+        });
+
+        // Animation loop
+        function animate() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                updateFPS();
+            }
+
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Control functions
+        function adjustInfluence(delta) {
+            influenceRadius = Math.max(50, Math.min(300, influenceRadius + delta));
+            updateStatus(`Influence radius: ${influenceRadius}px`);
+            updateInfluenceButtons();
+        }
+
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+            // Update desktop button
+            const desktopBtn = document.querySelectorAll('.control-btn')[2];
+            if (desktopBtn) desktopBtn.classList.toggle('active');
+            // Update mobile button
+            const mobileBtn = document.querySelectorAll('.menu-control-btn')[2];
+            if (mobileBtn) mobileBtn.classList.toggle('active');
+        }
+
+        function resetSimulation() {
+            if (imageLoaded) {
+                initImageParticles();
+            }
+        }
+
+        function updateInfluenceButtons() {
+            const moreBtn = document.querySelectorAll('.control-btn')[0];
+            const lessBtn = document.querySelectorAll('.control-btn')[1];
+            const mobileMoreBtn = document.querySelectorAll('.menu-control-btn')[0];
+            const mobileLessBtn = document.querySelectorAll('.menu-control-btn')[1];
+
+            [moreBtn, mobileMoreBtn].forEach(btn => {
+                if (btn) btn.classList.remove('active');
+            });
+            [lessBtn, mobileLessBtn].forEach(btn => {
+                if (btn) btn.classList.remove('active');
+            });
+
+            if (influenceRadius >= 250) {
+                [moreBtn, mobileMoreBtn].forEach(btn => {
+                    if (btn) btn.classList.add('active');
+                });
+            } else if (influenceRadius <= 75) {
+                [lessBtn, mobileLessBtn].forEach(btn => {
+                    if (btn) btn.classList.add('active');
+                });
+            }
+        }
+
+        // Update functions
+        function updateFPS() {
+            const fpsElement = document.getElementById('fps');
+            if (fpsElement) fpsElement.textContent = fps;
+        }
+
+        function updateParticleCount() {
+            const countElement = document.getElementById('particleCount');
+            if (countElement) countElement.textContent = particles.length;
+        }
+
+        function updateVelocityDisplay() {
+            const velocity = Math.sqrt(puckVelX * puckVelX + puckVelY * puckVelY);
+            const velElement = document.getElementById('puckVel');
+            if (velElement) velElement.textContent = velocity.toFixed(1);
+        }
+
+        function updateStatus(status) {
+            const statusElement = document.getElementById('status');
+            if (statusElement) statusElement.textContent = status;
+        }
+
+        // Initialize
+        drawCouponBackground();
+        loadImage();
+        animate();
+
+        // Initialize influence button state
+        setTimeout(() => {
+            updateInfluenceButtons();
+        }, 100);
+
+        console.log('Mobile-Optimized Angel Liquid Paint v13 loaded');
+        console.log('Universal puck + mobile hamburger menu');
+    </script>
+</body>
+</html>
