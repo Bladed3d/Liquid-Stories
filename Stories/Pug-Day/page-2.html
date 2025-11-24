@@ -238,10 +238,14 @@
         window.addEventListener('resize', resizeCanvases);
         resizeCanvases(); // Call immediately after definition
 
-        // Draw backboard
+        // Draw backboard (dark background only)
         function drawCouponBackground() {
             bgCtx.fillStyle = '#0a0a0a';
             bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+        }
+
+        // Draw backboard text (called only when images are loaded)
+        function drawBackboardTexts() {
             bgCtx.font = 'bold 56px Arial';
             bgCtx.textAlign = 'center';
             bgCtx.textBaseline = 'middle';
@@ -411,6 +415,8 @@
             if (loadedImages === 2) {
                 imageLoaded = true;
                 loading.style.display = 'none';
+                // Draw backboard text now that images are loaded
+                drawBackboardTexts();
                 initParticles();
                 loadInfluenceFromConfig();
                 setupInfluenceSlider();
