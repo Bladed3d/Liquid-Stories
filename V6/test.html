@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Stories V6 - Test Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            cursor: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #backgroundCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        #particleCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: transparent;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading indicator -->
+    <div class="loading" id="loading">
+        Loading Liquid Stories...
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Background Canvas -->
+        <canvas id="backgroundCanvas"></canvas>
+
+        <!-- Main Particle Canvas -->
+        <canvas id="particleCanvas"></canvas>
+    </section>
+
+    <script type="module">
+        import { ParticleSystem } from './js/particle-system.js';
+        import { ImageLoader } from './js/image-loader.js';
+        import { InteractionHandler } from './js/interaction-handler.js';
+        import { StoryController } from './js/story-controller.js';
+
+        class TestApp {
+            constructor() {
+                this.particleSystem = null;
+                this.imageLoader = null;
+                this.interactionHandler = null;
+                this.storyController = null;
+            }
+
+            async initialize() {
+                try {
+                    console.log('Initializing test application...');
+
+                    const particleCanvas = document.getElementById('particleCanvas');
+                    const backgroundCanvas = document.getElementById('backgroundCanvas');
+
+                    // Initialize image loader
+                    this.imageLoader = new ImageLoader({
+                        basePath: './images/',
+                        enableFallbacks: true
+                    });
+
+                    // Mock image loading for tests
+                    const mockImages = await this.loadMockImages();
+
+                    // Initialize particle system
+                    this.particleSystem = new ParticleSystem(particleCanvas, {
+                        particleCount: 10000,
+                        targetFPS: 60,
+                        interactionRadius: 150
+                    });
+
+                    // Initialize interaction handler
+                    this.interactionHandler = new InteractionHandler(particleCanvas, {
+                        enableMouse: true,
+                        enableTouch: false,
+                        enableUniversalPuck: false // Disable for simpler testing
+                    });
+
+                    // Initialize story controller
+                    this.storyController = new StoryController({
+                        transitionDuration: 500,
+                        enableURLPersistence: false // Disable for simpler testing
+                    });
+
+                    // Set up system references
+                    this.storyController.setSystemReferences(this.particleSystem, this.imageLoader);
+
+                    // Initialize background
+                    this.initializeBackground(backgroundCanvas);
+
+                    // Set up interaction
+                    this.interactionHandler.on('move', (data) => {
+                        if (this.particleSystem) {
+                            this.particleSystem.setInteractionPosition(data.x, data.y, true);
+                        }
+                    });
+
+                    // Expose globally for tests
+                    window.particleSystem = this.particleSystem;
+                    window.storyController = this.storyController;
+                    window.imageLoader = this.imageLoader;
+                    window.deviceDetector = {
+                        detect: () => ({
+                            isDesktop: true,
+                            isMobile: false,
+                            capabilities: { touch: false },
+                            performance: 'high'
+                        })
+                    };
+
+                    // Start particle system
+                    this.particleSystem.start();
+
+                    // Hide loading
+                    document.getElementById('loading').style.display = 'none';
+
+                    console.log('Test application initialized successfully!');
+
+                } catch (error) {
+                    console.error('Failed to initialize:', error);
+                    // Still expose error state for tests
+                    window.particleSystem = { error: error.message };
+                    window.storyController = { error: error.message };
+                }
+            }
+
+            async loadMockImages() {
+                // Create mock images for testing
+                return ['KidHappy.png', 'KidScared.png', 'Monster01.png', 'Monster02.png'];
+            }
+
+            initializeBackground(canvas) {
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                // Simple gradient background
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                gradient.addColorStop(0, '#1a1a2a');
+                gradient.addColorStop(1, '#0a0a0a');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        // Initialize application
+        const app = new TestApp();
+        app.initialize();
+    </script>
+</body>
+</html>

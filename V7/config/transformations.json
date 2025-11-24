@@ -1,0 +1,31 @@
+{
+  "transformations": [
+    {
+      "id": "1to2",
+      "from": 1,
+      "to": 2,
+      "fromImage": "images/KidHappy.png",
+      "toImage": "images/KidScared.png",
+      "title": "Happy to Scared",
+      "description": "Child's expression changes from happy to scared"
+    },
+    {
+      "id": "2to3",
+      "from": 2,
+      "to": 3,
+      "fromImage": "images/KidScared.png",
+      "toImage": "images/Monster01.png",
+      "title": "Scared to Monster",
+      "description": "Transformation from scared child to first monster"
+    },
+    {
+      "id": "3to4",
+      "from": 3,
+      "to": 4,
+      "fromImage": "images/Monster01.png",
+      "toImage": "images/Monster02.png",
+      "title": "Monster Evolves",
+      "description": "Monster transforms to second form"
+    }
+  ]
+}

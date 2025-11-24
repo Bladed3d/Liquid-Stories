@@ -1,0 +1,69 @@
+I want to use as few of your tokens as possible, so don't rewrite the whole code, but can you write a snippet of code to help me add a feature where when the mouse button is pressed and dragged, the image will transition back from image2 to image1 on those tiles.JavaScript// Add this global variable near other globals
+let isDragging = false;
+
+// In desktop handlers:
+function handleDesktopMouseDown() { 
+    if (!isMobile) { 
+        isDragging = true;
+        universalPuck.classList.add('dragging'); 
+    } 
+}
+function handleDesktopMouseUp() { 
+    if (!isMobile) { 
+        isDragging = false;
+        universalPuck.classList.remove('dragging'); 
+    } 
+}
+
+// In mobile handlers:
+function handlePuckStart(e) {
+    if (isMobile) {
+        // ... existing code ...
+        isDragging = true;
+    }
+}
+function handlePuckEnd() {
+    if (isMobile) {
+        // ... existing code ...
+        isDragging = false;
+    }
+}
+
+// In Particle class update() method, replace the influence logic with:
+if (distance < influenceRadius) {
+    const influence = 1 - (distance / influenceRadius);
+    // Physics forces (existing)
+    const angle = Math.atan2(dy, dx);
+    const tangentX = -Math.sin(angle), tangentY = Math.cos(angle);
+    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+    this.vx += swirlStrength * influence * 0.3 / this.mass;
+    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+
+    // Transition logic
+    if (isDragging) {
+        // Reverse to image1
+        if (this.currentImage === 2) {
+            this.targetImage = 1;
+            this.transitionProgress = Math.max(0, this.transitionProgress - 0.02 * influence);
+        }
+    } else {
+        // Forward to image2
+        if (this.currentImage === 1) {
+            this.targetImage = 2;
+            this.transitionProgress = Math.min(1, this.transitionProgress + 0.02 * influence);
+        }
+    }
+} else if (this.currentImage === 2 && !isDragging) {
+    this.targetImage = 1;
+    this.transitionProgress = Math.max(0, this.transitionProgress - 0.005);
+}
+
+// After updating position/rotation, add this to handle reverse completion:
+if (this.transitionProgress >= 1 && this.currentImage !== this.targetImage) {
+    this.currentImage = this.targetImage;
+} else if (this.transitionProgress <= 0 && this.currentImage !== this.targetImage) {
+    this.currentImage = this.targetImage;
+}

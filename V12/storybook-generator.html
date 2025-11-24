@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storybook Generator</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a1a; color: white; padding: 40px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; background: #2a2a2a; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        h1 { text-align: center; color: #fe0048; margin-bottom: 40px; font-size: 2.5rem; }
+        .config-section { margin: 30px 0; }
+        .config-section h2 { color: #fe802d; margin-bottom: 15px; }
+        textarea { width: 100%; height: 400px; background: #1a1a1a; color: #00ff00; border: 2px solid #444; border-radius: 8px; padding: 15px; font-family: 'Courier New', monospace; font-size: 14px; }
+        .generate-btn { display: block; width: 100%; padding: 20px; background: linear-gradient(45deg, #fe802d, #fe0048); color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin: 30px 0; transition: transform 0.3s ease; }
+        .generate-btn:hover { transform: scale(1.05); }
+        .result { background: #1a1a1a; padding: 20px; border-radius: 8px; margin: 20px 0; display: none; }
+        .result.success { border: 2px solid #00ff00; }
+        .result.error { border: 2px solid #ff0000; }
+        .file-list { margin: 15px 0; }
+        .file-list li { margin: 8px 0; color: #00ff00; }
+        .instructions { background: #333; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .instructions h3 { color: #fe802d; margin-bottom: 10px; }
+        .instructions h4 { color: #fe802d; margin-bottom: 10px; }
+        .generated-files { margin: 20px 0; }
+        .file-section { margin: 20px 0; border: 1px solid #444; border-radius: 8px; overflow: hidden; }
+        .file-header { background: #444; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .file-header h4 { margin: 0; color: #fe802d; }
+        .copy-btn { background: linear-gradient(45deg, #fe802d, #fe0048); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .copy-btn:hover { transform: scale(1.05); }
+        .generated-content { width: 100%; height: 300px; background: #1a1a1a; color: #00ff00; border: none; padding: 15px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4; resize: vertical; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Storybook Generator</h1>
+
+        <div class="instructions">
+            <h3>📖 How to Use:</h3>
+            <ol>
+                <li>Edit the story configuration below</li>
+                <li>Set your desired page count</li>
+                <li>Configure images and text for each page</li>
+                <li>Click "Generate Storybook" button</li>
+                <li>Open <code>generated/storybook-page-1.html</code> to start your story</li>
+            </ol>
+        </div>
+
+        <div class="config-section">
+            <h2>🎨 Story Configuration</h2>
+            <textarea id="configInput">{
+  "story": {
+    "title": "The Monster Adventure",
+    "pageCount": 3,
+    "timelineGraphic": "timeline.png"
+  },
+  "pages": [
+    {
+      "pageNumber": 1,
+      "image1Url": "KidHappy.png",
+      "image2Url": "KidScared.png",
+      "backboardTexts": [
+        { "text": "Monsters are", "yOffset": -60, "color": "#fe0048", "size": 56 },
+        { "text": "Not Real", "yOffset": 0, "color": "#fe0048", "size": 56 },
+        { "text": "Nothing to Fear", "yOffset": 60, "color": "#fe0048", "size": 46 }
+      ]
+    },
+    {
+      "pageNumber": 2,
+      "image1Url": "KidScared.png",
+      "image2Url": "BraveKid.png",
+      "backboardTexts": [
+        { "text": "You are", "yOffset": -60, "color": "#00ff00", "size": 56 },
+        { "text": "Getting Brave", "yOffset": 0, "color": "#00ff00", "size": 56 },
+        { "text": "Keep Going", "yOffset": 60, "color": "#00ff00", "size": 46 }
+      ]
+    },
+    {
+      "pageNumber": 3,
+      "image1Url": "BraveKid.png",
+      "image2Url": "HeroKid.png",
+      "backboardTexts": [
+        { "text": "You are", "yOffset": -60, "color": "#4169e1", "size": 56 },
+        { "text": "A Hero", "yOffset": 0, "color": "#4169e1", "size": 56 },
+        { "text": "Amazing Job", "yOffset": 60, "color": "#4169e1", "size": 46 }
+      ]
+    }
+  ]
+}</textarea>
+        </div>
+
+        <button class="generate-btn" onclick="generateStorybook()">🚀 Generate Storybook</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        async function generateStorybook() {
+            try {
+                const configText = document.getElementById('configInput').value;
+                const config = JSON.parse(configText);
+
+                validateConfig(config);
+                const generatedFiles = [];
+
+                // Show guidance message
+                showResult(true, `⏳ Generating ${config.story.pageCount} storybook pages...<br><br><strong>Simple Local Instructions:</strong><br>1. Create a folder for your storybook (e.g., "Fishing")<br>2. Copy each generated HTML below into separate files<br>3. Copy the config content into story-config.json<br>4. Add your image files to the same folder<br><br>📁 Generating content...`, []);
+
+                // Generate content for each page
+                for (let i = 1; i <= config.story.pageCount; i++) {
+                    const pageData = config.pages.find(p => p.pageNumber === i);
+                    if (!pageData) {
+                        throw new Error(`Missing data for page ${i}`);
+                    }
+
+                    const htmlContent = await generatePageHTML(config, pageData);
+                    const fileName = `storybook-page-${i}.html`;
+
+                    generatedFiles.push({ fileName, content: htmlContent });
+                }
+
+                // Display all generated content for copy-paste
+                displayGeneratedContent(config, generatedFiles);
+
+            } catch (error) {
+                showResult(false, `❌ Error: ${error.message}`);
+            }
+        }
+
+        function displayGeneratedContent(config, generatedFiles) {
+            const resultDiv = document.getElementById('result');
+
+            let html = `<h3>✅ Success! Generated ${config.story.pageCount} storybook pages:</h3>`;
+            html += '<div class="instructions">';
+            html += '<h4>📋 Simple Steps:</h4>';
+            html += '<ol>';
+            html += '<li>Create a folder for your story (e.g., "Fishing")</li>';
+            html += '<li>For each file below, click "Copy HTML" and paste into a new file with the exact filename</li>';
+            html += '<li>Copy the config content into story-config.json</li>';
+            html += '<li>Add your image files (KidHappy.png, KidScared.png, etc.) to the same folder</li>';
+            html += '<li>Open storybook-page-1.html to start your story!</li>';
+            html += '</ol>';
+            html += '</div>';
+
+            html += '<div class="generated-files">';
+
+            generatedFiles.forEach((file, index) => {
+                html += `
+                    <div class="file-section">
+                        <div class="file-header">
+                            <h4>📄 ${file.fileName}</h4>
+                            <button onclick="copyToClipboard('file-${index}')" class="copy-btn">📋 Copy HTML</button>
+                        </div>
+                        <textarea id="file-${index}" class="generated-content" readonly>${escapeHtml(file.content)}</textarea>
+                    </div>
+                `;
+            });
+
+            // Add config file
+            const configContent = JSON.stringify(config, null, 2);
+            html += `
+                <div class="file-section">
+                    <div class="file-header">
+                        <h4>⚙️ story-config.json</h4>
+                        <button onclick="copyToClipboard('config-file')" class="copy-btn">📋 Copy Config</button>
+                    </div>
+                    <textarea id="config-file" class="generated-content" readonly>${escapeHtml(configContent)}</textarea>
+                </div>
+            `;
+
+            html += '</div>';
+            resultDiv.innerHTML = html;
+            resultDiv.className = 'result success';
+            resultDiv.style.display = 'block';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function copyToClipboard(textareaId) {
+            const textarea = document.getElementById(textareaId);
+            textarea.select();
+            document.execCommand('copy');
+
+            // Visual feedback
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ Copied!';
+            button.style.background = '#00ff00';
+            button.style.color = '#000';
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+                button.style.color = '';
+            }, 2000);
+        }
+
+        function validateConfig(config) {
+            if (!config.story || !config.story.pageCount) {
+                throw new Error('Missing story pageCount');
+            }
+            if (!config.pages || config.pages.length !== config.story.pageCount) {
+                throw new Error('Page count mismatch with pages array length');
+            }
+        }
+
+        function generatePageHTML(config, pageData) {
+            // Embedded template to avoid fetch security issues
+            const template = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{STORY_TITLE}} - Page {{CURRENT_PAGE}}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: white; overflow: hidden; cursor: none; user-select: none; -webkit-user-select: none; touch-action: none; }
+        .hero { position: relative; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #backgroundCanvas { position: absolute; inset: 0; z-index: 1; background: #0a0a0a; }
+        #fluidCanvas { position: absolute; inset: 0; z-index: 2; background: transparent; }
+        .universal-puck { position: fixed; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.5), rgba(255,255,255,0.1)); border: 3px solid rgba(255,255,255,0.8); box-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3); pointer-events: none; z-index: 1000; transform: translate(-50%, -50%); display: block; left: 50%; top: 50%; }
+        .universal-puck.dragging { transform: translate(-50%, -50%) scale(1.2); box-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 60px rgba(255,255,255,0.5); }
+        .universal-puck.desktop-following { transform: translate(-50%, -50%) scale(1.0); }
+
+        /* Progress Container */
+        .progress-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); padding: 15px 25px; border-radius: 12px; text-align: center; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.2); min-width: 300px; }
+        .progress-title { font-size: 0.9rem; margin-bottom: 10px; opacity: 0.9; }
+        .progress-bar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(45deg, #fe802d, #fe0048); border-radius: 4px; transition: width 0.3s ease; width: 0%; }
+        .progress-text { font-size: 1.1rem; font-weight: bold; color: #fe0048; text-shadow: 0 0 10px rgba(254, 0, 72, 0.5); }
+
+        /* Story Timeline */
+        .timeline-container { position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%); z-index: 90; display: flex; align-items: center; gap: 8px; padding: 15px 25px; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .timeline-node { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #444; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; transition: all 0.3s ease; position: relative; }
+        .timeline-node.completed { border-color: #00ff00; background: rgba(0, 255, 0, 0.2); color: #00ff00; }
+        .timeline-node.current { border-color: #fe802d; background: rgba(254, 128, 45, 0.3); color: #fe802d; box-shadow: 0 0 15px rgba(254, 128, 45, 0.5); animation: pulse 2s infinite; }
+        .timeline-node.future { border-color: #666; background: rgba(102, 102, 102, 0.1); color: #666; }
+        .timeline-connector { width: 30px; height: 3px; background: #444; transition: all 0.3s ease; }
+        .timeline-connector.completed { background: #00ff00; }
+        .timeline-connector.current { background: linear-gradient(90deg, #00ff00, #fe802d); animation: flowProgress 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes flowProgress { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+        /* Other UI Elements */
+        .puck-instructions { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); padding: 12px 20px; border-radius: 12px; text-align: center; z-index: 50; max-width: 90%; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .puck-instructions h4 { margin-bottom: 6px; font-size: 0.9rem; opacity: 1; }
+        .puck-instructions p { font-size: 0.8rem; opacity: 0.8; line-height: 1.4; }
+        .hamburger-menu { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 1001; transition: all 0.3s ease; }
+        .hamburger-menu:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
+        .hamburger-line { width: 24px; height: 2px; background: white; margin: 2px 0; transition: all 0.3s ease; }
+        .menu-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 1002; display: none; align-items: center; justify-content: center; }
+        .menu-backdrop.active { display: flex; }
+        .menu-panel { background: rgba(20, 20, 20, 0.98); backdrop-filter: blur(20px); border-radius: 20px; padding: 24px; max-width: 400px; width: 90%; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+        .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .menu-header h3 { font-size: 1.2rem; background: linear-gradient(45deg, #fe802d, #fe0048); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .close-menu { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .close-menu:hover { background: rgba(255, 0, 72, 0.2); border-color: #fe0048; }
+        .menu-controls { display: flex; flex-direction: column; gap: 12px; }
+        .menu-control-btn { padding: 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-size: 1rem; font-weight: 500; text-align: center; min-height: 50px; }
+        .menu-control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+        .menu-control-btn.active { background: linear-gradient(45deg, #fe802d, #fe0048); border-color: transparent; }
+        .controls { position: fixed; bottom: 20px; right: 20px; z-index: 100; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .controls h3 { font-size: 0.9rem; margin-bottom: 12px; opacity: 0.8; }
+        .control-btn { display: block; width: 100%; padding: 12px 16px; margin: 8px 0; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        .control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
+        .control-btn.active { background: linear-gradient(45deg, #fe802d, #fe0048); border-color: transparent; }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; text-align: center; font-size: 1.2rem; opacity: 0.9; }
+        .completion-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: rgba(254, 0, 72, 0.95); padding: 30px 40px; border-radius: 20px; text-align: center; z-index: 2000; box-shadow: 0 20px 60px rgba(254, 0, 72, 0.5); animation: popIn 0.5s ease forwards; }
+        @keyframes popIn { to { transform: translate(-50%, -50%) scale(1); } }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <canvas id="backgroundCanvas"></canvas>
+        <canvas id="fluidCanvas"></canvas>
+    </section>
+
+    <!-- Timeline Container -->
+    <div class="timeline-container" id="timelineContainer">
+        <!-- Timeline nodes will be auto-generated here -->
+    </div>
+
+    <div class="universal-puck" id="universalPuck"></div>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-title" id="progressTitle">{{PROGRESS_TITLE}}</div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">0% Revealed</div>
+    </div>
+
+    <div class="puck-instructions" id="puckInstructions">
+        <h4>Universal Puck Controls</h4>
+        <p>Desktop: Move mouse to interact<br>Mobile: Touch and drag puck</p>
+    </div>
+
+    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <div class="menu-backdrop" id="menuBackdrop" onclick="closeMobileMenu()">
+        <div class="menu-panel">
+            <div class="menu-header">
+                <h3>Controls</h3>
+                <button class="close-menu" onclick="closeMobileMenu()">×</button>
+            </div>
+            <div class="menu-controls">
+                <button class="menu-control-btn" onclick="mobileAdjustInfluence(10)">More Influence</button>
+                <button class="menu-control-btn" onclick="mobileAdjustInfluence(-10)">Less Influence</button>
+                <button class="menu-control-btn" onclick="mobileToggleTrails()">Toggle Trails</button>
+                <button class="menu-control-btn" onclick="mobileResetToKidHappy()">Reset to Kid Happy</button>
+                <button class="menu-control-btn" onclick="mobileAutoCompleteKidScared()">Complete to Kid Scared</button>
+                <button class="menu-control-btn" id="reverseModeBtn" onclick="toggleReverseMode()">Reverse Mode: <span id="reverseModeText">OFF</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls" id="desktopControls">
+        <h3>Controls</h3>
+        <button class="control-btn" onclick="adjustInfluence(10)">More Influence</button>
+        <button class="control-btn" onclick="adjustInfluence(-10)">Less Influence</button>
+        <button class="control-btn" onclick="toggleTrails()">Toggle Trails</button>
+        <button class="control-btn" onclick="resetToKidHappy()">Reset to Kid Happy</button>
+        <button class="control-btn" onclick="autoCompleteKidScared()">Complete to Kid Scared</button>
+    </div>
+
+    <div class="loading" id="loading">Loading dual image system...</div>
+
+    <script>
+        // Story Configuration (auto-populated from generator)
+        const image1Url = '{{IMAGE1_URL}}';
+        const image2Url = '{{IMAGE2_URL}}';
+        const backboardTexts = {{BACKBOARD_TEXTS}};
+        const totalPages = {{TOTAL_PAGES}};
+        const currentPage = {{CURRENT_PAGE}};
+        const nextPage = {{NEXT_PAGE}};
+        const isLastPage = {{IS_LAST_PAGE}};
+
+        // Core variables
+        const canvas = document.getElementById('fluidCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('backgroundCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const universalPuck = document.getElementById('universalPuck');
+        const progressTitle = document.getElementById('progressTitle');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const puckInstructions = document.getElementById('puckInstructions');
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const menuBackdrop = document.getElementById('menuBackdrop');
+        const desktopControls = document.getElementById('desktopControls');
+        const loading = document.getElementById('loading');
+
+        let particles = [];
+        let image1, image2;
+        let sourceImage1, sourceImage2;
+        let puckX, puckY;
+        let prevPuckX, prevPuckY;
+        let puckVelX = 0, puckVelY = 0;
+        let puckActive = false;
+        let mouseInCanvas = false;
+        let influenceRadius = 105;
+        let trailsEnabled = false;
+        let imageSize = 700;
+        let scaledWidth, scaledHeight;
+        let imageLoaded = false;
+        let currentImage = 1;
+        let transformationComplete = false;
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        let mobileMenuOpen = false;
+        let reverseMode = false;
+        let isDragging = false;
+        let loadedImages = 0;
+
+        // Generate Timeline
+        function generateTimeline() {
+            const timelineContainer = document.getElementById('timelineContainer');
+            timelineContainer.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                // Create page node
+                const node = document.createElement('div');
+                node.className = \`timeline-node \${i < currentPage ? 'completed' : i === currentPage ? 'current' : 'future'}\`;
+                node.textContent = i;
+                node.title = \`Page \${i}\`;
+                timelineContainer.appendChild(node);
+
+                // Add connector (except after last page)
+                if (i < totalPages) {
+                    const connector = document.createElement('div');
+                    connector.className = \`timeline-connector \${i < currentPage ? 'completed' : i === currentPage ? 'current' : ''}\`;
+                    timelineContainer.appendChild(connector);
+                }
+            }
+        }
+
+        // Resize canvases
+        function resizeCanvases() {
+            canvas.width = bgCanvas.width = window.innerWidth;
+            canvas.height = bgCanvas.height = window.innerHeight;
+            drawCouponBackground();
+            if (imageLoaded) initParticles();
+        }
+        window.addEventListener('resize', resizeCanvases);
+
+        // Draw backboard
+        function drawCouponBackground() {
+            bgCtx.fillStyle = '#0a0a0a';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+            bgCtx.font = 'bold 56px Arial';
+            bgCtx.textAlign = 'center';
+            bgCtx.textBaseline = 'middle';
+            backboardTexts.forEach(line => {
+                bgCtx.fillStyle = line.color;
+                bgCtx.font = \`bold \${line.size}px Arial\`;
+                bgCtx.fillText(line.text, bgCanvas.width / 2, bgCanvas.height / 2 + line.yOffset);
+            });
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, gridX, gridY) {
+                this.x = this.originalX = x;
+                this.y = this.originalY = y;
+                this.vx = this.vy = 0;
+                this.radius = 2;
+                this.mass = 1 + Math.random() * 0.5;
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.currentImage = this.targetImage = 1;
+                this.transitionProgress = 0;
+                this.rotation = 0;
+            }
+            update() {
+                const dx = this.x - puckX, dy = this.y - puckY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+                    const tangentX = -Math.sin(angle), tangentY = Math.cos(angle);
+                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+
+                    // Transition logic
+                    const isReverseActive = reverseMode || isDragging;
+                    if (isReverseActive) {
+                        // Reverse: gradual to image1 (same growing transition)
+                        if (this.currentImage === 2 || this.targetImage === 2) {
+                            this.targetImage = 1;
+                            this.transitionProgress = Math.min(1, this.transitionProgress + 0.12 * influence);
+                        }
+                    } else {
+                        // Normal: image1 -> image2 transformation
+                        if (this.currentImage === 1) {
+                            this.targetImage = 2;
+                            this.transitionProgress = Math.min(1, this.transitionProgress + 0.12 * influence);
+                        }
+                    }
+                } else if (this.currentImage === 2 && !isDragging && !reverseMode) {
+                    this.targetImage = 1;
+                    this.transitionProgress = Math.max(0, this.transitionProgress - 0.005);
+                }
+                const springForce = 0.005;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+                const damping = 0.92;
+                this.vx *= damping; this.vy *= damping;
+                this.x += this.vx; this.y += this.vy;
+                this.rotation += this.vx * 0.01;
+                if (this.transitionProgress >= 1 && this.currentImage !== this.targetImage) this.currentImage = this.targetImage;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                const sourceImage = this.currentImage === 1 ? sourceImage1 : sourceImage2;
+                const pieceWidth = imageSize / 100, pieceHeight = imageSize / 100;
+                const sourceX = this.gridX * pieceWidth, sourceY = this.gridY * pieceHeight;
+                // Slightly larger to overlap and eliminate lines
+                const overlap = 2;
+                ctx.drawImage(sourceImage, sourceX, sourceY, pieceWidth, pieceHeight, -pieceWidth / 2 - overlap/2, -pieceHeight / 2 - overlap/2, pieceWidth + overlap, pieceHeight + overlap);
+                ctx.restore();
+            }
+            resetToImage1() {
+                this.currentImage = this.targetImage = 1;
+                this.transitionProgress = 0;
+            }
+            forceToImage2() {
+                this.currentImage = this.targetImage = 2;
+                this.transitionProgress = 1;
+            }
+        }
+
+        // Initialize particles
+        function initParticles() {
+            particles = [];
+            const imageX = (canvas.width - imageSize) / 2;
+            const imageY = (canvas.height - imageSize) / 2;
+            const spacing = imageSize / 100;
+            for (let gridY = 0; gridY < 100; gridY++) {
+                for (let gridX = 0; gridX < 100; gridX++) {
+                    const x = imageX + (gridX * spacing) + spacing / 2;
+                    const y = imageY + (gridY * spacing) + spacing / 2;
+                    particles.push(new Particle(x, y, gridX, gridY));
+                }
+            }
+        }
+
+        // Load images
+        function loadDualImages() {
+            const img1 = new Image();
+            img1.src = image1Url;
+            img1.onload = () => {
+                const resizedCanvas1 = resizeImage(img1);
+                sourceImage1 = resizedCanvas1;
+                checkImagesLoaded();
+            };
+            img1.onerror = () => {
+                sourceImage1 = createDemoImage('😊 START', '#FFD700', '#FFA500');
+                checkImagesLoaded();
+            };
+
+            const img2 = new Image();
+            img2.src = image2Url;
+            img2.onload = () => {
+                const resizedCanvas2 = resizeImage(img2);
+                sourceImage2 = resizedCanvas2;
+                checkImagesLoaded();
+            };
+            img2.onerror = () => {
+                sourceImage2 = createDemoImage('😰 END', '#4169E1', '#000080');
+                checkImagesLoaded();
+            };
+        }
+
+        // Resize image to fit 700x700
+        function resizeImage(img) {
+            const aspect = img.width / img.height;
+            scaledWidth = aspect > 1 ? imageSize : imageSize * aspect;
+            scaledHeight = aspect > 1 ? imageSize / aspect : imageSize;
+            const resizedCanvas = document.createElement('canvas');
+            resizedCanvas.width = scaledWidth;
+            resizedCanvas.height = scaledHeight;
+            const resizedCtx = resizedCanvas.getContext('2d');
+            resizedCtx.imageSmoothingEnabled = false;
+            resizedCtx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
+            return resizedCanvas;
+        }
+
+        // Create demo image fallback
+        function createDemoImage(textEmoji, color1, color2) {
+            const demoCanvas = document.createElement('canvas');
+            demoCanvas.width = imageSize;
+            demoCanvas.height = imageSize;
+            const demoCtx = demoCanvas.getContext('2d');
+            const gradient = demoCtx.createRadialGradient(imageSize/2, imageSize/2, 0, imageSize/2, imageSize/2, imageSize/2);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            demoCtx.fillStyle = gradient;
+            demoCtx.fillRect(0, 0, imageSize, imageSize);
+            demoCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            demoCtx.font = 'bold 48px Arial';
+            demoCtx.textAlign = 'center';
+            demoCtx.textBaseline = 'middle';
+            demoCtx.fillText(textEmoji.split(' ')[0], imageSize/2, imageSize/2 - 30);
+            demoCtx.fillText(textEmoji.split(' ')[1] + ' ' + textEmoji.split(' ')[2], imageSize/2, imageSize/2 + 30);
+            return demoCanvas;
+        }
+
+        function checkImagesLoaded() {
+            loadedImages++;
+            if (loadedImages === 2) {
+                imageLoaded = true;
+                loading.style.display = 'none';
+                initParticles();
+            }
+        }
+
+        // Update progress
+        function updateProgress() {
+            const image2Count = particles.filter(p => p.currentImage === 2).length;
+            const percentage2 = Math.round((image2Count / particles.length) * 100);
+            progressFill.style.width = percentage2 + '%';
+            progressText.textContent = percentage2 + '% Revealed';
+
+            // Check if 100% revealed and switch to next page
+            if (percentage2 === 100 && !transformationComplete) {
+                completeTransformation(2);
+                if (!isLastPage) {
+                    setTimeout(() => {
+                        window.location.href = {{NEXT_PAGE}};
+                    }, 2000);
+                } else {
+                    showCompletionMessage('Story Complete!', '🎉 Amazing Journey! 🎉');
+                }
+            }
+        }
+
+        // Complete transformation
+        function completeTransformation(targetImage) {
+            if (transformationComplete) return;
+            transformationComplete = true;
+            currentImage = targetImage;
+            particles.forEach(p => {
+                p.currentImage = p.targetImage = targetImage;
+                p.transitionProgress = 0;
+            });
+            if (targetImage === 2) {
+                progressTitle.textContent = '✨ Complete! ✨';
+                progressFill.style.width = '100%';
+                progressText.textContent = '100% Revealed';
+            }
+            setTimeout(() => { transformationComplete = false; }, 2000);
+        }
+
+        // Show completion message
+        function showCompletionMessage(title, message) {
+            const completionDiv = document.createElement('div');
+            completionDiv.className = 'completion-message';
+            completionDiv.innerHTML = \`<h2>\${title}</h2><p>\${message}</p>\`;
+            document.body.appendChild(completionDiv);
+            setTimeout(() => { document.body.removeChild(completionDiv); }, 3000);
+        }
+
+        // Puck handlers
+        function handlePuckStart(e) {
+            if (isMobile) {
+                puckInstructions.style.display = 'none';
+                puckActive = true;
+                const touch = e.touches[0];
+                puckX = prevPuckX = touch.clientX;
+                puckY = prevPuckY = touch.clientY;
+                universalPuck.style.left = puckX + 'px';
+                universalPuck.style.top = puckY + 'px';
+                universalPuck.classList.add('dragging');
+            }
+        }
+        function handlePuckMove(e) {
+            if (isMobile && puckActive) {
+                const touch = e.touches[0];
+                prevPuckX = puckX; prevPuckY = puckY;
+                puckX = touch.clientX; puckY = touch.clientY;
+                universalPuck.style.left = puckX + 'px';
+                universalPuck.style.top = puckY + 'px';
+                universalPuck.classList.add('dragging');
+                puckVelX = puckX - prevPuckX; puckVelY = puckY - prevPuckY;
+                updateProgress();
+            }
+        }
+        function handlePuckEnd() {
+            if (isMobile) {
+                puckActive = false;
+                puckVelX = puckVelY = 0;
+                universalPuck.classList.remove('dragging');
+            }
+        }
+
+        // Desktop mouse handlers
+        function handleDesktopMouseMove(e) {
+            if (!isMobile) {
+                prevPuckX = puckX; prevPuckY = puckY;
+                puckX = e.clientX; puckY = e.clientY;
+                universalPuck.style.left = puckX + 'px';
+                universalPuck.style.top = puckY + 'px';
+                universalPuck.classList.add('desktop-following');
+                puckVelX = puckX - prevPuckX; puckVelY = puckY - prevPuckY;
+                updateProgress();
+            }
+        }
+        function handleDesktopMouseDown() {
+            if (!isMobile) {
+                isDragging = true;
+                universalPuck.classList.add('dragging');
+            }
+        }
+        function handleDesktopMouseUp() {
+            if (!isMobile) {
+                isDragging = false;
+                universalPuck.classList.remove('dragging');
+            }
+        }
+        function handleDesktopMouseEnter() {
+            if (!isMobile) {
+                mouseInCanvas = true;
+                universalPuck.style.display = 'block';
+            }
+        }
+        function handleDesktopMouseLeave() {
+            if (!isMobile) {
+                mouseInCanvas = false;
+                universalPuck.classList.remove('dragging', 'desktop-following');
+            }
+        }
+
+        // Mobile menu
+        function toggleMobileMenu() {
+            mobileMenuOpen = !mobileMenuOpen;
+            menuBackdrop.classList.toggle('active', mobileMenuOpen);
+        }
+        function closeMobileMenu() {
+            mobileMenuOpen = false;
+            menuBackdrop.classList.remove('active');
+        }
+
+        // Control functions
+        function adjustInfluence(delta) {
+            influenceRadius = Math.max(50, Math.min(300, influenceRadius + delta));
+        }
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+            document.querySelectorAll('.control-btn')[1]?.classList.toggle('active');
+            document.querySelectorAll('.menu-control-btn')[1]?.classList.toggle('active');
+        }
+        function resetToKidHappy() {
+            transformationComplete = false;
+            particles.forEach(p => p.resetToImage1());
+            progressTitle.textContent = '{{PROGRESS_TITLE}}';
+            updateProgress();
+        }
+        function autoCompleteKidScared() {
+            particles.forEach(p => p.forceToImage2());
+            updateProgress();
+            completeTransformation(2);
+        }
+        function mobileAdjustInfluence(delta) { adjustInfluence(delta); closeMobileMenu(); }
+        function mobileToggleTrails() { toggleTrails(); closeMobileMenu(); }
+        function mobileResetToKidHappy() { resetToKidHappy(); closeMobileMenu(); }
+        function mobileAutoCompleteKidScared() { autoCompleteKidScared(); closeMobileMenu(); }
+        function toggleReverseMode() {
+            reverseMode = !reverseMode;
+            document.getElementById('reverseModeText').textContent = reverseMode ? 'ON' : 'OFF';
+            document.getElementById('reverseModeBtn').classList.toggle('active', reverseMode);
+            closeMobileMenu();
+        }
+
+        // Animation loop
+        function animate() {
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize
+        function initialize() {
+            // Set initial puck position above controls
+            puckX = window.innerWidth - 50;
+            puckY = window.innerHeight - 200;
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+            universalPuck.style.left = puckX + 'px';
+            universalPuck.style.top = puckY + 'px';
+
+            generateTimeline();
+            drawCouponBackground();
+            loadDualImages();
+            animate();
+        }
+
+        // Event listeners
+        if (isMobile) {
+            document.addEventListener('touchstart', handlePuckStart, { passive: false });
+            document.addEventListener('touchmove', handlePuckMove, { passive: false });
+            document.addEventListener('touchend', handlePuckEnd);
+            desktopControls.style.display = 'none';
+        } else {
+            document.addEventListener('mousemove', handleDesktopMouseMove);
+            document.addEventListener('mousedown', handleDesktopMouseDown);
+            document.addEventListener('mouseup', handleDesktopMouseUp);
+            document.addEventListener('mouseenter', handleDesktopMouseEnter);
+            document.addEventListener('mouseleave', handleDesktopMouseLeave);
+            hamburgerMenu.style.display = 'none';
+        }
+
+        initialize();
+    </script>
+</body>
+</html>`;
+
+            // Replace placeholders
+            let html = template
+                .replace(/\{\{STORY_TITLE\}\}/g, config.story.title)
+                .replace(/\{\{CURRENT_PAGE\}\}/g, pageData.pageNumber)
+                .replace(/\{\{IMAGE1_URL\}\}/g, pageData.image1Url)
+                .replace(/\{\{IMAGE2_URL\}\}/g, pageData.image2Url)
+                .replace(/\{\{BACKBOARD_TEXTS\}\}/g, JSON.stringify(pageData.backboardTexts))
+                .replace(/\{\{TOTAL_PAGES\}\}/g, config.story.pageCount)
+                .replace(/\{\{PROGRESS_TITLE\}\}/g, pageData.progressTitle || `Page ${pageData.pageNumber}`)
+                .replace(/\{\{NEXT_PAGE\}\}/g, pageData.pageNumber < config.story.pageCount ? `'storybook-page-${pageData.pageNumber + 1}.html'` : 'null')
+                .replace(/\{\{IS_LAST_PAGE\}\}/g, pageData.pageNumber >= config.story.pageCount ? 'true' : 'false');
+
+            // Add the auto-transition logic at the end of updateProgress function
+            if (pageData.pageNumber < config.story.pageCount) {
+                html = html.replace(
+                    '// Check if 100% revealed and switch to next page',
+                    `// Check if 100% revealed and switch to next page
+                    if (percentage2 === 100 && !transformationComplete) {
+                        completeTransformation(2);
+                        setTimeout(() => {
+                            window.location.href = 'storybook-page-${pageData.pageNumber + 1}.html';
+                        }, 2000);
+                    }`
+                );
+            } else {
+                // Last page - show completion message without transition
+                html = html.replace(
+                    '// Check if 100% revealed and switch to next page',
+                    `// Check if 100% revealed - final page completion
+                    if (percentage2 === 100 && !transformationComplete) {
+                        completeTransformation(2);
+                        showCompletionMessage('Story Complete!', '🎉 Amazing Journey! 🎉');
+                    }`
+                );
+            }
+
+            return html;
+        }
+
+        function generateTimelineNodes(totalPages, currentPage) {
+            let nodes = '';
+            for (let i = 1; i <= totalPages; i++) {
+                const status = i < currentPage ? 'completed' : i === currentPage ? 'current' : 'future';
+                nodes += `<div class="timeline-node ${status}" data-page="${i}">Page ${i}</div>`;
+            }
+            return nodes;
+        }
+
+        function showResult(success, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${success ? 'success' : 'error'}`;
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<h3>${message}</h3>`;
+        }
+    </script>
+</body>
+</html>

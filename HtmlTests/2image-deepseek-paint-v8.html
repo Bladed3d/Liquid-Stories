@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Image Liquid Paint - Kid Happy to Kid Scared</title>
+    <style>
+        /* CSS remains the same as your original */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: white; overflow: hidden; cursor: none; user-select: none; -webkit-user-select: none; touch-action: none; }
+        .hero { position: relative; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #backgroundCanvas, #fluidCanvas { position: absolute; inset: 0; z-index: 1; background: #0a0a0a; }
+        #fluidCanvas { z-index: 2; background: transparent; }
+        .universal-puck { position: fixed; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.5), rgba(255,255,255,0.1)); border: 3px solid rgba(255,255,255,0.8); box-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3); pointer-events: none; z-index: 1000; transform: translate(-50%, -50%); transition: none; display: block; left: 50%; top: 50%; }
+        .universal-puck.dragging { transform: translate(-50%, -50%) scale(1.2); box-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 60px rgba(255,255,255,0.5); }
+        .universal-puck.desktop-following { transform: translate(-50%, -50%) scale(1.0); }
+        .progress-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); padding: 15px 25px; border-radius: 12px; text-align: center; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.2); min-width: 300px; }
+        .progress-title { font-size: 0.9rem; margin-bottom: 10px; opacity: 0.9; }
+        .progress-bar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(45deg, #fe802d, #fe0048); border-radius: 4px; transition: width 0.3s ease; width: 0%; }
+        .progress-text { font-size: 1.1rem; font-weight: bold; color: #fe0048; text-shadow: 0 0 10px rgba(254, 0, 72, 0.5); }
+        .puck-instructions { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); padding: 12px 20px; border-radius: 12px; text-align: center; z-index: 50; max-width: 90%; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .puck-instructions h4 { margin-bottom: 6px; font-size: 0.9rem; opacity: 1; }
+        .puck-instructions p { font-size: 0.8rem; opacity: 0.8; line-height: 1.4; }
+        .controls { position: fixed; bottom: 20px; right: 20px; z-index: 100; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .controls h3 { font-size: 0.9rem; margin-bottom: 12px; opacity: 0.8; }
+        .control-btn { display: block; width: 100%; padding: 12px 16px; margin: 8px 0; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        .control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
+        .control-btn.active { background: linear-gradient(45deg, #fe802d, #fe0048); border-color: transparent; }
+        .hamburger-menu { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 1001; transition: all 0.3s ease; }
+        .hamburger-menu:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
+        .hamburger-line { width: 24px; height: 2px; background: white; margin: 2px 0; transition: all 0.3s ease; }
+        .menu-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 1002; display: none; align-items: center; justify-content: center; }
+        .menu-backdrop.active { display: flex; }
+        .menu-panel { background: rgba(20, 20, 20, 0.98); backdrop-filter: blur(20px); border-radius: 20px; padding: 24px; max-width: 400px; width: 90%; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+        .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .menu-header h3 { font-size: 1.2rem; background: linear-gradient(45deg, #fe802d, #fe0048); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .close-menu { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .close-menu:hover { background: rgba(255, 0, 72, 0.2); border-color: #fe0048; }
+        .menu-controls { display: flex; flex-direction: column; gap: 12px; }
+        .menu-control-btn { padding: 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-size: 1rem; font-weight: 500; text-align: center; min-height: 50px; }
+        .menu-control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+        .menu-control-btn.active { background: linear-gradient(45deg, #fe802d, #fe0048); border-color: transparent; }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; text-align: center; font-size: 1.2rem; opacity: 0.9; }
+        .completion-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: rgba(254, 0, 72, 0.95); padding: 30px 40px; border-radius: 20px; text-align: center; z-index: 2000; box-shadow: 0 20px 60px rgba(254, 0, 72, 0.5); animation: popIn 0.5s ease forwards; }
+        @keyframes popIn { to { transform: translate(-50%, -50%) scale(1); } }
+        .completion-message h2 { font-size: 2rem; margin-bottom: 10px; }
+        .completion-message p { font-size: 1.1rem; opacity: 0.9; }
+        @media (max-width: 768px) {
+            .controls { display: none; }
+            .hamburger-menu { display: flex; }
+            .puck-instructions { bottom: 80px; }
+            .progress-container { min-width: 250px; padding: 12px 20px; }
+            .universal-puck { width: 50px; height: 50px; border-width: 2px; }
+        }
+        @media (min-width: 769px) {
+            .hamburger-menu { display: none; }
+            .menu-backdrop { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">Loading dual image system...</div>
+    <div class="puck-instructions" id="puckInstructions">
+        <h4>🎮 Kid Transformation!</h4>
+        <p id="instructionText">Desktop: Move mouse | Mobile: Touch and drag to transform!</p>
+    </div>
+    <div class="progress-container">
+        <div class="progress-title" id="progressTitle">Story Timeline</div>
+        <svg width="100%" height="40" style="margin: 10px 0;">
+            <line x1="20" y1="20" x2="280" y2="20" stroke="rgba(255,255,255,0.2)" stroke-width="4"/>
+            <line id="timelineProgress" x1="20" y1="20" x2="20" y2="20" stroke="#fe0048" stroke-width="6" opacity="1"/>
+            <defs>
+                <linearGradient id="timelineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#fe802d;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#fe0048;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <circle id="circle1" cx="20" cy="20" r="8" fill="#fe0048" stroke="white" stroke-width="2"/>
+            <circle id="circle2" cx="150" cy="20" r="8" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="2"/>
+            <circle cx="280" cy="20" r="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="1" opacity="0.3"/>
+        </svg>
+        <div class="progress-text" id="progressText">0% Revealed</div>
+    </div>
+    <div class="controls">
+        <h3>Transform Controls</h3>
+        <button class="control-btn" onclick="app.adjustInfluence(10)">More Influence</button>
+        <button class="control-btn" onclick="app.adjustInfluence(-10)">Less Influence</button>
+        <button class="control-btn" onclick="app.toggleTrails()">Toggle Trails</button>
+        <button class="control-btn" onclick="app.resetToKidHappy()">Reset to Kid Happy</button>
+        <button class="control-btn" onclick="app.autoCompleteKidScared()">Complete Kid Scared</button>
+    </div>
+    <div class="hamburger-menu" id="hamburgerMenu" onclick="app.toggleMobileMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+    <div class="menu-backdrop" id="menuBackdrop" onclick="app.closeMobileMenu()">
+        <div class="menu-panel" onclick="event.stopPropagation()">
+            <div class="menu-header">
+                <h3>🎮 Transform Controls</h3>
+                <button class="close-menu" onclick="app.closeMobileMenu()">×</button>
+            </div>
+            <div class="menu-controls">
+                <button class="menu-control-btn" onclick="app.mobileAdjustInfluence(10)">More Influence</button>
+                <button class="menu-control-btn" onclick="app.mobileAdjustInfluence(-10)">Less Influence</button>
+                <button class="menu-control-btn" onclick="app.mobileToggleTrails()">Toggle Trails</button>
+                <button class="menu-control-btn" onclick="app.mobileResetToKidHappy()">Reset to Kid Happy</button>
+                <button class="menu-control-btn" onclick="app.mobileAutoCompleteKidScared()">Complete Kid Scared</button>
+            </div>
+        </div>
+    </div>
+    <section class="hero">
+        <canvas id="backgroundCanvas"></canvas>
+        <canvas id="fluidCanvas"></canvas>
+    </section>
+    <div class="universal-puck" id="universalPuck"></div>
+
+    <script>
+        // ==============================
+        // CONFIGURATION - EASY TO CHANGE
+        // ==============================
+        const CONFIG = {
+            // Image URLs - change these to use different images
+            image1Url: 'KidHappy.png',
+            image2Url: 'KidScared.png',
+            
+            // BackBoard HTML URL - change this to use different backboard content
+            backBoardUrl: 'BackBoard.html',
+            
+            // Image settings
+            imageSize: 700,
+            particleSpacing: 7,
+            
+            // Puck settings
+            influenceRadius: 120,
+            maxInfluenceRadius: 300,
+            minInfluenceRadius: 50
+        };
+
+        // ==============================
+        // MAIN APPLICATION
+        // ==============================
+        const app = {
+            // Canvas elements
+            canvas: document.getElementById('fluidCanvas'),
+            ctx: null,
+            bgCanvas: document.getElementById('backgroundCanvas'),
+            bgCtx: null,
+            
+            // UI elements
+            universalPuck: document.getElementById('universalPuck'),
+            loading: document.getElementById('loading'),
+            progressTitle: document.getElementById('progressTitle'),
+            progressText: document.getElementById('progressText'),
+            timelineProgress: document.getElementById('timelineProgress'),
+            circle2: document.getElementById('circle2'),
+            instructionText: document.getElementById('instructionText'),
+            menuBackdrop: document.getElementById('menuBackdrop'),
+            
+            // State variables
+            isMobile: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+            imagesLoaded: false,
+            transformationComplete: false,
+            trailsEnabled: false,
+            mobileMenuOpen: false,
+            influenceRadius: CONFIG.influenceRadius,
+            
+            // Puck variables
+            puckActive: false,
+            puckX: window.innerWidth - 50,
+            puckY: window.innerHeight / 2,
+            prevPuckX: window.innerWidth - 50,
+            prevPuckY: window.innerHeight / 2,
+            puckVelX: 0,
+            puckVelY: 0,
+            
+            // Images
+            sourceImage1: null,
+            sourceImage2: null,
+            scaledWidth: 0,
+            scaledHeight: 0,
+            
+            // Particles
+            particles: [],
+            gridCols: 0,
+            gridRows: 0,
+            
+            // Animation
+            frameCount: 0,
+            fps: 60,
+            lastTime: performance.now(),
+            
+            // Initialize the application
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                this.bgCtx = this.bgCanvas.getContext('2d');
+                
+                // Set initial UI state
+                this.instructionText.textContent = this.isMobile ? 
+                    'Touch and drag to transform!' : 'Move mouse to transform!';
+                
+                // Set up canvas and event listeners
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Set up event listeners based on device type
+                if (this.isMobile) {
+                    document.addEventListener('touchstart', (e) => this.handlePuckStart(e));
+                    document.addEventListener('touchmove', (e) => this.handlePuckMove(e));
+                    document.addEventListener('touchend', (e) => this.handlePuckEnd(e));
+                } else {
+                    document.addEventListener('mousemove', (e) => this.handleDesktopMouseMove(e));
+                    document.addEventListener('mousedown', (e) => this.handleDesktopMouseDown(e));
+                    document.addEventListener('mouseup', (e) => this.handleDesktopMouseUp(e));
+                    document.addEventListener('mouseenter', (e) => this.handleDesktopMouseEnter(e));
+                    document.addEventListener('mouseleave', (e) => this.handleDesktopMouseLeave(e));
+                }
+                
+                // Initialize the application
+                this.initialize();
+            },
+            
+            // Initialize the application
+            async initialize() {
+                await this.drawCouponBackground();
+                this.loadDualImages();
+                this.animate();
+            },
+            
+            // Resize canvas to fit window
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.bgCanvas.width = window.innerWidth;
+                this.bgCanvas.height = window.innerHeight;
+                this.drawCouponBackground();
+            },
+            
+            // Draw background with content from BackBoard.html
+            async drawCouponBackground() {
+                this.bgCtx.fillStyle = '#0a0a0a';
+                this.bgCtx.fillRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
+                
+                try {
+                    const response = await fetch(CONFIG.backBoardUrl);
+                    const htmlContent = await response.text();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = htmlContent;
+                    const backBoardContent = tempDiv.querySelector('body').innerHTML;
+                    
+                    const measureDiv = document.createElement('div');
+                    measureDiv.style.position = 'absolute';
+                    measureDiv.style.left = '-9999px';
+                    measureDiv.style.top = '-9999px';
+                    measureDiv.style.width = this.bgCanvas.width + 'px';
+                    measureDiv.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                    measureDiv.innerHTML = backBoardContent;
+                    document.body.appendChild(measureDiv);
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = this.bgCanvas.width;
+                    canvas.height = this.bgCanvas.height;
+                    const ctx = canvas.getContext('2d');
+                    
+                    ctx.fillStyle = '#0a0a0a';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    const elements = measureDiv.querySelectorAll('*');
+                    let yOffset = canvas.height / 2 - 50;
+                    
+                    elements.forEach(element => {
+                        if (element.classList.contains('title')) {
+                            ctx.fillStyle = 'red';
+                            ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(element.textContent, canvas.width / 2, yOffset);
+                            yOffset += 40;
+                        } else if (element.classList.contains('message')) {
+                            ctx.fillStyle = 'white';
+                            ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            
+                            const lines = element.textContent.split('\n');
+                            lines.forEach(line => {
+                                ctx.fillText(line.trim(), canvas.width / 2, yOffset);
+                                yOffset += 25;
+                            });
+                        }
+                    });
+                    
+                    this.bgCtx.drawImage(canvas, 0, 0);
+                    document.body.removeChild(measureDiv);
+                } catch (error) {
+                    console.log('Could not load BackBoard.html, using default background');
+                    this.bgCtx.fillStyle = 'red';
+                    this.bgCtx.font = 'bold 24px Arial';
+                    this.bgCtx.textAlign = 'center';
+                    this.bgCtx.textBaseline = 'middle';
+                    this.bgCtx.fillText("Don't Be Afraid", this.bgCanvas.width / 2, this.bgCanvas.height / 2 - 20);
+                    
+                    this.bgCtx.fillStyle = 'white';
+                    this.bgCtx.font = '18px Arial';
+                    this.bgCtx.fillText('Monsters are not real.', this.bgCanvas.width / 2, this.bgCanvas.height / 2 + 20);
+                }
+            },
+            
+            // Load dual images
+            loadDualImages() {
+                const loadImage = (url, isImage1) => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            if (isImage1) {
+                                const imageAspect = img.width / img.height;
+                                if (imageAspect > 1) {
+                                    this.scaledWidth = CONFIG.imageSize;
+                                    this.scaledHeight = CONFIG.imageSize / imageAspect;
+                                } else {
+                                    this.scaledHeight = CONFIG.imageSize;
+                                    this.scaledWidth = CONFIG.imageSize * imageAspect;
+                                }
+                                
+                                const resizedCanvas = document.createElement('canvas');
+                                resizedCanvas.width = Math.floor(this.scaledWidth);
+                                resizedCanvas.height = Math.floor(this.scaledHeight);
+                                const resizedCtx = resizedCanvas.getContext('2d');
+                                resizedCtx.imageSmoothingEnabled = false;
+                                resizedCtx.drawImage(img, 0, 0, resizedCanvas.width, resizedCanvas.height);
+                                this.sourceImage1 = resizedCanvas;
+                            } else {
+                                const resizedCanvas = document.createElement('canvas');
+                                resizedCanvas.width = Math.floor(this.scaledWidth);
+                                resizedCanvas.height = Math.floor(this.scaledHeight);
+                                const resizedCtx = resizedCanvas.getContext('2d');
+                                resizedCtx.imageSmoothingEnabled = false;
+                                resizedCtx.drawImage(img, 0, 0, resizedCanvas.width, resizedCanvas.height);
+                                this.sourceImage2 = resizedCanvas;
+                            }
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            console.error(`Failed to load ${isImage1 ? 'KidHappy' : 'KidScared'} image`);
+                            this.createDemoImages().then(resolve);
+                        };
+                        img.src = url;
+                    });
+                };
+                
+                Promise.all([
+                    loadImage(CONFIG.image1Url, true),
+                    loadImage(CONFIG.image2Url, false)
+                ]).then(() => {
+                    this.imagesLoaded = true;
+                    this.loading.style.display = 'none';
+                    this.initParticles();
+                    this.updateProgress();
+                });
+            },
+            
+            // Create demo images as fallback
+            createDemoImages() {
+                return new Promise((resolve) => {
+                    const createDemo = (text, emoji, color1, color2) => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = CONFIG.imageSize;
+                        canvas.height = CONFIG.imageSize;
+                        const ctx = canvas.getContext('2d');
+                        
+                        const gradient = ctx.createRadialGradient(
+                            CONFIG.imageSize/2, CONFIG.imageSize/2, 0,
+                            CONFIG.imageSize/2, CONFIG.imageSize/2, CONFIG.imageSize/2
+                        );
+                        gradient.addColorStop(0, color1);
+                        gradient.addColorStop(1, color2);
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, CONFIG.imageSize, CONFIG.imageSize);
+                        
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                        ctx.font = 'bold 48px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(emoji, CONFIG.imageSize/2, CONFIG.imageSize/2 - 30);
+                        ctx.fillText(text, CONFIG.imageSize/2, CONFIG.imageSize/2 + 30);
+                        
+                        return canvas;
+                    };
+                    
+                    const demo1 = createDemo('KID HAPPY', '😊', '#FFD700', '#FFA500');
+                    const demo2 = createDemo('KID SCARED', '😰', '#4169E1', '#000080');
+                    
+                    this.sourceImage1 = demo1;
+                    this.sourceImage2 = demo2;
+                    resolve();
+                });
+            },
+            
+            // Initialize particles
+            initParticles() {
+                if (!this.imagesLoaded) return;
+                
+                this.particles = [];
+                const imageX = Math.floor((this.canvas.width - CONFIG.imageSize) / 2);
+                const imageY = Math.floor((this.canvas.height - CONFIG.imageSize) / 2);
+                
+                this.gridCols = Math.floor(CONFIG.imageSize / CONFIG.particleSpacing);
+                this.gridRows = Math.floor(CONFIG.imageSize / CONFIG.particleSpacing);
+                
+                const offsetX = (CONFIG.imageSize - this.scaledWidth) / 2;
+                const offsetY = (CONFIG.imageSize - this.scaledHeight) / 2;
+                
+                for (let gridY = 0; gridY < this.gridRows; gridY++) {
+                    for (let gridX = 0; gridX < this.gridCols; gridX++) {
+                        const x = imageX + offsetX + (gridX * CONFIG.particleSpacing) + (CONFIG.particleSpacing / 2);
+                        const y = imageY + offsetY + (gridY * CONFIG.particleSpacing) + (CONFIG.particleSpacing / 2);
+                        
+                        this.particles.push(new DualImageParticle(
+                            x, y, gridX, gridY, 
+                            CONFIG.particleSpacing, CONFIG.particleSpacing,
+                            (this.scaledWidth / this.gridCols), (this.scaledHeight / this.gridRows),
+                            offsetX, offsetY, this.scaledWidth, this.scaledHeight,
+                            this.sourceImage1, this.sourceImage2
+                        ));
+                    }
+                }
+                
+                this.updateProgress();
+            },
+            
+            // Update progress display
+            updateProgress() {
+                let image2Count = 0;
+                this.particles.forEach(particle => {
+                    if (particle.currentImage === 2) {
+                        image2Count++;
+                    }
+                });
+                
+                const percentage2 = Math.round((image2Count / this.particles.length) * 100);
+                
+                // Update timeline
+                const lineLength = 20 + (percentage2 / 100) * 130;
+                this.timelineProgress.setAttribute('x2', lineLength);
+                
+                // Update circle colors based on progress
+                if (percentage2 >= 100) {
+                    this.circle2.setAttribute('fill', '#fe0048');
+                    this.circle2.setAttribute('stroke', '#fe0048');
+                } else {
+                    this.circle2.setAttribute('fill', 'rgba(255,255,255,0.3)');
+                    this.circle2.setAttribute('stroke', 'white');
+                }
+                
+                this.progressText.textContent = percentage2 + '% Revealed';
+            },
+            
+            // Complete transformation with celebration
+            completeTransformation(targetImage) {
+                if (this.transformationComplete) return;
+                
+                this.transformationComplete = true;
+                
+                // Force all particles to target image
+                this.particles.forEach(particle => {
+                    particle.currentImage = targetImage;
+                    particle.hasBeenTransformed = targetImage === 2;
+                    particle.isTransitioning = false;
+                    particle.transitionProgress = 0;
+                });
+                
+                // Update progress display
+                if (targetImage === 2) {
+                    this.progressTitle.textContent = '✨ Complete: Kid Scared! ✨';
+                    this.showCompletionMessage('Kid Scared', '😰 Transformation Complete!');
+                } else {
+                    this.progressTitle.textContent = '✨ Complete: Kid Happy! ✨';
+                    this.showCompletionMessage('Kid Happy', '😊 Back to Happy!');
+                }
+                
+                this.updateProgress();
+                
+                // Reset completion flag after delay
+                setTimeout(() => {
+                    this.transformationComplete = false;
+                }, 2000);
+            },
+            
+            // Show completion celebration
+            showCompletionMessage(title, message) {
+                const completionDiv = document.createElement('div');
+                completionDiv.className = 'completion-message';
+                completionDiv.innerHTML = `
+                    <h2>${title}</h2>
+                    <p>${message}</p>
+                `;
+                document.body.appendChild(completionDiv);
+                
+                setTimeout(() => {
+                    document.body.removeChild(completionDiv);
+                }, 3000);
+            },
+            
+            // ==============================
+            // PUCK INTERACTION HANDLERS
+            // ==============================
+            
+            // Mobile handlers
+            handlePuckStart(e) {
+                const instructions = document.getElementById('puckInstructions');
+                if (instructions) {
+                    instructions.style.display = 'none';
+                }
+                
+                this.puckActive = true;
+                const touch = e.touches[0];
+                this.puckX = touch.clientX;
+                this.puckY = touch.clientY;
+                this.prevPuckX = this.puckX;
+                this.prevPuckY = this.puckY;
+                
+                this.universalPuck.style.left = this.puckX + 'px';
+                this.universalPuck.style.top = this.puckY + 'px';
+                this.universalPuck.classList.add('dragging');
+            },
+            
+            handlePuckMove(e) {
+                if (!this.puckActive) return;
+                
+                const touch = e.touches[0];
+                this.prevPuckX = this.puckX;
+                this.prevPuckY = this.puckY;
+                this.puckX = touch.clientX;
+                this.puckY = touch.clientY;
+                
+                this.universalPuck.style.left = this.puckX + 'px';
+                this.universalPuck.style.top = this.puckY + 'px';
+                this.universalPuck.classList.add('dragging');
+                
+                this.puckVelX = this.puckX - this.prevPuckX;
+                this.puckVelY = this.puckY - this.prevPuckY;
+                
+                this.updateProgress();
+            },
+            
+            handlePuckEnd(e) {
+                this.puckActive = false;
+                this.puckVelX = 0;
+                this.puckVelY = 0;
+                this.universalPuck.classList.remove('dragging');
+            },
+            
+            // Desktop handlers
+            handleDesktopMouseMove(e) {
+                this.prevPuckX = this.puckX;
+                this.prevPuckY = this.puckY;
+                this.puckX = e.clientX;
+                this.puckY = e.clientY;
+                
+                this.universalPuck.style.left = this.puckX + 'px';
+                this.universalPuck.style.top = this.puckY + 'px';
+                this.universalPuck.classList.add('desktop-following');
+                
+                this.puckVelX = this.puckX - this.prevPuckX;
+                this.puckVelY = this.puckY - this.prevPuckY;
+                
+                this.updateProgress();
+            },
+            
+            handleDesktopMouseDown(e) {
+                this.universalPuck.classList.add('dragging');
+            },
+            
+            handleDesktopMouseUp(e) {
+                this.universalPuck.classList.remove('dragging');
+            },
+            
+            handleDesktopMouseEnter(e) {
+                this.universalPuck.style.display = 'block';
+            },
+            
+            handleDesktopMouseLeave(e) {
+                this.universalPuck.classList.remove('dragging');
+                this.universalPuck.classList.remove('desktop-following');
+            },
+            
+            // ==============================
+            // CONTROL FUNCTIONS
+            // ==============================
+            
+            // Mobile menu functions
+            toggleMobileMenu() {
+                this.mobileMenuOpen = !this.mobileMenuOpen;
+                this.menuBackdrop.classList.toggle('active', this.mobileMenuOpen);
+            },
+            
+            closeMobileMenu() {
+                this.mobileMenuOpen = false;
+                this.menuBackdrop.classList.remove('active');
+            },
+            
+            // Mobile control functions
+            mobileAdjustInfluence(delta) {
+                this.adjustInfluence(delta);
+                this.closeMobileMenu();
+            },
+            
+            mobileToggleTrails() {
+                this.toggleTrails();
+                this.closeMobileMenu();
+            },
+            
+            mobileResetToKidHappy() {
+                this.resetToKidHappy();
+                this.closeMobileMenu();
+            },
+            
+            mobileAutoCompleteKidScared() {
+                this.autoCompleteKidScared();
+                this.closeMobileMenu();
+            },
+            
+            // Control functions
+            adjustInfluence(delta) {
+                this.influenceRadius = Math.max(
+                    CONFIG.minInfluenceRadius, 
+                    Math.min(CONFIG.maxInfluenceRadius, this.influenceRadius + delta)
+                );
+            },
+            
+            toggleTrails() {
+                this.trailsEnabled = !this.trailsEnabled;
+                const desktopBtn = document.querySelectorAll('.control-btn')[2];
+                if (desktopBtn) desktopBtn.classList.toggle('active');
+                const mobileBtn = document.querySelectorAll('.menu-control-btn')[2];
+                if (mobileBtn) mobileBtn.classList.toggle('active');
+            },
+            
+            resetToKidHappy() {
+                this.transformationComplete = false;
+                this.particles.forEach(particle => {
+                    particle.resetToImage1();
+                });
+                this.progressTitle.textContent = 'Transforming Kid Happy → Kid Scared';
+                this.updateProgress();
+            },
+            
+            autoCompleteKidScared() {
+                this.particles.forEach(particle => {
+                    particle.forceToImage2();
+                });
+                this.updateProgress();
+                this.completeTransformation(2);
+            },
+            
+            // ==============================
+            // ANIMATION LOOP
+            // ==============================
+            
+            animate() {
+                this.frameCount++;
+                const currentTime = performance.now();
+                if (currentTime - this.lastTime >= 1000) {
+                    this.fps = this.frameCount;
+                    this.frameCount = 0;
+                    this.lastTime = currentTime;
+                }
+                
+                if (this.trailsEnabled) {
+                    this.ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                } else {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+                
+                this.particles.forEach(particle => {
+                    particle.update(this.puckX, this.puckY, this.puckVelX, this.puckVelY, this.influenceRadius);
+                    particle.draw(this.ctx, this.gridCols, this.gridRows);
+                });
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        };
+
+        // ==============================
+        // DUAL IMAGE PARTICLE CLASS
+        // ==============================
+        class DualImageParticle {
+            constructor(x, y, gridX, gridY, pieceWidth, pieceHeight, renderWidth, renderHeight, offsetX, offsetY, scaledWidth, scaledHeight, sourceImage1, sourceImage2) {
+                this.x = x;
+                this.y = y;
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = 2;
+                this.mass = 1 + Math.random() * 0.5;
+                
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.pieceWidth = pieceWidth;
+                this.pieceHeight = pieceHeight;
+                this.renderWidth = renderWidth;
+                this.renderHeight = renderHeight;
+                this.offsetX = offsetX;
+                this.offsetY = offsetY;
+                this.scaledWidth = scaledWidth;
+                this.scaledHeight = scaledHeight;
+                
+                this.sourceImage1 = sourceImage1;
+                this.sourceImage2 = sourceImage2;
+                
+                // Image state
+                this.currentImage = 1;
+                this.hasBeenTransformed = false;
+                this.isTransitioning = false;
+                this.transitionProgress = 0;
+            }
+            
+            update(puckX, puckY, puckVelX, puckVelY, influenceRadius) {
+                // Check if puck is influencing this square
+                const dx = this.x - puckX;
+                const dy = this.y - puckY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const inInfluence = distance < influenceRadius;
+                
+                // PERSISTENT TRANSFORMATION LOGIC
+                if (inInfluence && !this.hasBeenTransformed && this.currentImage === 1) {
+                    this.isTransitioning = true;
+                    this.transitionProgress = 0;
+                } else if (this.isTransitioning) {
+                    this.transitionProgress = Math.min(1, this.transitionProgress + 0.05);
+                    
+                    if (this.transitionProgress >= 1) {
+                        this.currentImage = 2;
+                        this.hasBeenTransformed = true;
+                        this.isTransitioning = false;
+                        this.transitionProgress = 0;
+                    }
+                }
+                
+                // Apply physics (only if in influence zone for performance)
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+                    
+                    const tangentX = -Math.sin(angle);
+                    const tangentY = Math.cos(angle);
+                    
+                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+                    
+                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+                }
+                
+                // Spring force back to original position
+                const springForce = 0.005;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+                
+                // Apply velocity with damping
+                const damping = 0.92;
+                this.vx *= damping;
+                this.vy *= damping;
+                
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Boundary collision
+                if (this.x < this.radius || this.x > window.innerWidth - this.radius) {
+                    this.vx *= -0.7;
+                    this.x = Math.max(this.radius, Math.min(window.innerWidth - this.radius, this.x));
+                }
+                if (this.y < this.radius || this.y > window.innerHeight - this.radius) {
+                    this.vy *= -0.7;
+                    this.y = Math.max(this.radius, Math.min(window.innerHeight - this.radius, this.y));
+                }
+            }
+            
+            draw(ctx, gridCols, gridRows) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                try {
+                    // Determine which source to use
+                    let sourceImage, targetAlpha;
+                    
+                    if (this.isTransitioning) {
+                        // During transition: blend both images
+                        sourceImage = this.currentImage === 1 ? this.sourceImage2 : this.sourceImage1;
+                        targetAlpha = this.transitionProgress;
+                        
+                        // Draw original image with fading alpha
+                        ctx.globalAlpha = 1 - targetAlpha;
+                        const originalSource = this.currentImage === 1 ? this.sourceImage1 : this.sourceImage2;
+                        const originalPieceWidth = originalSource.width / gridCols;
+                        const originalPieceHeight = originalSource.height / gridRows;
+                        const originalX = this.gridX * originalPieceWidth;
+                        const originalY = this.gridY * originalPieceHeight;
+                        
+                        ctx.drawImage(
+                            originalSource,
+                            originalX, originalY,
+                            originalPieceWidth, originalPieceHeight,
+                            -this.renderWidth / 2, -this.renderHeight / 2,
+                            this.renderWidth, this.renderHeight
+                        );
+                        
+                        // Draw new image with increasing alpha
+                        ctx.globalAlpha = targetAlpha;
+                    } else {
+                        // Not transitioning - just draw current image
+                        sourceImage = this.currentImage === 1 ? this.sourceImage1 : this.sourceImage2;
+                        ctx.globalAlpha = 1;
+                    }
+                    
+                    const sourcePieceWidth = sourceImage.width / gridCols;
+                    const sourcePieceHeight = sourceImage.height / gridRows;
+                    const sourceX = this.gridX * sourcePieceWidth;
+                    const sourceY = this.gridY * sourcePieceHeight;
+                    
+                    ctx.drawImage(
+                        sourceImage,
+                        sourceX, sourceY,
+                        sourcePieceWidth, sourcePieceHeight,
+                        -this.renderWidth / 2, -this.renderHeight / 2,
+                        this.renderWidth, this.renderHeight
+                    );
+                    
+                } catch (error) {
+                    console.error('Error drawing image piece:', error);
+                }
+                
+                ctx.restore();
+            }
+            
+            // Method to reset this square to Image 1
+            resetToImage1() {
+                this.currentImage = 1;
+                this.hasBeenTransformed = false;
+                this.isTransitioning = false;
+                this.transitionProgress = 0;
+            }
+            
+            // Method to force this square to Image 2
+            forceToImage2() {
+                this.currentImage = 2;
+                this.hasBeenTransformed = true;
+                this.isTransitioning = false;
+                this.transitionProgress = 0;
+            }
+        }
+
+        // Initialize the application
+        app.init();
+    </script>
+</body>
+</html>

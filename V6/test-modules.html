@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Module Test - V6</title>
+</head>
+<body>
+    <div id="output">Testing modules...</div>
+
+    <script type="module">
+        const output = document.getElementById('output');
+
+        async function testModules() {
+            try {
+                output.innerHTML = 'Testing breadcrumb-system.js...';
+                const { LED_RANGES } = await import('./js/breadcrumb-system.js');
+                output.innerHTML += '<br>✅ breadcrumb-system.js loaded';
+
+                output.innerHTML += '<br>Testing device-detector.js...';
+                const DeviceDetector = await import('./js/device-detector.js');
+                output.innerHTML += '<br>✅ device-detector.js loaded';
+
+                output.innerHTML += '<br>Testing DeviceDetector instantiation...';
+                const detector = new DeviceDetector.default();
+                output.innerHTML += '<br>✅ DeviceDetector instantiated';
+
+                output.innerHTML += '<br>Testing device detection...';
+                const deviceInfo = detector.detect();
+                output.innerHTML += '<br>✅ Device detection completed';
+                output.innerHTML += '<br>Device: ' + deviceInfo.deviceType;
+                output.innerHTML += '<br>Is Mobile: ' + deviceInfo.isMobile;
+                output.innerHTML += '<br>Is Desktop: ' + deviceInfo.isDesktop;
+
+                // Check for breadcrumb log
+                setTimeout(() => {
+                    fetch('./breadcrumb-debug.log')
+                        .then(response => response.text())
+                        .then(logContent => {
+                            if (logContent.includes('LED 11000')) {
+                                output.innerHTML += '<br>✅ LED breadcrumbs working!';
+                            }
+                        })
+                        .catch(() => {
+                            output.innerHTML += '<br>⚠️ No breadcrumb log file created (browser limitation)';
+                        });
+                }, 1000);
+
+            } catch (error) {
+                output.innerHTML = '<br>❌ ERROR: ' + error.message;
+                console.error('Module test error:', error);
+            }
+        }
+
+        testModules();
+    </script>
+</body>
+</html>

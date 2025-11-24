@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Team Error Logging Test</title>
+</head>
+<body>
+    <h1>Team Error Logging System Test</h1>
+    <p>Open browser console (F12) to see error capture in action</p>
+
+    <!-- Team Error Logging System -->
+    <script src="team-error-log.js"></script>
+
+    <script>
+        console.log('=== TESTING TEAM ERROR LOGGING SYSTEM ===');
+
+        // Test 1: Console errors (will be captured)
+        setTimeout(() => {
+            console.error('Test Error 1: This is a simulated console error');
+        }, 1000);
+
+        setTimeout(() => {
+            console.warn('Test Warning 1: This is a simulated warning');
+        }, 1500);
+
+        // Test 2: Runtime error (will be captured)
+        setTimeout(() => {
+            try {
+                const obj = null;
+                obj.someMethod(); // This will throw an error
+            } catch (error) {
+                console.error('Test Error 2: Caught runtime error:', error.message);
+            }
+        }, 2000);
+
+        // Test 3: Module loading error simulation
+        setTimeout(() => {
+            console.error('Test Error 3: Module loading failed - missing-dependency.js');
+        }, 2500);
+
+        // Test 4: Promise rejection (will be captured by unhandledrejection handler)
+        setTimeout(() => {
+            Promise.reject(new Error('Test Error 4: Simulated promise rejection'));
+        }, 3000);
+
+        // Test 5: Show quality report after all errors
+        setTimeout(() => {
+            console.log('=== GENERATING TEAM QUALITY REPORT ===');
+
+            if (typeof window.teamLogger !== 'undefined') {
+                const report = window.teamLogger.generateQualityReport();
+                console.log('Team Quality Report:', report);
+
+                console.log('=== RECENT ERROR LOG ENTRIES ===');
+                const recentErrors = window.teamLogger.getRecentErrors(10);
+                recentErrors.forEach((error, index) => {
+                    console.log(`${index + 1}. ${error}`);
+                });
+
+                console.log('=== LOCAL STORAGE TEAM LOG ===');
+                const logContent = localStorage.getItem('team-error-log');
+                if (logContent) {
+                    const lines = logContent.split('\n').filter(line => line.trim());
+                    console.log(`Total log entries: ${lines.length}`);
+                    const errorLines = lines.filter(line => line.includes('[ERROR]'));
+                    console.log(`Error entries: ${errorLines.length}`);
+
+                    console.log('Last 5 error entries:');
+                    errorLines.slice(-5).forEach((line, index) => {
+                        console.log(`${index + 1}. ${line}`);
+                    });
+                }
+
+            } else {
+                console.error('Team logger not available!');
+            }
+        }, 4000);
+
+        // Test 6: Demonstrate quality gate
+        setTimeout(() => {
+            console.log('=== QUALITY GATE DEMONSTRATION ===');
+
+            if (typeof window.teamLogger !== 'undefined') {
+                const errorCount = window.teamLogger.getErrorCount();
+                const hasErrors = window.teamLogger.hasErrors();
+
+                console.log(`Error Count: ${errorCount}`);
+                console.log(`Has Errors: ${hasErrors}`);
+
+                if (hasErrors) {
+                    console.log('🚨 QUALITY GATE: BLOCKED - Found errors, cannot claim success');
+                    console.log('Developer Agent MUST fix these errors before proceeding');
+                } else {
+                    console.log('✅ QUALITY GATE: PASSED - No errors found');
+                }
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

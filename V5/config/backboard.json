@@ -1,0 +1,28 @@
+{
+  "stages": [
+    {
+      "id": 1,
+      "title": "Don't Be Afraid",
+      "message": "Monsters aren't real. They're just stories we tell ourselves when we're scared.",
+      "color": "#FFD700"
+    },
+    {
+      "id": 2,
+      "title": "Face Your Fears",
+      "message": "Sometimes scary things help us grow stronger and more brave.",
+      "color": "#4169E1"
+    },
+    {
+      "id": 3,
+      "title": "Being Brave",
+      "message": "Being brave means facing your fears, even when you're trembling inside.",
+      "color": "#32CD32"
+    },
+    {
+      "id": 4,
+      "title": "You're Stronger",
+      "message": "You're stronger than you think. Every fear you face makes you stronger.",
+      "color": "#FF6347"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "description": "Image asset configuration for V6 Liquid Stories",
+  "images": [
+    {
+      "id": "KidHappy",
+      "name": "Kid Happy",
+      "filename": "KidHappy.png",
+      "stage": 1,
+      "description": "Happy child character",
+      "width": 700,
+      "height": 700,
+      "fallback": {
+        "color": ["#FFD700", "#FFA500"],
+        "emoji": "😊",
+        "text": "KID HAPPY"
+      }
+    },
+    {
+      "id": "KidScared",
+      "name": "Kid Scared",
+      "filename": "KidScared.png",
+      "stage": 2,
+      "description": "Scared child character",
+      "width": 700,
+      "height": 700,
+      "fallback": {
+        "color": ["#4169E1", "#000080"],
+        "emoji": "😰",
+        "text": "KID SCARED"
+      }
+    },
+    {
+      "id": "Monster01",
+      "name": "Monster 01",
+      "filename": "Monster01.png",
+      "stage": 3,
+      "description": "First monster character",
+      "width": 700,
+      "height": 700,
+      "fallback": {
+        "color": ["#9400D3", "#4B0082"],
+        "emoji": "👹",
+        "text": "MONSTER 01"
+      }
+    },
+    {
+      "id": "Monster02",
+      "name": "Monster 02",
+      "filename": "Monster02.png",
+      "stage": 4,
+      "description": "Second monster character",
+      "width": 700,
+      "height": 700,
+      "fallback": {
+        "color": ["#DC143C", "#8B0000"],
+        "emoji": "👺",
+        "text": "MONSTER 02"
+      }
+    }
+  ],
+  "loading": {
+    "maxRetries": 3,
+    "retryDelays": [1000, 2000, 4000],
+    "cacheExpiry": 3600000,
+    "enableFallbacks": true,
+    "preloadAll": true
+  },
+  "formats": {
+    "preferred": "png",
+    "fallback": "jpg",
+    "webp": {
+      "supported": true,
+      "quality": 0.8
+    }
+  }
+}

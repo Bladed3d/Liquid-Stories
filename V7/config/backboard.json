@@ -1,0 +1,28 @@
+{
+  "stages": [
+    {
+      "id": 1,
+      "title": "The Happy Beginning",
+      "content": "Don't be afraid - monsters aren't real. Sometimes the things we imagine are scarier than what actually exists.",
+      "backgroundColor": "#1a1a2e"
+    },
+    {
+      "id": 2,
+      "title": "Growing Concern",
+      "content": "Sometimes scary things help us grow. Facing our fears makes us stronger than we were before.",
+      "backgroundColor": "#16213e"
+    },
+    {
+      "id": 3,
+      "title": "The Monster Appears",
+      "content": "Being brave means facing your fears, even when they seem bigger than we are.",
+      "backgroundColor": "#0f3460"
+    },
+    {
+      "id": 4,
+      "title": "Facing the Fear",
+      "content": "You're stronger than you think. Every step forward, no matter how small, is a victory.",
+      "backgroundColor": "#e94560"
+    }
+  ]
+}

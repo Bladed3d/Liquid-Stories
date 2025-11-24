@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Image Liquid Paint v1 - Kid Happy to Kid Scared</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            cursor: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Background Layer - Coupon */
+        #backgroundCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        /* Main Image Layer - Particles */
+        #fluidCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: transparent;
+        }
+
+        /* Universal Puck */
+        .universal-puck {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%,
+                rgba(255,255,255,0.9),
+                rgba(255,255,255,0.5),
+                rgba(255,255,255,0.1));
+            border: 3px solid rgba(255,255,255,0.8);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5),
+                        0 0 40px rgba(255,255,255,0.3);
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+            transition: none;
+            display: block;
+            left: 50%;
+            top: 50%;
+        }
+
+        .universal-puck.dragging {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 30px rgba(255,255,255,0.8),
+                        0 0 60px rgba(255,255,255,0.5);
+        }
+
+        .universal-puck.desktop-following {
+            transform: translate(-50%, -50%) scale(1.0);
+        }
+
+        /* Progress Indicator */
+        .progress-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 300px;
+        }
+
+        .progress-title {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fe0048;
+            text-shadow: 0 0 10px rgba(254, 0, 72, 0.5);
+        }
+
+        /* Instructions */
+        .puck-instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 50;
+            max-width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .puck-instructions h4 {
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            opacity: 1;
+        }
+
+        .puck-instructions p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        /* LED Debug Display */
+        .led-debug {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 300px;
+        }
+
+        .led-debug .led {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .led-debug .error {
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .led-debug .warning {
+            color: #ffaa00;
+            font-weight: bold;
+        }
+
+        /* Stats Display - Desktop Only */
+        .stats {
+            position: fixed;
+            top: 20px;
+            right: 340px; /* Moved to make room for debug */
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats div {
+            margin: 4px 0;
+            opacity: 0.9;
+        }
+
+        /* Hamburger Menu - Mobile Only */
+        .hamburger-menu {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-menu:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .hamburger-line {
+            width: 24px;
+            height: 2px;
+            background: white;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+
+        /* Mobile Menu Backdrop */
+        .menu-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1002;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-backdrop.active {
+            display: flex;
+        }
+
+        /* Mobile Menu Panel */
+        .menu-panel {
+            background: rgba(20, 20, 20, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .menu-header h3 {
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .close-menu {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-menu:hover {
+            background: rgba(255, 0, 72, 0.2);
+            border-color: #fe0048;
+        }
+
+        .menu-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .menu-control-btn {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            min-height: 50px;
+        }
+
+        .menu-control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .menu-control-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        /* Desktop Controls - Hidden on Mobile */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .controls h3 {
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+
+        .control-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            border-color: transparent;
+        }
+
+        /* Loading indicator */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            text-align: center;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Completion Celebration */
+        .completion-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(254, 0, 72, 0.95);
+            padding: 30px 40px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 2000;
+            box-shadow: 0 20px 60px rgba(254, 0, 72, 0.5);
+            animation: popIn 0.5s ease forwards;
+        }
+
+        @keyframes popIn {
+            to {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .completion-message h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .completion-message p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .stats {
+                display: none; /* Hide stats on mobile */
+            }
+
+            .controls {
+                display: none; /* Hide desktop controls on mobile */
+            }
+
+            .hamburger-menu {
+                display: flex; /* Show hamburger on mobile */
+            }
+
+            .puck-instructions {
+                bottom: 80px; /* Move above hamburger */
+            }
+
+            .progress-container {
+                min-width: 250px;
+                padding: 12px 20px;
+            }
+
+            .universal-puck {
+                width: 50px;
+                height: 50px;
+                border-width: 2px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .hamburger-menu {
+                display: none; /* Hide hamburger on desktop */
+            }
+
+            .menu-backdrop {
+                display: none !important; /* Never show mobile menu on desktop */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading indicator -->
+    <div class="loading" id="loading">
+        Loading dual image system...
+    </div>
+
+    <!-- Puck Instructions -->
+    <div class="puck-instructions" id="puckInstructions">
+        <h4>🎮 Kid Transformation!</h4>
+        <p id="instructionText">Desktop: Move mouse | Mobile: Touch and drag to transform!</p>
+    </div>
+
+    <!-- Timeline Indicator - Simple Progress Visualization -->
+    <div class="progress-container" style="top: auto; bottom: 20px;">
+        <div class="progress-title" id="progressTitle">Story Timeline</div>
+
+        <!-- Keep original progress fill for JavaScript compatibility (hidden) -->
+        <div class="progress-bar" style="position: absolute; visibility: hidden;">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <svg width="100%" height="40" style="margin: 10px 0;">
+            <!-- Timeline background -->
+            <line x1="20" y1="20" x2="280" y2="20" stroke="rgba(255,255,255,0.2)" stroke-width="4"/>
+            <!-- Progress line that fills -->
+            <line id="timelineProgress" x1="20" y1="20" x2="20" y2="20" stroke="#fe0048" stroke-width="6" opacity="1"/>
+            <!-- Define gradient -->
+            <defs>
+                <linearGradient id="timelineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#fe802d;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#fe0048;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <!-- Page circles -->
+            <circle id="circle1" cx="20" cy="20" r="8" fill="#fe0048" stroke="white" stroke-width="2"/>
+            <circle id="circle2" cx="150" cy="20" r="8" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="2"/>
+            <!-- Third circle hidden for now -->
+            <circle cx="280" cy="20" r="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="1" opacity="0.3"/>
+        </svg>
+        <div class="progress-text" id="progressText">0% Revealed</div>
+    </div>
+
+  
+  
+    <!-- Desktop Controls - Hidden on Mobile -->
+    <div class="controls">
+        <h3>Transform Controls</h3>
+        <button class="control-btn" onclick="adjustInfluence(10)">More Influence</button>
+        <button class="control-btn" onclick="adjustInfluence(-10)">Less Influence</button>
+        <button class="control-btn" onclick="toggleTrails()">Toggle Trails</button>
+        <button class="control-btn" onclick="resetToKidHappy()">Reset to Kid Happy</button>
+        <button class="control-btn" onclick="autoCompleteKidScared()">Complete Kid Scared</button>
+    </div>
+
+    <!-- Hamburger Menu - Mobile Only -->
+    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <!-- Mobile Menu Backdrop -->
+    <div class="menu-backdrop" id="menuBackdrop" onclick="closeMobileMenu()">
+        <div class="menu-panel" onclick="event.stopPropagation()">
+            <div class="menu-header">
+                <h3>🎮 Transform Controls</h3>
+                <button class="close-menu" onclick="closeMobileMenu()">×</button>
+            </div>
+            <div class="menu-controls">
+                <button class="menu-control-btn" onclick="mobileAdjustInfluence(10)">More Influence</button>
+                <button class="menu-control-btn" onclick="mobileAdjustInfluence(-10)">Less Influence</button>
+                <button class="menu-control-btn" onclick="mobileToggleTrails()">Toggle Trails</button>
+                <button class="menu-control-btn" onclick="mobileResetToKidHappy()">Reset to Kid Happy</button>
+                <button class="menu-control-btn" onclick="mobileAutoCompleteKidScared()">Complete Kid Scared</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Background Canvas (Coupon Layer) -->
+        <canvas id="backgroundCanvas"></canvas>
+
+        <!-- Main Image Layer (Particles) -->
+        <canvas id="fluidCanvas"></canvas>
+    </section>
+
+    <!-- Universal Puck -->
+    <div class="universal-puck" id="universalPuck"></div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('fluidCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('backgroundCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const universalPuck = document.getElementById('universalPuck');
+        const loading = document.getElementById('loading');
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const menuBackdrop = document.getElementById('menuBackdrop');
+        const instructionText = document.getElementById('instructionText');
+        const modeDisplay = document.getElementById('mode');
+        const progressTitle = document.getElementById('progressTitle');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const image1Percent = document.getElementById('image1Percent');
+        const image2Percent = document.getElementById('image2Percent');
+        const ledLog = document.getElementById('ledLog');
+
+        // LED Debug Trail System
+        let ledTrail = [];
+        const MAX_LED_TRAIL = 10;
+
+        function led(message, type = 'led') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            ledTrail.push(entry);
+
+            if (ledTrail.length > MAX_LED_TRAIL) {
+                ledTrail.shift();
+            }
+
+            if (ledLog) {
+                ledLog.innerHTML = ledTrail.join('<br>');
+            }
+        }
+
+        function ledError(message) {
+            led(message, 'error');
+        }
+
+        function ledWarning(message) {
+            led(message, 'warning');
+        }
+
+        // Image configuration - Dual images for transformation
+        const IMAGE_SIZE = 700;
+        const IMAGE1_URL = 'KidHappy.png';
+        const IMAGE2_URL = 'KidScared.png';
+
+        // Detect device type
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // Universal puck variables
+        let puckActive = false;
+        let puckX = window.innerWidth - 50; // Right edge with padding
+        let puckY = window.innerHeight / 2;    // Middle vertically
+        let prevPuckX = window.innerWidth - 50; // Match initial puckX
+        let prevPuckY = window.innerHeight / 2;    // Match initial puckY
+        let puckVelX = 0;
+        let puckVelY = 0;
+        let mouseInCanvas = false;
+
+        // Mobile menu state
+        let mobileMenuOpen = false;
+
+        // Dual image system
+        let sourceImage1 = null;
+        let sourceImage2 = null;
+        let image1Loaded = false;
+        let image2Loaded = false;
+        let imagesLoaded = false;
+
+        // Transformation state
+        let currentTransformation = 0; // 0 = all image1, 1 = all image2
+        let transformationComplete = false;
+        let currentImage = 1; // 1 = KidHappy, 2 = KidScared
+
+        // Set initial mode
+        if (modeDisplay) modeDisplay.textContent = isMobile ? 'Mobile' : 'Desktop';
+        instructionText.textContent = isMobile ? 'Touch and drag to transform!' : 'Move mouse to transform!';
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            drawCouponBackground();
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Draw background with content from BackBoard.html
+        async function drawCouponBackground() {
+            bgCtx.fillStyle = '#0a0a0a';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            try {
+                // Fetch BackBoard.html content
+                const response = await fetch('BackBoard.html');
+                const htmlContent = await response.text();
+
+                // Create a temporary DOM element to parse the HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = htmlContent;
+
+                // Extract the body content from BackBoard.html
+                const backBoardContent = tempDiv.querySelector('body').innerHTML;
+
+                // Create a temporary div to measure content
+                const measureDiv = document.createElement('div');
+                measureDiv.style.position = 'absolute';
+                measureDiv.style.left = '-9999px';
+                measureDiv.style.top = '-9999px';
+                measureDiv.style.width = bgCanvas.width + 'px';
+                measureDiv.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                measureDiv.innerHTML = backBoardContent;
+                document.body.appendChild(measureDiv);
+
+                // Render HTML content to canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = bgCanvas.width;
+                canvas.height = bgCanvas.height;
+                const ctx = canvas.getContext('2d');
+
+                // Draw background
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Render text content manually based on styles
+                const elements = measureDiv.querySelectorAll('*');
+                let yOffset = canvas.height / 2 - 50; // Start near center
+
+                elements.forEach(element => {
+                    if (element.classList.contains('title')) {
+                        ctx.fillStyle = 'red';
+                        ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(element.textContent, canvas.width / 2, yOffset);
+                        yOffset += 40;
+                    } else if (element.classList.contains('message')) {
+                        ctx.fillStyle = 'white';
+                        ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+
+                        // Handle multi-line text
+                        const lines = element.textContent.split('\n');
+                        lines.forEach(line => {
+                            ctx.fillText(line.trim(), canvas.width / 2, yOffset);
+                            yOffset += 25;
+                        });
+                    }
+                });
+
+                // Draw the content to the background canvas
+                bgCtx.drawImage(canvas, 0, 0);
+
+                // Clean up
+                document.body.removeChild(measureDiv);
+
+            } catch (error) {
+                console.log('Could not load BackBoard.html, using default background');
+                // Fallback to simple text
+                bgCtx.fillStyle = 'red';
+                bgCtx.font = 'bold 24px Arial';
+                bgCtx.textAlign = 'center';
+                bgCtx.textBaseline = 'middle';
+                bgCtx.fillText("Don't Be Afraid", bgCanvas.width / 2, bgCanvas.height / 2 - 20);
+
+                bgCtx.fillStyle = 'white';
+                bgCtx.font = '18px Arial';
+                bgCtx.fillText('Monsters are not real.', bgCanvas.width / 2, bgCanvas.height / 2 + 20);
+            }
+        }
+
+        // Fluid simulation variables
+        let particles = [];
+        let influenceRadius = 120;
+        let trailsEnabled = false;
+
+        // Performance tracking
+        let frameCount = 0;
+        let fps = 60;
+        let lastTime = performance.now();
+
+        // Grid variables
+        let gridCols, gridRows;
+        let scaledWidth, scaledHeight;
+
+        // Dual Image Particle class - PERSISTENT TRANSFORMATION
+        class DualImageParticle {
+            constructor(x, y, gridX, gridY, pieceWidth, pieceHeight, renderWidth, renderHeight, offsetX, offsetY, scaledWidth, scaledHeight) {
+                this.x = x;
+                this.y = y;
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = 2;
+                this.mass = 1 + Math.random() * 0.5;
+
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.pieceWidth = pieceWidth;
+                this.pieceHeight = pieceHeight;
+                this.renderWidth = renderWidth;
+                this.renderHeight = renderHeight;
+                this.offsetX = offsetX;
+                this.offsetY = offsetY;
+                this.scaledWidth = scaledWidth;
+                this.scaledHeight = scaledHeight;
+                this.rotation = 0;
+
+                // Image state - PERSISTENT TRANSFORMATION
+                this.currentImage = 1; // Start with KidHappy
+                this.hasBeenTransformed = false; // Track if this square has been painted with Image 2
+                this.isTransitioning = false; // For smooth transitions during transformation
+                this.transitionProgress = 0; // 0-1 for smooth transitions
+            }
+
+            update() {
+                // Check if puck is influencing this square
+                const dx = this.x - puckX;
+                const dy = this.y - puckY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const inInfluence = distance < influenceRadius;
+
+                // PERSISTENT TRANSFORMATION LOGIC:
+                // Once transformed, stay transformed forever (unless reset)
+                if (inInfluence && !this.hasBeenTransformed && this.currentImage === 1) {
+                    // Start transformation to Image 2
+                    this.isTransitioning = true;
+                    this.transitionProgress = 0;
+                } else if (this.isTransitioning) {
+                    // Continue transition progress
+                    this.transitionProgress = Math.min(1, this.transitionProgress + 0.05);
+
+                    if (this.transitionProgress >= 1) {
+                        // Complete transformation
+                        this.currentImage = 2;
+                        this.hasBeenTransformed = true;
+                        this.isTransitioning = false;
+                        this.transitionProgress = 0;
+                    }
+                }
+
+                // Apply physics (only if in influence zone for performance)
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+
+                    const tangentX = -Math.sin(angle);
+                    const tangentY = Math.cos(angle);
+
+                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+
+                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+                }
+
+                // Spring force back to original position
+                const springForce = 0.005;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+
+                // Apply velocity with damping
+                const damping = 0.92;
+                this.vx *= damping;
+                this.vy *= damping;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Boundary collision
+                if (this.x < this.radius || this.x > canvas.width - this.radius) {
+                    this.vx *= -0.7;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+                if (this.y < this.radius || this.y > canvas.height - this.radius) {
+                    this.vy *= -0.7;
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                }
+            }
+
+            draw() {
+                if (!imagesLoaded) return;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                try {
+                    // Determine which source to use
+                    let sourceImage, targetAlpha;
+
+                    if (this.isTransitioning) {
+                        // During transition: blend both images
+                        sourceImage = this.currentImage === 1 ? sourceImage2 : sourceImage1;
+                        targetAlpha = this.transitionProgress;
+
+                        // Draw original image with fading alpha
+                        ctx.globalAlpha = 1 - targetAlpha;
+                        const originalSource = this.currentImage === 1 ? sourceImage1 : sourceImage2;
+                        const originalPieceWidth = originalSource.width / gridCols;
+                        const originalPieceHeight = originalSource.height / gridRows;
+                        const originalX = this.gridX * originalPieceWidth;
+                        const originalY = this.gridY * originalPieceHeight;
+
+                        ctx.drawImage(
+                            originalSource,
+                            originalX, originalY,
+                            originalPieceWidth, originalPieceHeight,
+                            -this.renderWidth / 2, -this.renderHeight / 2,
+                            this.renderWidth, this.renderHeight
+                        );
+
+                        // Draw new image with increasing alpha
+                        ctx.globalAlpha = targetAlpha;
+                    } else {
+                        // Not transitioning - just draw current image
+                        sourceImage = this.currentImage === 1 ? sourceImage1 : sourceImage2;
+                        ctx.globalAlpha = 1;
+                    }
+
+                    const sourcePieceWidth = sourceImage.width / gridCols;
+                    const sourcePieceHeight = sourceImage.height / gridRows;
+                    const sourceX = this.gridX * sourcePieceWidth;
+                    const sourceY = this.gridY * sourcePieceHeight;
+
+                    ctx.drawImage(
+                        sourceImage,
+                        sourceX, sourceY,
+                        sourcePieceWidth, sourcePieceHeight,
+                        -this.renderWidth / 2, -this.renderHeight / 2,
+                        this.renderWidth, this.renderHeight
+                    );
+
+                } catch (error) {
+                    console.error('Error drawing image piece:', error);
+                }
+
+                ctx.restore();
+            }
+
+            // Method to reset this square to Image 1
+            resetToImage1() {
+                this.currentImage = 1;
+                this.hasBeenTransformed = false;
+                this.isTransitioning = false;
+                this.transitionProgress = 0;
+            }
+
+            // Method to force this square to Image 2
+            forceToImage2() {
+                this.currentImage = 2;
+                this.hasBeenTransformed = true;
+                this.isTransitioning = false;
+                this.transitionProgress = 0;
+            }
+        }
+
+        // Load dual images
+        function loadDualImages() {
+            console.log('Loading dual images...');
+
+            function loadImage1() {
+                const img1 = new Image();
+                img1.onload = function() {
+                    // Calculate image dimensions
+                    const imageAspect = img1.width / img1.height;
+                    if (imageAspect > 1) {
+                        scaledWidth = IMAGE_SIZE;
+                        scaledHeight = IMAGE_SIZE / imageAspect;
+                    } else {
+                        scaledHeight = IMAGE_SIZE;
+                        scaledWidth = IMAGE_SIZE * imageAspect;
+                    }
+
+                    // Pre-resize for perfect grid division
+                    const resizedCanvas1 = document.createElement('canvas');
+                    resizedCanvas1.width = Math.floor(scaledWidth);
+                    resizedCanvas1.height = Math.floor(scaledHeight);
+                    const resizedCtx1 = resizedCanvas1.getContext('2d');
+                    resizedCtx1.imageSmoothingEnabled = false;
+                    resizedCtx1.drawImage(img1, 0, 0, resizedCanvas1.width, resizedCanvas1.height);
+                    sourceImage1 = resizedCanvas1;
+
+                    image1Loaded = true;
+                    checkImagesLoaded();
+                    console.log('KidHappy image loaded successfully');
+                };
+
+                img1.onerror = function() {
+                    console.error('Failed to load KidHappy image');
+                    createDemoImages();
+                };
+
+                img1.src = IMAGE1_URL;
+            }
+
+            function loadImage2() {
+                const img2 = new Image();
+                img2.onload = function() {
+                    // Use same dimensions as image1
+                    const resizedCanvas2 = document.createElement('canvas');
+                    resizedCanvas2.width = Math.floor(scaledWidth);
+                    resizedCanvas2.height = Math.floor(scaledHeight);
+                    const resizedCtx2 = resizedCanvas2.getContext('2d');
+                    resizedCtx2.imageSmoothingEnabled = false;
+                    resizedCtx2.drawImage(img2, 0, 0, resizedCanvas2.width, resizedCanvas2.height);
+                    sourceImage2 = resizedCanvas2;
+
+                    image2Loaded = true;
+                    checkImagesLoaded();
+                    console.log('KidScared image loaded successfully');
+                };
+
+                img2.onerror = function() {
+                    console.error('Failed to load KidScared image');
+                    createDemoImages();
+                };
+
+                img2.src = IMAGE2_URL;
+            }
+
+            loadImage1();
+            loadImage2();
+        }
+
+        // Create demo images as fallback
+        function createDemoImages() {
+            console.log('Creating demo images...');
+
+            // Demo KidHappy
+            const demoCanvas1 = document.createElement('canvas');
+            demoCanvas1.width = IMAGE_SIZE;
+            demoCanvas1.height = IMAGE_SIZE;
+            const demoCtx1 = demoCanvas1.getContext('2d');
+
+            const gradient1 = demoCtx1.createRadialGradient(
+                IMAGE_SIZE/2, IMAGE_SIZE/2, 0,
+                IMAGE_SIZE/2, IMAGE_SIZE/2, IMAGE_SIZE/2
+            );
+            gradient1.addColorStop(0, '#FFD700');
+            gradient1.addColorStop(1, '#FFA500');
+            demoCtx1.fillStyle = gradient1;
+            demoCtx1.fillRect(0, 0, IMAGE_SIZE, IMAGE_SIZE);
+
+            demoCtx1.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            demoCtx1.font = 'bold 48px Arial';
+            demoCtx1.textAlign = 'center';
+            demoCtx1.textBaseline = 'middle';
+            demoCtx1.fillText('😊', IMAGE_SIZE/2, IMAGE_SIZE/2 - 30);
+            demoCtx1.fillText('KID HAPPY', IMAGE_SIZE/2, IMAGE_SIZE/2 + 30);
+
+            // Demo KidScared
+            const demoCanvas2 = document.createElement('canvas');
+            demoCanvas2.width = IMAGE_SIZE;
+            demoCanvas2.height = IMAGE_SIZE;
+            const demoCtx2 = demoCanvas2.getContext('2d');
+
+            const gradient2 = demoCtx2.createRadialGradient(
+                IMAGE_SIZE/2, IMAGE_SIZE/2, 0,
+                IMAGE_SIZE/2, IMAGE_SIZE/2, IMAGE_SIZE/2
+            );
+            gradient2.addColorStop(0, '#4169E1');
+            gradient2.addColorStop(1, '#000080');
+            demoCtx2.fillStyle = gradient2;
+            demoCtx2.fillRect(0, 0, IMAGE_SIZE, IMAGE_SIZE);
+
+            demoCtx2.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            demoCtx2.font = 'bold 48px Arial';
+            demoCtx2.textAlign = 'center';
+            demoCtx2.textBaseline = 'middle';
+            demoCtx2.fillText('😰', IMAGE_SIZE/2, IMAGE_SIZE/2 - 30);
+            demoCtx2.fillText('KID SCARED', IMAGE_SIZE/2, IMAGE_SIZE/2 + 30);
+
+            // Convert to images
+            const demoImg1 = new Image();
+            const demoImg2 = new Image();
+
+            let loadedCount = 0;
+            function checkDemoLoaded() {
+                loadedCount++;
+                if (loadedCount === 2) {
+                    sourceImage1 = demoImg1;
+                    sourceImage2 = demoImg2;
+                    image1Loaded = true;
+                    image2Loaded = true;
+                    checkImagesLoaded();
+                }
+            }
+
+            demoImg1.onload = checkDemoLoaded;
+            demoImg2.onload = checkDemoLoaded;
+            demoImg1.src = demoCanvas1.toDataURL();
+            demoImg2.src = demoCanvas2.toDataURL();
+        }
+
+        // Check if both images are loaded
+        function checkImagesLoaded() {
+            if (image1Loaded && image2Loaded) {
+                imagesLoaded = true;
+                loading.style.display = 'none';
+                initParticles();
+                updateProgress();
+                console.log('Dual images loaded successfully');
+            }
+        }
+
+        // Initialize particles
+        function initParticles() {
+            if (!imagesLoaded) return;
+
+            particles = [];
+            const imageX = Math.floor((canvas.width - IMAGE_SIZE) / 2);
+            const imageY = Math.floor((canvas.height - IMAGE_SIZE) / 2);
+
+            const spacing = 7;
+            gridCols = Math.floor(IMAGE_SIZE / spacing);
+            gridRows = Math.floor(IMAGE_SIZE / spacing);
+            const pieceWidth = spacing;
+            const pieceHeight = spacing;
+
+            const offsetX = (IMAGE_SIZE - scaledWidth) / 2;
+            const offsetY = (IMAGE_SIZE - scaledHeight) / 2;
+
+            for (let gridY = 0; gridY < gridRows; gridY++) {
+                for (let gridX = 0; gridX < gridCols; gridX++) {
+                    const x = imageX + offsetX + (gridX * spacing) + (spacing / 2);
+                    const y = imageY + offsetY + (gridY * spacing) + (spacing / 2);
+
+                    particles.push(new DualImageParticle(
+                        x, y, gridX, gridY, pieceWidth, pieceHeight,
+                        (scaledWidth / gridCols), (scaledHeight / gridRows),
+                        offsetX, offsetY, scaledWidth, scaledHeight
+                    ));
+                }
+            }
+
+            updateParticleCount();
+            updateStatus('Dual images ready! Start transforming!');
+
+            console.log('Dual image system created:', particles.length, 'image squares');
+        }
+
+        // Update progress (no auto-complete)
+        function updateProgress() {
+            led('updateProgress called');
+
+            let image2Count = 0;
+            particles.forEach(particle => {
+                if (particle.currentImage === 2) {
+                    image2Count++;
+                }
+            });
+
+            const percentage2 = Math.round((image2Count / particles.length) * 100);
+            const percentage1 = 100 - percentage2;
+
+            led(`Progress calculated: ${percentage2}%`);
+
+            // Update both original progress fill and timeline directly
+            progressFill.style.width = percentage2 + '%';
+
+            // Update timeline line directly (from circle 1 to circle 2 = 20 to 150 pixels)
+            const timelineProgress = document.getElementById('timelineProgress');
+            if (timelineProgress) {
+                const lineLength = 20 + (percentage2 / 100) * 130; // 130 pixels from circle 1 to circle 2
+                timelineProgress.setAttribute('x1', '20');
+                timelineProgress.setAttribute('x2', lineLength);
+                led(`Timeline updated: ${percentage2}% -> x2=${lineLength}px`);
+            } else {
+                ledError('timelineProgress element not found!');
+            }
+
+            // Update circle colors based on progress
+            const circle2 = document.getElementById('circle2');
+            if (circle2) {
+                if (percentage2 >= 100) {
+                    // Complete: turn circle 2 red
+                    circle2.setAttribute('fill', '#fe0048');
+                    circle2.setAttribute('stroke', '#fe0048');
+                    led('Circle 2 completed - turned red');
+                } else {
+                    // Incomplete: keep circle 2 dim
+                    circle2.setAttribute('fill', 'rgba(255,255,255,0.3)');
+                    circle2.setAttribute('stroke', 'white');
+                }
+            } else {
+                ledError('circle2 element not found!');
+            }
+            if (progressText) progressText.textContent = percentage2 + '% Revealed';
+            // Image percent displays removed - kept for compatibility
+        }
+
+        // Complete transformation with celebration
+        function completeTransformation(targetImage) {
+            if (transformationComplete) return;
+
+            transformationComplete = true;
+            currentImage = targetImage;
+
+            // Force all particles to target image
+            particles.forEach(particle => {
+                particle.currentImage = targetImage;
+                particle.targetImage = targetImage;
+                particle.transitionProgress = 0;
+            });
+
+            // Update progress display
+            if (targetImage === 2) {
+                progressTitle.textContent = '✨ Complete: Kid Scared! ✨';
+                progressFill.style.width = '100%';
+                progressText.textContent = '100% Revealed';
+                showCompletionMessage('Kid Scared', '😰 Transformation Complete!');
+            } else {
+                progressTitle.textContent = '✨ Complete: Kid Happy! ✨';
+                progressFill.style.width = '0%';
+                progressText.textContent = '0% Revealed';
+                showCompletionMessage('Kid Happy', '😊 Back to Happy!');
+            }
+
+            // Reset completion flag after delay
+            setTimeout(() => {
+                transformationComplete = false;
+            }, 2000);
+        }
+
+        // Show completion celebration
+        function showCompletionMessage(title, message) {
+            const completionDiv = document.createElement('div');
+            completionDiv.className = 'completion-message';
+            completionDiv.innerHTML = `
+                <h2>${title}</h2>
+                <p>${message}</p>
+            `;
+            document.body.appendChild(completionDiv);
+
+            setTimeout(() => {
+                document.body.removeChild(completionDiv);
+            }, 3000);
+        }
+
+        // Universal puck interaction handlers
+        function handlePuckStart(e) {
+            if (isMobile) {
+                const instructions = document.getElementById('puckInstructions');
+                if (instructions) {
+                    instructions.style.display = 'none';
+                }
+
+                puckActive = true;
+                const touch = e.touches[0];
+                puckX = touch.clientX;
+                puckY = touch.clientY;
+                prevPuckX = puckX;
+                prevPuckY = puckY;
+
+                universalPuck.style.left = puckX + 'px';
+                universalPuck.style.top = puckY + 'px';
+                universalPuck.classList.add('dragging');
+            }
+        }
+
+        function handlePuckMove(e) {
+            if (isMobile) {
+                if (!puckActive) return;
+
+                const touch = e.touches[0];
+                prevPuckX = puckX;
+                prevPuckY = puckY;
+                puckX = touch.clientX;
+                puckY = touch.clientY;
+
+                universalPuck.style.left = puckX + 'px';
+                universalPuck.style.top = puckY + 'px';
+                universalPuck.classList.add('dragging');
+
+                puckVelX = puckX - prevPuckX;
+                puckVelY = puckY - prevPuckY;
+
+                updateVelocityDisplay();
+                updateProgress();
+            }
+        }
+
+        function handlePuckEnd(e) {
+            if (isMobile) {
+                puckActive = false;
+                puckVelX = 0;
+                puckVelY = 0;
+                universalPuck.classList.remove('dragging');
+            }
+        }
+
+        // DESKTOP MOUSE HANDLING
+        function handleDesktopMouseMove(e) {
+            if (isMobile) return;
+
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+            puckX = e.clientX;
+            puckY = e.clientY;
+
+            universalPuck.style.left = puckX + 'px';
+            universalPuck.style.top = puckY + 'px';
+            universalPuck.classList.add('desktop-following');
+
+            puckVelX = puckX - prevPuckX;
+            puckVelY = puckY - prevPuckY;
+
+            updateVelocityDisplay();
+            updateProgress();
+        }
+
+        function handleDesktopMouseDown(e) {
+            if (isMobile) return;
+            universalPuck.classList.add('dragging');
+        }
+
+        function handleDesktopMouseUp(e) {
+            if (isMobile) return;
+            universalPuck.classList.remove('dragging');
+        }
+
+        function handleDesktopMouseEnter(e) {
+            if (isMobile) return;
+            mouseInCanvas = true;
+            universalPuck.style.display = 'block';
+        }
+
+        function handleDesktopMouseLeave(e) {
+            if (isMobile) return;
+            mouseInCanvas = false;
+            universalPuck.classList.remove('dragging');
+            universalPuck.classList.remove('desktop-following');
+        }
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            mobileMenuOpen = !mobileMenuOpen;
+            if (mobileMenuOpen) {
+                menuBackdrop.classList.add('active');
+            } else {
+                menuBackdrop.classList.remove('active');
+            }
+        }
+
+        function closeMobileMenu() {
+            mobileMenuOpen = false;
+            menuBackdrop.classList.remove('active');
+        }
+
+        // Mobile control functions
+        function mobileAdjustInfluence(delta) {
+            adjustInfluence(delta);
+            closeMobileMenu();
+        }
+
+        function mobileToggleTrails() {
+            toggleTrails();
+            closeMobileMenu();
+        }
+
+        function mobileResetToKidHappy() {
+            resetToKidHappy();
+            closeMobileMenu();
+        }
+
+        function mobileAutoCompleteKidScared() {
+            autoCompleteKidScared();
+            closeMobileMenu();
+        }
+
+        // Control functions
+        function adjustInfluence(delta) {
+            influenceRadius = Math.max(50, Math.min(300, influenceRadius + delta));
+        }
+
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+            const desktopBtn = document.querySelectorAll('.control-btn')[1];
+            if (desktopBtn) desktopBtn.classList.toggle('active');
+            const mobileBtn = document.querySelectorAll('.menu-control-btn')[1];
+            if (mobileBtn) mobileBtn.classList.toggle('active');
+        }
+
+        function resetToKidHappy() {
+            transformationComplete = false;
+            particles.forEach(particle => {
+                particle.resetToImage1();
+            });
+            progressTitle.textContent = 'Transforming Kid Happy → Kid Scared';
+            updateProgress();
+        }
+
+        function autoCompleteKidScared() {
+            particles.forEach(particle => {
+                particle.forceToImage2();
+            });
+            updateProgress();
+            completeTransformation(2);
+        }
+
+        // Update functions
+        function updateFPS() {
+            // FPS display removed - function kept for compatibility
+        }
+
+        function updateParticleCount() {
+            // Particle count display removed - function kept for compatibility
+        }
+
+        function updateVelocityDisplay() {
+            // Velocity display removed - function kept for compatibility
+        }
+
+        function updateStatus(status) {
+            // No status display in this version
+        }
+
+        // Event listeners
+        if (isMobile) {
+            document.addEventListener('touchstart', function(e) {
+                handlePuckStart(e);
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                handlePuckMove(e);
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchend', function(e) {
+                handlePuckEnd(e);
+            });
+        } else {
+            document.addEventListener('mousemove', handleDesktopMouseMove);
+            document.addEventListener('mousedown', handleDesktopMouseDown);
+            document.addEventListener('mouseup', handleDesktopMouseUp);
+            document.addEventListener('mouseenter', handleDesktopMouseEnter);
+            document.addEventListener('mouseleave', handleDesktopMouseLeave);
+        }
+
+        // Animation loop
+        function animate() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                updateFPS();
+            }
+
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize
+        async function initialize() {
+            led('Application starting');
+            await drawCouponBackground();
+            loadDualImages();
+            animate();
+
+            led('Application initialized successfully');
+        }
+
+        initialize();
+    </script>
+</body>
+</html>

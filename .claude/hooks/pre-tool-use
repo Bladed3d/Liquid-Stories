@@ -1,0 +1,12 @@
+#!/bin/bash
+# Block Read operations on .env files to prevent API key exposure
+
+if echo "$TOOL_NAME" | grep -q "Read"; then
+  if echo "$TOOL_INPUT" | grep -q "\.env"; then
+    echo "❌ BLOCKED: Reading .env files exposes API keys"
+    echo "Use 'grep KEYNAME .env.local' or 'Edit' tool instead"
+    exit 1
+  fi
+fi
+
+exit 0

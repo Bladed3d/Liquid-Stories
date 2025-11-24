@@ -1,0 +1,86 @@
+{
+  "story": {
+    "title": "The Monster Adventure",
+    "pageCount": 3
+  },
+  "pages": [
+    {
+      "pageNumber": 1,
+      "image1Url": "KidHappy.png",
+      "image2Url": "KidScared.png",
+      "progressTitle": "Meeting the Monster",
+      "backboardTexts": [
+        {
+          "text": "Monsters are",
+          "yOffset": -60,
+          "color": "#fe0048",
+          "size": 56
+        },
+        {
+          "text": "Not Real",
+          "yOffset": 0,
+          "color": "#fe0048",
+          "size": 56
+        },
+        {
+          "text": "Nothing to Fear",
+          "yOffset": 60,
+          "color": "#fe0048",
+          "size": 46
+        }
+      ]
+    },
+    {
+      "pageNumber": 2,
+      "image1Url": "KidScared.png",
+      "image2Url": "BraveKid.png",
+      "progressTitle": "Getting Brave",
+      "backboardTexts": [
+        {
+          "text": "You are",
+          "yOffset": -60,
+          "color": "#00ff00",
+          "size": 56
+        },
+        {
+          "text": "Getting Brave",
+          "yOffset": 0,
+          "color": "#00ff00",
+          "size": 56
+        },
+        {
+          "text": "Keep Going",
+          "yOffset": 60,
+          "color": "#00ff00",
+          "size": 46
+        }
+      ]
+    },
+    {
+      "pageNumber": 3,
+      "image1Url": "BraveKid.png",
+      "image2Url": "HeroKid.png",
+      "progressTitle": "Hero's Journey",
+      "backboardTexts": [
+        {
+          "text": "You are",
+          "yOffset": -60,
+          "color": "#4169e1",
+          "size": 56
+        },
+        {
+          "text": "A Hero",
+          "yOffset": 0,
+          "color": "#4169e1",
+          "size": 56
+        },
+        {
+          "text": "Amazing Job",
+          "yOffset": 60,
+          "color": "#4169e1",
+          "size": 46
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "stages": [
+    {
+      "id": 1,
+      "name": "Kid Happy",
+      "file": "images/KidHappy.png",
+      "description": "Happy child character"
+    },
+    {
+      "id": 2,
+      "name": "Kid Scared",
+      "file": "images/KidScared.png",
+      "description": "Scared child character"
+    },
+    {
+      "id": 3,
+      "name": "Monster 01",
+      "file": "images/Monster01.png",
+      "description": "First monster character"
+    },
+    {
+      "id": 4,
+      "name": "Monster 02",
+      "file": "images/Monster02.png",
+      "description": "Second monster character"
+    }
+  ]
+}

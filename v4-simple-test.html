@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>V4 Simple Error Test</title>
+</head>
+<body>
+    <h1>V4 Error Capture Test</h1>
+    <div id="results">Loading...</div>
+
+    <!-- Team Error Logging System -->
+    <script src="team-error-log.js"></script>
+
+    <script>
+        console.log('[TEST] Starting V4 error capture test');
+
+        const results = document.getElementById('results');
+
+        function updateResult(message) {
+            results.innerHTML += '<br>' + message;
+            console.log('[TEST]', message);
+        }
+
+        try {
+            updateResult('✅ Team error logging loaded');
+
+            // Test team logger
+            if (typeof window.teamLogger !== 'undefined') {
+                updateResult('✅ Team logger is available');
+
+                // Test writing to log
+                window.teamLogger.logToTeamFile('SUCCESS', 'test', 'V4 error capture test started');
+                updateResult('✅ Successfully wrote to team error log');
+
+                // Test the V4 modules
+                updateResult('Testing V4 modules...');
+
+                // Test loading modules
+                updateResult('Loading story.js...');
+                const storyResult = document.createElement('script');
+                storyResult.src = 'v4-modular/modules/story.js';
+                document.head.appendChild(storyResult);
+
+                setTimeout(() => {
+                    if (typeof StorySystem !== 'undefined') {
+                        updateResult('✅ StorySystem loaded successfully');
+                    } else {
+                        updateResult('❌ StorySystem failed to load');
+                        if (typeof window.teamLogger !== 'undefined') {
+                            window.teamLogger.logToTeamFile('ERROR', 'test', 'StorySystem failed to load');
+                        }
+                    }
+                }, 1000);
+
+                // Test other modules
+                setTimeout(() => {
+                    const modules = ['ParticleSystem', 'ImageSystem', 'InteractionSystem'];
+                    modules.forEach(moduleName => {
+                        if (typeof window[moduleName] !== 'undefined') {
+                            updateResult(`✅ ${moduleName} loaded`);
+                        } else {
+                            updateResult(`❌ ${moduleName} FAILED to load`);
+                            if (typeof window.teamLogger !== 'undefined') {
+                                window.teamLogger.logToTeamFile('ERROR', 'test', `${moduleName} failed to load`);
+                            }
+                        }
+                    });
+
+                    // Generate report
+                    setTimeout(() => {
+                        const report = window.teamLogger.generateQualityReport();
+                        updateResult(`<br><strong>QUALITY REPORT:</strong>`);
+                        updateResult(`Error Count: ${report.errorCount}`);
+                        updateResult(`Quality Score: ${report.qualityScore}`);
+                        updateResult(`Recent Errors: ${report.recentErrors.length}`);
+
+                        // Show recent errors
+                        if (report.recentErrors.length > 0) {
+                            updateResult('<br><strong>RECENT ERRORS:</strong>');
+                            report.recentErrors.forEach((error, index) => {
+                                updateResult(`${index + 1}. ${error}`);
+                            });
+                        }
+                    }, 500);
+                }, 2000);
+
+            } else {
+                updateResult('❌ Team logger NOT available - this is the problem!');
+            }
+
+        } catch (error) {
+            updateResult(`❌ CRASH CAPTURED: ${error.message}`);
+            console.error('[TEST] Crash:', error);
+
+            if (typeof window.teamLogger !== 'undefined') {
+                window.teamLogger.logToTeamFile('ERROR', 'test-crash', error.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "transformations": [
+    {
+      "id": 1,
+      "from_stage": 1,
+      "to_stage": 2,
+      "name": "Happy to Scared",
+      "description": "Kid Happy transforms to Kid Scared"
+    },
+    {
+      "id": 2,
+      "from_stage": 2,
+      "to_stage": 3,
+      "name": "Scared to Monster 1",
+      "description": "Kid Scared transforms to Monster 01"
+    },
+    {
+      "id": 3,
+      "from_stage": 3,
+      "to_stage": 4,
+      "name": "Monster 1 to Monster 2",
+      "description": "Monster 01 transforms to Monster 02"
+    }
+  ]
+}

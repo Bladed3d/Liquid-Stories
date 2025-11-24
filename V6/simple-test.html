@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple V6 Test</title>
+</head>
+<body>
+    <div id="output">Loading...</div>
+
+    <script>
+        const output = document.getElementById("output");
+
+        // Test 1: Basic JavaScript works
+        output.innerHTML = "✅ Basic JS works<br>";
+
+        // Test 2: Try to load device detector
+        try {
+            const script = document.createElement("script");
+            script.type = "module";
+            script.textContent = `
+                import DeviceDetector from "./js/device-detector.js"
+                    .then(module => {
+                        const detector = new module.default();
+                        const info = detector.detect();
+                        document.getElementById("output").innerHTML +=
+                            "✅ DeviceDetector loaded<br>" +
+                            "Device: " + info.deviceType + "<br>" +
+                            "Is Mobile: " + info.isMobile + "<br>" +
+                            "Is Desktop: " + info.isDesktop;
+                    })
+                    .catch(error => {
+                        document.getElementById("output").innerHTML +=
+                            "❌ DeviceDetector error: " + error.message + "<br>" +
+                            "Stack: " + error.stack;
+                    });
+            `;
+            document.head.appendChild(script);
+        } catch (error) {
+            output.innerHTML += "❌ Script creation error: " + error.message;
+        }
+    </script>
+</body>
+</html>

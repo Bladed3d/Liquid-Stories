@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Liquid Stories V5 - Monster 1 to Monster 2 Transformation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #backgroundCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        #fluidCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: transparent;
+        }
+
+        .universal-puck {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%,
+                rgba(255,255,255,0.9),
+                rgba(255,255,255,0.5),
+                rgba(255,255,255,0.1));
+            border: 4px solid rgba(255,255,255,0.8);
+            box-shadow: 0 0 30px rgba(255,255,255,0.6),
+                        0 0 60px rgba(255,255,255,0.4);
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+            transition: none;
+            display: block;
+            left: 50%;
+            top: 50%;
+        }
+
+        .universal-puck.dragging {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 40px rgba(255,255,255,0.9),
+                        0 0 80px rgba(255,255,255,0.6);
+        }
+
+        .progress-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 20px 30px;
+            border-radius: 16px;
+            text-align: center;
+            z-index: 100;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            min-width: 320px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-title {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .stat {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            font-size: 1.4rem;
+            flex-direction: column;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mobile-menu-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .mobile-menu-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(25px);
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 30px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .mobile-menu.active {
+            transform: translateY(0);
+        }
+
+        .mobile-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .menu-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #FFD700;
+        }
+
+        .close-menu {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.4rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .close-menu:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .menu-controls {
+            display: grid;
+            gap: 15px;
+        }
+
+        .menu-control-btn {
+            padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .menu-control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            border-color: #FFD700;
+        }
+
+        .menu-control-btn:active {
+            transform: translateY(0);
+        }
+
+        .mobile-hamburger {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s;
+        }
+
+        .mobile-hamburger:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .mobile-hamburger:active {
+            transform: scale(0.95);
+        }
+
+        .hamburger-line {
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 4px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        /* Mobile-specific optimizations */
+        @media (max-width: 480px) {
+            .progress-container {
+                min-width: 280px;
+                padding: 15px 20px;
+            }
+
+            .progress-title {
+                font-size: 1rem;
+            }
+
+            .mobile-menu {
+                padding: 20px;
+            }
+
+            .menu-control-btn {
+                padding: 15px 20px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Desktop override */
+        @media (min-width: 768px) {
+            .mobile-hamburger,
+            .mobile-menu,
+            .mobile-menu-backdrop {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        Loading Monster 1 to Monster 2 Transformation...
+    </div>
+
+    <section class="hero">
+        <canvas id="backgroundCanvas"></canvas>
+        <canvas id="fluidCanvas"></canvas>
+    </section>
+
+    <div class="universal-puck" id="universalPuck"></div>
+
+    <div class="progress-container">
+        <div class="progress-title" id="progressTitle">Monster 1 to Monster 2 Transformation</div>
+        <div class="progress-stats">
+            <span class="stat">Particles: <span id="particleCount">0</span></span>
+            <span class="stat">Progress: <span id="progressPercent">0%</span></span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <div class="mobile-hamburger" id="hamburgerMenu" onclick="toggleMobileMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <div class="mobile-menu-backdrop" id="menuBackdrop" onclick="closeMobileMenu()"></div>
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <div class="menu-title">Controls</div>
+            <div class="close-menu" onclick="closeMobileMenu()">×</div>
+        </div>
+        <div class="menu-controls">
+            <button class="menu-control-btn" onclick="mobileAdjustInfluence(-20)">Less Influence</button>
+            <button class="menu-control-btn" onclick="mobileAdjustInfluence(20)">More Influence</button>
+            <button class="menu-control-btn" onclick="mobileToggleTrails()">Toggle Trails</button>
+            <button class="menu-control-btn" onclick="mobileResetToImage1()">Reset</button>
+            <button class="menu-control-btn" onclick="mobileAutoCompleteImage2()">Complete</button>
+        </div>
+    </div>
+
+    <script>
+        // Base system variables
+        const IMAGE_SIZE = 600; // Smaller for mobile
+        const SPACING = 8; // Slightly larger spacing for mobile
+        let particles = [];
+        let gridCols, gridRows;
+        let sourceImage1, sourceImage2;
+        let imagesLoaded = false;
+        let animationId;
+        let transformationComplete = false;
+
+        // Interaction variables - mobile optimized
+        let puckX = 0, puckY = 0, puckVelX = 0, puckVelY = 0;
+        let influenceRadius = 100; // Smaller for mobile
+        let trailsEnabled = false;
+        let isDragging = false;
+        let mobileMenuOpen = false;
+
+        // Canvas elements
+        let canvas, ctx, bgCanvas, bgCtx;
+
+        // Transformation configuration
+        const transformationConfig = {
+            fromStage: 3,
+            toStage: 4,
+            fromImage: '../images/Monster01.png',
+            toImage: '../images/Monster02.png'
+        };
+
+        // Mobile detection and setup
+        function setupMobileExperience() {
+            // Prevent default touch behaviors
+            document.addEventListener('touchmove', function(e) {
+                if (e.target === canvas || e.target.parentElement === canvas) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            // Prevent zooming
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            });
+
+            // Prevent scrolling
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100%';
+        }
+
+        // Initialize base system
+        function initializeBaseSystem() {
+            canvas = document.getElementById('fluidCanvas');
+            ctx = canvas.getContext('2d');
+            bgCanvas = document.getElementById('backgroundCanvas');
+            bgCtx = bgCanvas.getContext('2d');
+
+            setupMobileExperience();
+            setupCanvases();
+            setupEventListeners();
+            loadImages();
+        }
+
+        // Canvas setup - mobile optimized
+        function setupCanvases() {
+            // Handle device pixel ratio for sharp rendering
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+            ctx.scale(dpr, dpr);
+
+            bgCanvas.width = window.innerWidth * dpr;
+            bgCanvas.height = window.innerHeight * dpr;
+            bgCanvas.style.width = window.innerWidth + 'px';
+            bgCanvas.style.height = window.innerHeight + 'px';
+            bgCtx.scale(dpr, dpr);
+
+            window.addEventListener('resize', setupCanvases);
+            drawBackground();
+        }
+
+        // Background drawing
+        function drawBackground() {
+            bgCtx.fillStyle = '#0a0a0a';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCtx.canvas.height);
+
+            // Simple gradient background
+            const gradient = bgCtx.createRadialGradient(
+                bgCanvas.width / 2, bgCanvas.height / 2, 0,
+                bgCanvas.width / 2, bgCanvas.height / 2, bgCanvas.width / 2
+            );
+            gradient.addColorStop(0, 'rgba(25, 25, 112, 0.3)');
+            gradient.addColorStop(1, 'rgba(10, 10, 10, 0.8)');
+            bgCtx.fillStyle = gradient;
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+        }
+
+        // Load transformation images
+        function loadImages() {
+            const loadingElement = document.getElementById('loading');
+            let imagesToLoad = 2;
+            let imagesLoadedCount = 0;
+
+            function imageLoaded() {
+                imagesLoadedCount++;
+                if (imagesLoadedCount === imagesToLoad) {
+                    imagesLoaded = true;
+                    loadingElement.style.display = 'none';
+                    initParticles();
+                    animate();
+                }
+            }
+
+            sourceImage1 = new Image();
+            sourceImage1.onload = imageLoaded;
+            sourceImage1.onerror = () => {
+                console.error('Failed to load source image 1:', transformationConfig.fromImage);
+                imageLoaded();
+            };
+
+            sourceImage2 = new Image();
+            sourceImage2.onload = imageLoaded;
+            sourceImage2.onerror = () => {
+                console.error('Failed to load source image 2:', transformationConfig.toImage);
+                imageLoaded();
+            };
+
+            sourceImage1.src = transformationConfig.fromImage;
+            sourceImage2.src = transformationConfig.toImage;
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, targetX, targetY) {
+                this.x = x;
+                this.y = y;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.originX = targetX;
+                this.originY = targetY;
+                this.vx = 0;
+                this.vy = 0;
+                this.size = SPACING * 0.8;
+                this.transformation = 0;
+                this.color = '#FFD700';
+            }
+
+            update(mouseX, mouseY, mouseVelX, mouseVelY) {
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < influenceRadius) {
+                    const force = (1 - distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+
+                    this.vx += Math.cos(angle) * force * 2.5; // More responsive for mobile
+                    this.vy += Math.sin(angle) * force * 2.5;
+
+                    if (force > 0.5) {
+                        this.transformation = Math.min(1, this.transformation + force * 0.03);
+                    }
+                }
+
+                // Return to origin
+                const returnForce = 0.06; // Slightly stronger return force
+                this.vx += (this.originX - this.x) * returnForce;
+                this.vy += (this.originY - this.y) * returnForce;
+
+                // Damping
+                this.vx *= 0.90;
+                this.vy *= 0.90;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            render(ctx, img1, img2) {
+                ctx.save();
+
+                // Calculate source positions
+                const img1X = Math.floor(this.transformation * (img1.width / gridCols));
+                const img1Y = Math.floor(this.transformation * (img1.height / gridRows));
+                const img2X = Math.floor((1 - this.transformation) * (img2.width / gridCols));
+                const img2Y = Math.floor((1 - this.transformation) * (img2.height / gridRows));
+
+                // Draw particle
+                if (this.transformation > 0) {
+                    ctx.globalAlpha = this.transformation;
+                    ctx.drawImage(
+                        img2,
+                        img2X, img2Y,
+                        img2.width / gridCols,
+                        img2.height / gridRows,
+                        this.x - this.size/2,
+                        this.y - this.size/2,
+                        this.size,
+                        this.size
+                    );
+                }
+
+                ctx.globalAlpha = 1 - this.transformation;
+                ctx.drawImage(
+                    img1,
+                    img1X, img1Y,
+                    img1.width / gridCols,
+                    img1.height / gridRows,
+                    this.x - this.size/2,
+                    this.y - this.size/2,
+                    this.size,
+                    this.size
+                );
+
+                ctx.restore();
+            }
+
+            resetToImage1() {
+                this.transformation = 0;
+                this.vx = 0;
+                this.vy = 0;
+            }
+
+            forceToImage2() {
+                this.transformation = 1;
+            }
+        }
+
+        // Initialize particles
+        function initParticles() {
+            particles = [];
+            const imageX = Math.floor((window.innerWidth - IMAGE_SIZE) / 2);
+            const imageY = Math.floor((window.innerHeight - IMAGE_SIZE) / 2);
+
+            gridCols = Math.floor(IMAGE_SIZE / SPACING);
+            gridRows = Math.floor(IMAGE_SIZE / SPACING);
+
+            for (let gridY = 0; gridY < gridRows; gridY++) {
+                for (let gridX = 0; gridX < gridCols; gridX++) {
+                    const targetX = imageX + (gridX * SPACING) + (SPACING / 2);
+                    const targetY = imageY + (gridY * SPACING) + (SPACING / 2);
+
+                    particles.push(new Particle(
+                        targetX + (Math.random() - 0.5) * 20,
+                        targetY + (Math.random() - 0.5) * 20,
+                        targetX,
+                        targetY
+                    ));
+                }
+            }
+
+            updateParticleCount();
+            updateProgress();
+        }
+
+        // Animation loop
+        function animate() {
+            if (!imagesLoaded) return;
+
+            ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.02)';
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            particles.forEach(particle => {
+                particle.update(puckX, puckY, puckVelX, puckVelY);
+                particle.render(ctx, sourceImage1, sourceImage2);
+            });
+
+            updateProgress();
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Update functions
+        function updateProgress() {
+            const totalParticles = particles.length;
+            const transformedParticles = particles.filter(p => p.transformation > 0.9).length;
+            const progress = Math.round((transformedParticles / totalParticles) * 100);
+
+            document.getElementById('progressPercent').textContent = progress + '%';
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            if (progress === 100 && !transformationComplete) {
+                transformationComplete = true;
+                celebrateCompletion();
+            }
+        }
+
+        function updateParticleCount() {
+            document.getElementById('particleCount').textContent = particles.length;
+        }
+
+        function celebrateCompletion() {
+            const title = document.getElementById('progressTitle');
+            title.textContent = '✨ Monster 1 to Monster 2 Transformation Complete! ✨';
+        }
+
+        // Event listeners - mobile focused
+        function setupEventListeners() {
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+            canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+        }
+
+        // Mobile touch handlers - enhanced
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+
+            puckX = touch.clientX - rect.left;
+            puckY = touch.clientY - rect.top;
+            puckVelX = 0;
+            puckVelY = 0;
+
+            isDragging = true;
+            document.getElementById('universalPuck').classList.add('dragging');
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!isDragging) return;
+
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const newX = touch.clientX - rect.left;
+            const newY = touch.clientY - rect.top;
+
+            puckVelX = newX - puckX;
+            puckVelY = newY - puckY;
+            puckX = newX;
+            puckY = newY;
+
+            updatePuckPosition();
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            isDragging = false;
+            document.getElementById('universalPuck').classList.remove('dragging');
+        }
+
+        // Update puck position
+        function updatePuckPosition() {
+            const puck = document.getElementById('universalPuck');
+            puck.style.left = puckX + 'px';
+            puck.style.top = puckY + 'px';
+        }
+
+        // Control functions
+        function adjustInfluence(delta) {
+            influenceRadius = Math.max(50, Math.min(200, influenceRadius + delta));
+        }
+
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+        }
+
+        function resetToImage1() {
+            transformationComplete = false;
+            particles.forEach(particle => particle.resetToImage1());
+            updateProgress();
+            document.getElementById('progressTitle').textContent = 'Monster 1 to Monster 2 Transformation';
+        }
+
+        function autoCompleteImage2() {
+            particles.forEach(particle => particle.forceToImage2());
+            updateProgress();
+        }
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            mobileMenuOpen = !mobileMenuOpen;
+            if (mobileMenuOpen) {
+                document.getElementById('menuBackdrop').classList.add('active');
+                document.getElementById('mobileMenu').classList.add('active');
+                // Add haptic feedback if available
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            } else {
+                closeMobileMenu();
+            }
+        }
+
+        function closeMobileMenu() {
+            mobileMenuOpen = false;
+            document.getElementById('menuBackdrop').classList.remove('active');
+            document.getElementById('mobileMenu').classList.remove('active');
+        }
+
+        // Mobile control wrappers
+        function mobileAdjustInfluence(delta) {
+            adjustInfluence(delta);
+            closeMobileMenu();
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+        }
+
+        function mobileToggleTrails() {
+            toggleTrails();
+            closeMobileMenu();
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+        }
+
+        function mobileResetToImage1() {
+            resetToImage1();
+            closeMobileMenu();
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+        }
+
+        function mobileAutoCompleteImage2() {
+            autoCompleteImage2();
+            closeMobileMenu();
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+        }
+
+        // Make functions global
+        window.adjustInfluence = adjustInfluence;
+        window.toggleTrails = toggleTrails;
+        window.resetToImage1 = resetToImage1;
+        window.autoCompleteImage2 = autoCompleteImage2;
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.closeMobileMenu = closeMobileMenu;
+        window.mobileAdjustInfluence = mobileAdjustInfluence;
+        window.mobileToggleTrails = mobileToggleTrails;
+        window.mobileResetToImage1 = mobileResetToImage1;
+        window.mobileAutoCompleteImage2 = mobileAutoCompleteImage2;
+
+        // Start the base system when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeBaseSystem();
+        });
+    </script>
+</body>
+</html>

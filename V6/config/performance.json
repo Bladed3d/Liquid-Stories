@@ -1,0 +1,180 @@
+{
+  "version": "1.0.0",
+  "description": "Performance configuration for V6 Liquid Stories",
+  "profiles": {
+    "high": {
+      "name": "High Performance",
+      "description": "Desktop devices with good hardware",
+      "particleSystem": {
+        "particleCount": 10000,
+        "targetFPS": 60,
+        "maxVelocity": 5,
+        "interactionRadius": 150,
+        "damping": 0.98,
+        "springStrength": 0.005,
+        "swirlStrength": 0.3,
+        "radialStrength": 0.01,
+        "trailsEnabled": false
+      },
+      "rendering": {
+        "enableGlow": true,
+        "enableShadows": false,
+        "enableBlur": false,
+        "antialiasing": true,
+        "imageSmoothing": true
+      },
+      "interaction": {
+        "inputLatencyThreshold": 16,
+        "enableVelocitySmoothing": true,
+        "touchLatencyThreshold": 33
+      },
+      "memory": {
+        "maxMemoryUsage": 100,
+        "cacheSize": 50,
+        "garbageCollectionInterval": 60000
+      }
+    },
+    "medium": {
+      "name": "Medium Performance",
+      "description": "Mid-range devices and tablets",
+      "particleSystem": {
+        "particleCount": 7500,
+        "targetFPS": 45,
+        "maxVelocity": 4,
+        "interactionRadius": 120,
+        "damping": 0.96,
+        "springStrength": 0.006,
+        "swirlStrength": 0.25,
+        "radialStrength": 0.008,
+        "trailsEnabled": false
+      },
+      "rendering": {
+        "enableGlow": true,
+        "enableShadows": false,
+        "enableBlur": false,
+        "antialiasing": true,
+        "imageSmoothing": false
+      },
+      "interaction": {
+        "inputLatencyThreshold": 20,
+        "enableVelocitySmoothing": true,
+        "touchLatencyThreshold": 40
+      },
+      "memory": {
+        "maxMemoryUsage": 75,
+        "cacheSize": 30,
+        "garbageCollectionInterval": 45000
+      }
+    },
+    "low": {
+      "name": "Low Performance",
+      "description": "Mobile devices and older hardware",
+      "particleSystem": {
+        "particleCount": 5000,
+        "targetFPS": 30,
+        "maxVelocity": 3,
+        "interactionRadius": 100,
+        "damping": 0.94,
+        "springStrength": 0.008,
+        "swirlStrength": 0.2,
+        "radialStrength": 0.006,
+        "trailsEnabled": false
+      },
+      "rendering": {
+        "enableGlow": false,
+        "enableShadows": false,
+        "enableBlur": false,
+        "antialiasing": false,
+        "imageSmoothing": false
+      },
+      "interaction": {
+        "inputLatencyThreshold": 33,
+        "enableVelocitySmoothing": false,
+        "touchLatencyThreshold": 50
+      },
+      "memory": {
+        "maxMemoryUsage": 50,
+        "cacheSize": 20,
+        "garbageCollectionInterval": 30000
+      }
+    }
+  },
+  "adaptive": {
+    "enabled": true,
+    "monitoring": {
+      "fpsCheckInterval": 2000,
+      "memoryCheckInterval": 5000,
+      "fpsThreshold": 45,
+      "memoryThreshold": 80
+    },
+    "adjustments": {
+      "particleCountStep": 1000,
+      "maxVelocityStep": 0.5,
+      "interactionRadiusStep": 10,
+      "enableTrailsOnLowPerformance": false
+    }
+  },
+  "optimization": {
+    "culling": {
+      "enabled": true,
+      "viewportMargin": 50,
+      "updateCulling": true,
+      "renderCulling": true
+    },
+    "levelOfDetail": {
+      "enabled": true,
+      "distanceThresholds": [200, 400, 600],
+      "particleSizes": [2, 1.5, 1, 0.5]
+    },
+    "batching": {
+      "enabled": true,
+      "batchSize": 100,
+      "updateBatches": true
+    }
+  },
+  "debugging": {
+    "enabled": false,
+    "showFPS": false,
+    "showParticleCount": false,
+    "showMemoryUsage": false,
+    "showPerformanceMetrics": false,
+    "logPerformanceWarnings": true,
+    "performanceLoggingInterval": 10000
+  },
+  "testing": {
+    "mockImages": true,
+    "forceLowPerformance": false,
+    "disableOptimizations": false,
+    "simulateSlowNetwork": false,
+    "enablePerformanceProfiling": true
+  },
+  "deviceSpecific": {
+    "mobile": {
+      "profile": "low",
+      "overrides": {
+        "particleSystem": {
+          "particleCount": 5000,
+          "targetFPS": 30,
+          "maxVelocity": 3
+        },
+        "interaction": {
+          "inputLatencyThreshold": 33,
+          "enableVelocitySmoothing": false
+        }
+      }
+    },
+    "tablet": {
+      "profile": "medium",
+      "overrides": {
+        "particleSystem": {
+          "particleCount": 7500,
+          "targetFPS": 45
+        }
+      }
+    },
+    "desktop": {
+      "profile": "high",
+      "overrides": {}
+    }
+  }
+}

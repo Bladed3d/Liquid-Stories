@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kid Happy → Kid Scared - Liquid Paint V7</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+            cursor: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #backgroundCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #0a0a0a;
+        }
+
+        #fluidCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: transparent;
+        }
+
+        .universal-puck {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fe802d, #fe0048);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+            pointer-events: none;
+            transition: transform 0.1s ease;
+            box-shadow: 0 0 20px rgba(254, 0, 72, 0.5);
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid #fe0048;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div id="backgroundCanvas"></div>
+        <canvas id="fluidCanvas"></canvas>
+        <div class="universal-puck"></div>
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div>Initializing Liquid Paint...</div>
+        </div>
+    </div>
+
+    <script src="../timeline-component.js"></script>
+    <script>
+        let liquidPaintSystem = null;
+        let timeline = null;
+
+        // Simple particle class
+        class Particle {
+            constructor(x, y, size, image1, image2, gridX, gridY, gridSize, imageDimensions) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.image1 = image1;
+                this.image2 = image2;
+
+                // V3 transformation state
+                this.currentImage = 1; // Start with KidHappy (1)
+                this.hasBeenTransformed = false; // Track if transformed to KidScared
+                this.isTransitioning = false; // Currently in transition?
+                this.transformProgress = 0; // 0-1 transition progress
+
+                // V3 physics parameters
+                this.mass = 1 + Math.random() * 0.5; // Random mass like V3
+                this.influenceRadius = 120; // V3 influence radius (much larger!)
+
+                // Grid position for image sampling
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.gridSize = gridSize;
+
+                // Calculate image fragment coordinates
+                if (imageDimensions && imageDimensions.width && imageDimensions.height) {
+                    this.sourceWidth = imageDimensions.width / gridSize;
+                    this.sourceHeight = imageDimensions.height / gridSize;
+                    this.sourceX = gridX * this.sourceWidth;
+                    this.sourceY = gridY * this.sourceHeight;
+                }
+            }
+
+            update(puckX, puckY, puckVelX, puckVelY, canvasWidth, canvasHeight) {
+                const dx = this.x - puckX; // V3: particle to puck (reversed direction)
+                const dy = this.y - puckY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const inInfluence = distance < this.influenceRadius;
+
+                // V3 PERSISTENT TRANSFORMATION LOGIC:
+                // Once transformed, stay transformed forever (unless reset)
+                if (inInfluence && !this.hasBeenTransformed && this.currentImage === 1) {
+                    // Start transformation to Image 2
+                    this.isTransitioning = true;
+                    this.transformProgress = 0;
+                } else if (this.isTransitioning) {
+                    // Continue transition progress
+                    this.transformProgress = Math.min(1, this.transformProgress + 0.05);
+
+                    if (this.transformProgress >= 1) {
+                        // Complete transformation
+                        this.currentImage = 2;
+                        this.hasBeenTransformed = true;
+                        this.isTransitioning = false;
+                        this.transformProgress = 0;
+                    }
+                }
+
+                // Apply V3 complex physics (only if in influence zone for performance)
+                if (distance < this.influenceRadius) {
+                    const influence = 1 - (distance / this.influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+
+                    const tangentX = -Math.sin(angle);
+                    const tangentY = Math.cos(angle);
+
+                    // V3 swirl dynamics using puck velocity
+                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+
+                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+                }
+
+                // Spring force back to original position (V3 style)
+                const springForce = 0.005; // V3's weaker spring force
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+
+                // Apply velocity with damping (V3 style)
+                const damping = 0.92;
+                this.vx *= damping;
+                this.vy *= damping;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Boundary collision (V3 style)
+                const margin = this.size / 2;
+                if (this.x < margin || this.x > canvasWidth - margin) {
+                    this.vx *= -0.7; // V3 boundary bounce
+                    this.x = Math.max(margin, Math.min(canvasWidth - margin, this.x));
+                }
+                if (this.y < margin || this.y > canvasHeight - margin) {
+                    this.vy *= -0.7; // V3 boundary bounce
+                    this.y = Math.max(margin, Math.min(canvasHeight - margin, this.y));
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+
+                // V3 drawing logic based on currentImage state
+                if (this.currentImage === 2) {
+                    // Show KidScared image fragment (completely transformed)
+                    if (this.image2 && this.image2.complete && this.sourceWidth && this.sourceHeight) {
+                        ctx.globalAlpha = 1;
+                        ctx.drawImage(this.image2,
+                            this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, // Source rectangle
+                            this.x - this.size/2, this.y - this.size/2, this.size, this.size); // Destination
+                    } else {
+                        // Fallback colored square if image not loaded
+                        ctx.globalAlpha = 1;
+                        ctx.fillStyle = '#fe0048';
+                        ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
+                    }
+                } else {
+                    // Show KidHappy image fragment (currentImage === 1)
+                    if (this.image1 && this.image1.complete && this.sourceWidth && this.sourceHeight) {
+                        ctx.globalAlpha = 1;
+                        ctx.drawImage(this.image1,
+                            this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, // Source rectangle
+                            this.x - this.size/2, this.y - this.size/2, this.size, this.size); // Destination
+                    } else {
+                        // Fallback colored square if image not loaded
+                        ctx.globalAlpha = 1;
+                        ctx.fillStyle = '#fe802d';
+                        ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
+                    }
+                }
+
+                // Add transition progress effect (V3 style)
+                if (this.isTransitioning && this.transformProgress < 1) {
+                    ctx.globalAlpha = (1 - this.transformProgress) * 0.5;
+                    ctx.fillStyle = '#fe802d';
+                    ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        class LiquidPaintSystem {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.puckVelX = 0;
+                this.puckVelY = 0;
+                this.prevMouseX = 0;
+                this.prevMouseY = 0;
+                this.image1 = new Image();
+                this.image2 = new Image();
+                this.image1Loaded = false;
+                this.image2Loaded = false;
+                this.gridSize = 80;
+                this.particleSize = 8;
+            }
+
+            init(image1Url, image2Url, callback) {
+                this.image1.onload = () => {
+                    this.image1Loaded = true;
+                    this.checkReady(callback);
+                };
+                this.image2.onload = () => {
+                    this.image2Loaded = true;
+                    this.checkReady(callback);
+                };
+
+                this.image1.src = image1Url;
+                this.image2.src = image2Url;
+            }
+
+            checkReady(callback) {
+                if (this.image1Loaded && this.image2Loaded) {
+                    this.createParticles();
+                    this.setupEventListeners();
+                    this.startAnimation();
+                    if (callback) callback();
+                }
+            }
+
+            createParticles() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+
+                // Make particles slightly larger to eliminate gaps
+                const actualParticleSize = this.particleSize + 1; // Overlap to remove lines
+                const spacing = this.particleSize - 0.5; // Slightly overlap particles
+
+                const startX = (this.canvas.width - (this.gridSize * spacing)) / 2;
+                const startY = (this.canvas.height - (this.gridSize * spacing)) / 2;
+
+                // Get image dimensions for proper fragment sampling
+                let imageDimensions = null;
+                if (this.image1 && this.image1.complete) {
+                    imageDimensions = { width: this.image1.width, height: this.image1.height };
+                }
+
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        const x = startX + i * spacing;
+                        const y = startY + j * spacing;
+
+                        const particle = new Particle(x, y, actualParticleSize, this.image1, this.image2, i, j, this.gridSize, imageDimensions);
+                        this.particles.push(particle);
+                    }
+                }
+            }
+
+            setupEventListeners() {
+                // Mouse events
+                document.addEventListener('mousemove', (e) => {
+                    // Calculate puck velocity (V3 style)
+                    this.puckVelX = e.clientX - this.prevMouseX;
+                    this.puckVelY = e.clientY - this.prevMouseY;
+
+                    this.mouseX = e.clientX;
+                    this.mouseY = e.clientY;
+                    this.updatePuck(e.clientX, e.clientY);
+
+                    // Store previous position for next velocity calculation
+                    this.prevMouseX = e.clientX;
+                    this.prevMouseY = e.clientY;
+                });
+
+                // Mouse stop event (V3 style - DON'T reset velocity!)
+                document.addEventListener('mouseup', () => {
+                    // V3 doesn't reset velocity on mouse up - keeps swirling!
+                    // In V7, we maintain the velocity for continuous swirl effects
+                });
+
+                // Touch events
+                document.addEventListener('touchmove', (e) => {
+                    if (e.touches.length > 0) {
+                        const touchX = e.touches[0].clientX;
+                        const touchY = e.touches[0].clientY;
+
+                        // Calculate puck velocity (V3 style)
+                        this.puckVelX = touchX - this.prevMouseX;
+                        this.puckVelY = touchY - this.prevMouseY;
+
+                        this.mouseX = touchX;
+                        this.mouseY = touchY;
+                        this.updatePuck(touchX, touchY);
+
+                        // Store previous position for next velocity calculation
+                        this.prevMouseX = touchX;
+                        this.prevMouseY = touchY;
+                    }
+                });
+
+                // Touch end event (V3 style - DON'T reset velocity!)
+                document.addEventListener('touchend', () => {
+                    // V3 doesn't reset velocity on touch end - keeps swirling!
+                });
+
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
+                });
+            }
+
+            updatePuck(x, y) {
+                const puck = document.querySelector('.universal-puck');
+                if (puck) {
+                    puck.style.left = (x - 30) + 'px';
+                    puck.style.top = (y - 30) + 'px';
+                }
+            }
+
+            startAnimation() {
+                const animate = () => {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                    // Apply gradual puck velocity damping (V3 style)
+                    this.puckVelX *= 0.98; // Very gradual slowdown
+                    this.puckVelY *= 0.98;
+
+                    this.particles.forEach(particle => {
+                        particle.update(this.mouseX, this.mouseY, this.puckVelX, this.puckVelY, this.canvas.width, this.canvas.height);
+                        particle.draw(this.ctx);
+                    });
+
+                    // Update timeline progress (V3 style - count transformed particles)
+                    const transformedCount = this.particles.filter(p => p.hasBeenTransformed).length;
+                    const progress = (transformedCount / this.particles.length) * 100;
+                    if (window.updateTimelineProgress) {
+                        window.updateTimelineProgress(progress);
+                    }
+
+                    requestAnimationFrame(animate);
+                };
+                animate();
+            }
+        }
+
+        // Initialize when page loads
+        function initializeTransformation() {
+            // Hide loading
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.style.display = 'none';
+            }
+
+            // Initialize timeline
+            timeline = initTimeline({
+                currentStage: 1,
+                totalStages: 4,
+                interactive: false,
+                onStageChange: (stage) => {
+                    console.log(`Stage changed to: ${stage}`);
+                }
+            });
+
+            // Initialize liquid paint system
+            liquidPaintSystem = new LiquidPaintSystem('fluidCanvas');
+            liquidPaintSystem.init('../images/KidHappy.png', '../images/KidScared.png', () => {
+                console.log('Transformation 1→2 initialized: Kid Happy → Kid Scared');
+            });
+        }
+
+        // Start initialization
+        document.addEventListener('DOMContentLoaded', initializeTransformation);
+    </script>
+</body>
+</html>

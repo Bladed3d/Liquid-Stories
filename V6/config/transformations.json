@@ -1,0 +1,183 @@
+{
+  "version": "1.0.0",
+  "description": "Stage transition configuration for V6 Liquid Stories",
+  "stages": [
+    {
+      "id": 1,
+      "name": "The Happy Beginning",
+      "title": "Stage 1: The Happy Beginning",
+      "character": "KidHappy",
+      "description": "A child's joyful adventure begins",
+      "duration": 500,
+      "easing": "easeInOut",
+      "particleSystem": {
+        "color": {
+          "h": 200,
+          "s": 70,
+          "l": 50,
+          "a": 0.8
+        },
+        "particleCount": 10000,
+        "interactionRadius": 150,
+        "maxVelocity": 5
+      },
+      "ui": {
+        "progressPercentage": 0,
+        "backgroundColor": "#0a0a0a",
+        "textColor": "#ffffff",
+        "accentColor": "#4169E1"
+      },
+      "effects": {
+        "glowIntensity": 0.3,
+        "swirlStrength": 0.3,
+        "radialStrength": 0.01
+      }
+    },
+    {
+      "id": 2,
+      "name": "Growing Concern",
+      "title": "Stage 2: Growing Concern",
+      "character": "KidScared",
+      "description": "Fear begins to creep in",
+      "duration": 500,
+      "easing": "easeInOut",
+      "particleSystem": {
+        "color": {
+          "h": 20,
+          "s": 70,
+          "l": 50,
+          "a": 0.8
+        },
+        "particleCount": 10000,
+        "interactionRadius": 150,
+        "maxVelocity": 5
+      },
+      "ui": {
+        "progressPercentage": 25,
+        "backgroundColor": "#1a0a0a",
+        "textColor": "#ffffff",
+        "accentColor": "#FFA500"
+      },
+      "effects": {
+        "glowIntensity": 0.4,
+        "swirlStrength": 0.35,
+        "radialStrength": 0.012
+      }
+    },
+    {
+      "id": 3,
+      "name": "The Monster Appears",
+      "title": "Stage 3: The Monster Appears",
+      "character": "Monster01",
+      "description": "A fearsome creature emerges",
+      "duration": 500,
+      "easing": "easeInOut",
+      "particleSystem": {
+        "color": {
+          "h": 280,
+          "s": 70,
+          "l": 50,
+          "a": 0.8
+        },
+        "particleCount": 10000,
+        "interactionRadius": 150,
+        "maxVelocity": 5
+      },
+      "ui": {
+        "progressPercentage": 50,
+        "backgroundColor": "#1a0a1a",
+        "textColor": "#ffffff",
+        "accentColor": "#9400D3"
+      },
+      "effects": {
+        "glowIntensity": 0.5,
+        "swirlStrength": 0.4,
+        "radialStrength": 0.015
+      }
+    },
+    {
+      "id": 4,
+      "name": "Facing the Fear",
+      "title": "Stage 4: Facing the Fear",
+      "character": "Monster02",
+      "description": "Confronting the ultimate challenge",
+      "duration": 500,
+      "easing": "easeInOut",
+      "particleSystem": {
+        "color": {
+          "h": 0,
+          "s": 70,
+          "l": 50,
+          "a": 0.8
+        },
+        "particleCount": 10000,
+        "interactionRadius": 150,
+        "maxVelocity": 5
+      },
+      "ui": {
+        "progressPercentage": 75,
+        "backgroundColor": "#1a0a0a",
+        "textColor": "#ffffff",
+        "accentColor": "#DC143C"
+      },
+      "effects": {
+        "glowIntensity": 0.6,
+        "swirlStrength": 0.45,
+        "radialStrength": 0.018
+      }
+    },
+    {
+      "id": 5,
+      "name": "Resolution",
+      "title": "Stage 5: Resolution",
+      "character": "Resolution",
+      "description": "Peace and understanding prevail",
+      "duration": 500,
+      "easing": "easeInOut",
+      "particleSystem": {
+        "color": {
+          "h": 120,
+          "s": 70,
+          "l": 50,
+          "a": 0.8
+        },
+        "particleCount": 10000,
+        "interactionRadius": 150,
+        "maxVelocity": 5
+      },
+      "ui": {
+        "progressPercentage": 100,
+        "backgroundColor": "#0a1a0a",
+        "textColor": "#ffffff",
+        "accentColor": "#32CD32"
+      },
+      "effects": {
+        "glowIntensity": 0.4,
+        "swirlStrength": 0.3,
+        "radialStrength": 0.01
+      }
+    }
+  ],
+  "transitions": {
+    "defaultDuration": 500,
+    "easingFunctions": {
+      "linear": "linear",
+      "easeIn": "ease-in",
+      "easeOut": "ease-out",
+      "easeInOut": "ease-in-out",
+      "bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)"
+    },
+    "effects": {
+      "fadeOutDuration": 250,
+      "fadeInDuration": 250,
+      "colorTransitionDuration": 300,
+      "particleReorganizationDuration": 400
+    }
+  },
+  "mobile": {
+    "particleCountMultiplier": 0.5,
+    "interactionRadiusMultiplier": 0.9,
+    "maxVelocityMultiplier": 0.8,
+    "effectsMultiplier": 0.8
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "story": {
+    "title": "Pug Days",
+    "pageCount": 3
+  },
+  "pages": [
+    {
+      "pageNumber": 1,
+      "image1Url": "pug-happy-day.png",
+      "image2Url": "pug-bad-day.png",
+      "progressTitle": "A Pug Day",
+      "backboardTexts": [
+        { "text": "A Day for a Pug", "yOffset": -60, "color": "#fe0048", "size": 56 },
+        { "text": "Can be a Good Day", "yOffset": 0, "color": "#fe0048", "size": 56 },
+        { "text": "or a Bad Day", "yOffset": 60, "color": "#fe0048", "size": 46 }
+      ]
+    },
+    {
+      "pageNumber": 2,
+      "image1Url": "pug-bad-day.png",
+      "image2Url": "pug-insane.png",
+      "progressTitle": "Bad Day",
+      "backboardTexts": [
+        { "text": "or a Day Can Be", "yOffset": -60, "color": "#00ff00", "size": 56 },
+        { "text": "an Insane Day", "yOffset": 0, "color": "#00ff00", "size": 56 },
+        { "text": " ", "yOffset": 60, "color": "#00ff00", "size": 46 }
+      ]
+    },
+    {
+      "pageNumber": 3,
+      "image1Url": "pug-insane.png.png",
+      "image2Url": "pug-gaming.png",
+      "progressTitle": "Best Day",
+      "backboardTexts": [
+        { "text": "But Every Day", "yOffset": -60, "color": "#4169e1", "size": 56 },
+        { "text": "is a Good Day", "yOffset": 0, "color": "#4169e1", "size": 56 },
+        { "text": "for Gaming", "yOffset": 60, "color": "#4169e1", "size": 46 }
+      ]
+    }
+  ]
+}

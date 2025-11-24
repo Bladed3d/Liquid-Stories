@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Stories V7 - Modular HTML System</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #0a0a0a);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .status h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #fe0048;
+        }
+
+        .feature-list {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .feature-list li {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #fe802d;
+            font-weight: bold;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #fe802d, #fe0048);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(254, 0, 72, 0.3);
+        }
+
+        .test-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 15px 30px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .test-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .device-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card h3 {
+            color: #fe802d;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🎨 Liquid Stories V7</h1>
+        <p class="subtitle">Modular HTML System - Collaborative Design</p>
+
+        <div class="status">
+            <h2>✅ V7 System Complete!</h2>
+            <div class="feature-list">
+                <li>Device detection system (auto-routes to appropriate files)</li>
+                <li>Base liquid paint system (extracted from V3)</li>
+                <li>4 desktop transformation files (10,000 particles each)</li>
+                <li>4 mobile transformation files (5,000 particles each)</li>
+                <li>Timeline component with automatic progression</li>
+                <li>4 story images and backboard HTML files</li>
+                <li>Configuration system for transformations</li>
+            </div>
+        </div>
+
+        <div class="device-info" id="deviceInfo">
+            Detecting your device...
+        </div>
+
+        <div>
+            <a href="#" class="start-btn" id="startBtn">🚀 Start Liquid Stories</a>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📱 Mobile Optimized</h3>
+                <p>Touch-friendly controls, optimized particle counts, and responsive design for mobile devices.</p>
+            </div>
+
+            <div class="card">
+                <h3>🖥️ Desktop Experience</h3>
+                <p>Full 10,000 particle system with mouse controls and enhanced visual effects.</p>
+            </div>
+
+            <div class="card">
+                <h3>🎭 Story Progression</h3>
+                <p>4-stage transformation journey from happy kid through monsters to resolution.</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <h3 style="margin-bottom: 20px;">Manual Testing Links:</h3>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+                <a href="desktop/liquid-paint-1to2.html" class="test-btn">Desktop 1→2</a>
+                <a href="desktop/liquid-paint-2to3.html" class="test-btn">Desktop 2→3</a>
+                <a href="desktop/liquid-paint-3to4.html" class="test-btn">Desktop 3→4</a>
+                <a href="desktop/liquid-paint-4to5.html" class="test-btn">Desktop 4→5</a>
+                <a href="mobile/liquid-paint-1to2.html" class="test-btn">Mobile 1→2</a>
+                <a href="mobile/liquid-paint-2to3.html" class="test-btn">Mobile 2→3</a>
+                <a href="mobile/liquid-paint-3to4.html" class="test-btn">Mobile 3→4</a>
+                <a href="mobile/liquid-paint-4to5.html" class="test-btn">Mobile 4→5</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple device detection without auto-routing
+        function detectDevice() {
+            return 'ontouchstart' in window || navigator.maxTouchPoints > 0 ? 'mobile' : 'desktop';
+        }
+
+        // Detect device and show appropriate information
+        function detectAndShowDevice() {
+            const device = detectDevice();
+            const deviceInfo = document.getElementById('deviceInfo');
+            const startBtn = document.getElementById('startBtn');
+
+            deviceInfo.innerHTML = `
+                <strong>Device detected:</strong> ${device.charAt(0).toUpperCase() + device.slice(1)}<br>
+                <strong>Will redirect to:</strong> ${device}/liquid-paint-1to2.html<br>
+                <strong>Particle count:</strong> ${device === 'mobile' ? '5,000' : '10,000'}
+            `;
+
+            // Set up manual redirect button
+            startBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                routeToTransformation(device);
+            });
+        }
+
+        // Route to appropriate transformation file
+        function routeToTransformation(device = null) {
+            const targetDevice = device || detectDevice();
+            const targetPath = `${targetDevice}/liquid-paint-1to2.html`;
+            window.location.href = targetPath;
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', detectAndShowDevice);
+
+        // Add some visual effects
+        document.addEventListener('mousemove', function(e) {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            document.body.style.background = `linear-gradient(${135 + x * 10}deg,
+                hsl(${240 + x * 20}, 50%, ${15 + y * 5}%),
+                hsl(${260 + y * 20}, 60%, ${5 + x * 10}%))`;
+        });
+    </script>
+</body>
+</html>

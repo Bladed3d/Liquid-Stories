@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>V6 Debug Test</h1>
+    <div id="results">Testing...</div>
+
+    <script>
+        console.log('Script started');
+        document.getElementById('results').innerHTML = 'Script started<br>';
+
+        // Test basic import
+        try {
+            import('./js/breadcrumb-system.js').then(module => {
+                console.log('breadcrumb-system loaded:', module);
+                document.getElementById('results').innerHTML += '✅ breadcrumb-system.js loaded<br>';
+
+                return import('./js/device-detector.js');
+            }).then(module => {
+                console.log('device-detector loaded:', module);
+                document.getElementById('results').innerHTML += '✅ device-detector.js loaded<br>';
+
+                const DeviceDetector = module.default;
+                console.log('Creating DeviceDetector...');
+                const detector = new DeviceDetector();
+                document.getElementById('results').innerHTML += '✅ DeviceDetector created<br>';
+
+                const info = detector.detect();
+                console.log('Device info:', info);
+                document.getElementById('results').innerHTML +=
+                    '✅ Device detection complete<br>' +
+                    'Device Type: ' + info.deviceType + '<br>' +
+                    'Is Mobile: ' + info.isMobile + '<br>' +
+                    'Is Desktop: ' + info.isDesktop;
+
+            }).catch(error => {
+                console.error('Import failed:', error);
+                document.getElementById('results').innerHTML +=
+                    '❌ Import failed: ' + error.message + '<br>' +
+                    'Stack: ' + error.stack;
+            });
+        } catch (error) {
+            console.error('Script error:', error);
+            document.getElementById('results').innerHTML = '❌ Script error: ' + error.message;
+        }
+    </script>
+</body>
+</html>

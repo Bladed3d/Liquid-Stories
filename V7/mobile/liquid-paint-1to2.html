@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kid Happy → Kid Scared - Mobile Liquid Paint V7</title>
+</head>
+<body>
+    <script src="../timeline-component.js"></script>
+
+    <script>
+        // Include the base liquid paint system
+        fetch('../liquid-paint-base.html')
+            .then(response => response.text())
+            .then(html => {
+                // Extract and inject the base HTML content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Copy styles
+                doc.querySelectorAll('style').forEach(style => {
+                    document.head.appendChild(style.cloneNode(true));
+                });
+
+                // Copy body content
+                doc.body.querySelectorAll('*').forEach(element => {
+                    document.body.appendChild(element.cloneNode(true));
+                });
+
+                // Add mobile-specific optimizations
+                addMobileOptimizations();
+
+                // Wait for scripts to load, then initialize
+                setTimeout(() => {
+                    initializeTransformation();
+                }, 100);
+            });
+
+        function addMobileOptimizations() {
+            // Add mobile-specific CSS optimizations
+            const mobileStyle = document.createElement('style');
+            mobileStyle.textContent = `
+                /* Mobile-specific optimizations */
+                .universal-puck {
+                    width: 70px;
+                    height: 70px;
+                    border-width: 4px;
+                }
+
+                .controls {
+                    display: none !important;
+                }
+
+                .hamburger-menu {
+                    display: flex !important;
+                }
+
+                .puck-instructions {
+                    font-size: 1.2rem;
+                    bottom: 100px;
+                    padding: 16px 24px;
+                }
+
+                .loading {
+                    font-size: 1.4rem;
+                }
+
+                /* Larger touch targets for mobile */
+                .menu-control-btn {
+                    padding: 20px;
+                    font-size: 1.2rem;
+                    min-height: 60px;
+                }
+
+                .close-menu {
+                    width: 44px;
+                    height: 44px;
+                    font-size: 1.4rem;
+                }
+
+                /* Timeline mobile optimizations */
+                .timeline-container {
+                    padding: 12px 20px;
+                    bottom: 60px;
+                }
+
+                .timeline-progress-bar {
+                    width: 200px;
+                    height: 8px;
+                }
+
+                .timeline-circle {
+                    width: 14px;
+                    height: 14px;
+                }
+            `;
+            document.head.appendChild(mobileStyle);
+        }
+
+        function initializeTransformation() {
+            // Initialize timeline for this stage
+            const timeline = initTimeline({
+                currentStage: 1,
+                totalStages: 4,
+                interactive: false,
+                onStageChange: (stage) => {
+                    console.log(`Mobile stage changed to: ${stage}`);
+                }
+            });
+
+            // Configure liquid paint system for mobile
+            const config = {
+                image1Url: '../images/KidHappy.png',
+                image2Url: '../images/KidScared.png',
+                backboardUrl: '../backboard-1.html',
+                stageTitle: 'Kid Happy → Kid Scared',
+                imageCount: 5000 // Mobile optimized count
+            };
+
+            // Initialize the liquid paint system
+            if (typeof window.initializeLiquidPaint === 'function') {
+                window.initializeLiquidPaint(config);
+            } else {
+                // Wait for the function to be available
+                setTimeout(() => {
+                    if (typeof window.initializeLiquidPaint === 'function') {
+                        window.initializeLiquidPaint(config);
+                    } else {
+                        console.error('initializeLiquidPaint function not available');
+                    }
+                }, 500);
+            }
+
+            // Global function for timeline progress updates
+            window.updateTimelineProgress = function(percentage) {
+                if (timeline && typeof timeline.trackParticleTransformation === 'function') {
+                    // Convert percentage to particle count for timeline
+                    const totalParticles = config.imageCount;
+                    const transformedCount = Math.round((percentage / 100) * totalParticles);
+                    timeline.trackParticleTransformation(transformedCount, totalParticles);
+                }
+            };
+
+            console.log('Mobile transformation 1→2 initialized: Kid Happy → Kid Scared');
+        }
+    </script>
+</body>
+</html>

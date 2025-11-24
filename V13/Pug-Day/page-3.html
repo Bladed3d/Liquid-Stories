@@ -828,7 +828,11 @@
 
         function showLogoHoverPrompt(mouseX, mouseY) {
             if (typeof logoTargetUrl !== 'undefined') {
-                logoHoverPrompt.textContent = `Press 1 to visit ${logoTargetUrl}`;
+                if (isMobile) {
+                    logoHoverPrompt.textContent = 'Tap here to go to GameStop';
+                } else {
+                    logoHoverPrompt.textContent = `Press 1 to visit ${logoTargetUrl}`;
+                }
                 logoHoverPrompt.style.display = 'block';
                 updateLogoHoverPromptPosition(mouseX, mouseY);
             }

@@ -1,0 +1,63 @@
+The core issue in the package.json is the Jest configuration mishandling ES6 module transformations for the V6 JavaScript files, while ts-jest works fine for TypeScript tests. Babel-jest is hooked up but lacks explicit guidance to convert ES6 to CommonJS (which Jest's jsdom environment expects for stability). The absolute path in transformIgnorePatterns is also problematic—it's unnecessary (since project files like V6/js are transformed by default) and could break pattern matching.
+Here's the updated jest section for your package.json. This:
+
+Keeps ts-jest for TypeScript.
+Uses babel-jest for JavaScript, now with a new babel.config.json (detailed below) to force CommonJS output for reliable ES6 handling.
+Cleans up transformIgnorePatterns to only allow necessary node_modules exceptions.
+Retains your module mappers, coverage, and setup for seamless integration/unit/workflow testing.
+
+Updated jest config in package.json:
+text"jest": {
+  "preset": "ts-jest",
+  "testEnvironment": "jsdom",
+  "transform": {
+    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.js$": "babel-jest"
+  },
+  "setupFilesAfterEnv": [
+    "./setup.ts"
+  ],
+  "collectCoverageFrom": [
+    "V6/js/**/*.js",
+    "!V6/js/**/*.test.js",
+    "!**/node_modules/**"
+  ],
+  "coverageThreshold": {
+    "global": {
+      "branches": 100,
+      "functions": 100,
+      "lines": 100,
+      "statements": 100
+    }
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/V6/js/$1",
+    "^@test/(.*)$": "<rootDir>/tests/$1"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(jest-axe|axe-core))"
+  ]
+}
+Add this new file at the project root: babel.config.json
+text{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "modules": "commonjs",
+        "targets": {
+          "node": "current"
+        }
+      }
+    ]
+  ]
+}
+Quick Implementation Steps (to keep our 2-day video cycle uninterrupted):
+
+Paste the updated jest object into your package.json (replacing the existing one).
+Create babel.config.json with the content above.
+Run npm install to ensure dependencies (like @babel/preset-env and babel-jest) are fresh.
+Test with npm run test:unit or similar—ES6 imports/exports in V6/js should now transform correctly without errors.
+If your tsconfig.json exists (for tests), ensure its "module": "commonjs" to align with this setup; if not, add a basic tsconfig.json with that.
+
+This resolves the mixed-module hiccup, letting our story agents weave narratives without technical blocks. If edge cases arise (e.g., specific ES6 features), we can refine the babel preset further—like adding polyfills via "useBuiltIns": "usage" and core-js.

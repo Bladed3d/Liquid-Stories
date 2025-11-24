@@ -1,0 +1,64 @@
+{
+  "story": {
+    "title": "The Monster Adventure",
+    "pageCount": 5,
+    "timelineGraphic": "timeline.png"
+  },
+  "pages": [
+    {
+      "pageNumber": 1,
+      "image1Url": "KidHappy.png",
+      "image2Url": "KidScared.png",
+      "progressTitle": "The Fear Begins",
+      "backboardTexts": [
+        { "text": "Monsters are", "yOffset": -60, "color": "#fe0048", "size": 56 },
+        { "text": "Not Real", "yOffset": 0, "color": "#fe0048", "size": 56 },
+        { "text": "Nothing to Fear", "yOffset": 60, "color": "#fe0048", "size": 46 }
+      ]
+    },
+    {
+      "pageNumber": 2,
+      "image1Url": "KidScared.png",
+      "image2Url": "BraveKid.png",
+      "progressTitle": "Finding Courage",
+      "backboardTexts": [
+        { "text": "You are", "yOffset": -60, "color": "#00ff00", "size": 56 },
+        { "text": "Getting Brave", "yOffset": 0, "color": "#00ff00", "size": 56 },
+        { "text": "Keep Going", "yOffset": 60, "color": "#00ff00", "size": 46 }
+      ]
+    },
+    {
+      "pageNumber": 3,
+      "image1Url": "BraveKid.png",
+      "image2Url": "HeroKid.png",
+      "progressTitle": "Becoming a Hero",
+      "backboardTexts": [
+        { "text": "You are", "yOffset": -60, "color": "#4169e1", "size": 56 },
+        { "text": "A Hero", "yOffset": 0, "color": "#4169e1", "size": 56 },
+        { "text": "Amazing Job", "yOffset": 60, "color": "#4169e1", "size": 46 }
+      ]
+    },
+    {
+      "pageNumber": 4,
+      "image1Url": "HeroKid.png",
+      "image2Url": "SuperHero.png",
+      "progressTitle": "Super Powers",
+      "backboardTexts": [
+        { "text": "You Have", "yOffset": -60, "color": "#9370db", "size": 56 },
+        { "text": "Super Powers", "yOffset": 0, "color": "#9370db", "size": 56 },
+        { "text": "Believe in Yourself", "yOffset": 60, "color": "#9370db", "size": 46 }
+      ]
+    },
+    {
+      "pageNumber": 5,
+      "image1Url": "SuperHero.png",
+      "image2Url": "PeacefulKid.png",
+      "progressTitle": "Inner Peace",
+      "backboardTexts": [
+        { "text": "True Power", "yOffset": -60, "color": "#ffd700", "size": 56 },
+        { "text": "is Peace", "yOffset": 0, "color": "#ffd700", "size": 56 },
+        { "text": "You Made It!", "yOffset": 60, "color": "#ffd700", "size": 46 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V7 Device Detection Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            margin: 20px;
+            padding: 20px;
+        }
+
+        .test-result {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .pass { color: #4CAF50; }
+        .fail { color: #f44336; }
+        .info { color: #2196F3; }
+
+        button {
+            background: #fe0048;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 V7 Device Detection Test</h1>
+
+    <div id="testResults"></div>
+
+    <div>
+        <button onclick="runTests()">Run Tests</button>
+        <button onclick="testDeviceDetector()">Test Device Detector</button>
+        <button onclick="testFileRouting()">Test File Routing</button>
+    </div>
+
+    <script src="device-detector.js"></script>
+    <script>
+        function addResult(test, status, message) {
+            const results = document.getElementById('testResults');
+            const div = document.createElement('div');
+            div.className = `test-result ${status}`;
+            div.innerHTML = `<strong>${test}:</strong> ${message}`;
+            results.appendChild(div);
+        }
+
+        function testDeviceDetector() {
+            addResult('Device Detector Loading', 'info', 'Testing device detector functions...');
+
+            if (typeof window.deviceDetector !== 'undefined') {
+                addResult('Device Detector Available', 'pass', '✓ deviceDetector object loaded');
+
+                try {
+                    const device = window.deviceDetector.detectDevice();
+                    addResult('Device Detection', 'pass', `✓ Detected: ${device}`);
+
+                    const stage = window.deviceDetector.getCurrentStage();
+                    addResult('Stage Detection', 'pass', `✓ Current stage: ${stage}`);
+
+                    const testFile = window.deviceDetector.getTransformationFile ?
+                        window.deviceDetector.getTransformationFile(stage, device) : 'N/A';
+                    addResult('File Routing', 'pass', `✓ Route to: ${testFile}`);
+
+                } catch (error) {
+                    addResult('Device Detection Error', 'fail', `✗ Error: ${error.message}`);
+                }
+            } else {
+                addResult('Device Detector Available', 'fail', '✗ deviceDetector object not found');
+            }
+        }
+
+        function testFileRouting() {
+            addResult('File Routing Test', 'info', 'Testing all stage combinations...');
+
+            const devices = ['desktop', 'mobile'];
+            const stages = [1, 2, 3, 4];
+            const expectedFiles = {
+                desktop: {
+                    1: 'desktop/liquid-paint-1to2.html',
+                    2: 'desktop/liquid-paint-2to3.html',
+                    3: 'desktop/liquid-paint-3to4.html',
+                    4: 'desktop/liquid-paint-4to5.html'
+                },
+                mobile: {
+                    1: 'mobile/liquid-paint-1to2.html',
+                    2: 'mobile/liquid-paint-2to3.html',
+                    3: 'mobile/liquid-paint-3to4.html',
+                    4: 'mobile/liquid-paint-4to5.html'
+                }
+            };
+
+            devices.forEach(device => {
+                stages.forEach(stage => {
+                    const expected = expectedFiles[device][stage];
+                    addResult(`${device} Stage ${stage}`, 'info', `Should route to: ${expected}`);
+                });
+            });
+        }
+
+        function testFileExists(filePath) {
+            return fetch(filePath, { method: 'HEAD' })
+                .then(response => response.ok)
+                .catch(() => false);
+        }
+
+        async function runTests() {
+            document.getElementById('testResults').innerHTML = '';
+            addResult('V7 System Test', 'info', 'Starting comprehensive test...');
+
+            // Test device detector
+            testDeviceDetector();
+
+            // Test file routing logic
+            testFileRouting();
+
+            // Test if key files exist
+            const filesToTest = [
+                'liquid-paint-base.html',
+                'timeline-component.js',
+                'desktop/liquid-paint-1to2.html',
+                'mobile/liquid-paint-1to2.html',
+                'images/KidHappy.png',
+                'backboard-1.html'
+            ];
+
+            addResult('File Existence Check', 'info', 'Checking if key files exist...');
+
+            for (const file of filesToTest) {
+                try {
+                    const exists = await testFileExists(file);
+                    addResult(`File: ${file}`, exists ? 'pass' : 'fail',
+                             exists ? '✓ File exists' : '✗ File missing');
+                } catch (error) {
+                    addResult(`File: ${file}`, 'fail', `✗ Error checking: ${error.message}`);
+                }
+            }
+
+            // Test configuration files
+            const configFiles = [
+                'config/images.json',
+                'config/backboard.json',
+                'config/transformations.json'
+            ];
+
+            for (const configFile of configFiles) {
+                try {
+                    const response = await fetch(configFile);
+                    const data = await response.json();
+                    addResult(`Config: ${configFile}`, 'pass', `✓ Valid JSON with ${Object.keys(data).length} keys`);
+                } catch (error) {
+                    addResult(`Config: ${configFile}`, 'fail', `✗ Invalid JSON: ${error.message}`);
+                }
+            }
+
+            addResult('Test Complete', 'info', '✅ All tests completed');
+        }
+
+        // Run basic test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(testDeviceDetector, 500);
+        });
+    </script>
+</body>
+</html>

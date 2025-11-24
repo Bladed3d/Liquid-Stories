@@ -209,8 +209,8 @@
 
     <div class="loading" id="loading">Loading dual image system...</div>
 
-    <div class="logo-hover-prompt" id="logoHoverPrompt" style="display: none;">
-        Press 1 to visit website
+    <div class="logo-hover-prompt" id="logoHoverPrompt" style="display: none;" onclick="handleLogoPromptClick()">
+        Tap here to go to GameStop
     </div>
 
     <script>
@@ -828,7 +828,11 @@
 
         function showLogoHoverPrompt(mouseX, mouseY) {
             if (typeof logoTargetUrl !== 'undefined') {
-                logoHoverPrompt.textContent = `Press 1 to visit ${logoTargetUrl}`;
+                if (isMobile) {
+                    logoHoverPrompt.textContent = 'Tap here to go to GameStop';
+                } else {
+                    logoHoverPrompt.textContent = `Press 1 to visit ${logoTargetUrl}`;
+                }
                 logoHoverPrompt.style.display = 'block';
                 updateLogoHoverPromptPosition(mouseX, mouseY);
             }
@@ -836,6 +840,13 @@
 
         function hideLogoHoverPrompt() {
             logoHoverPrompt.style.display = 'none';
+        }
+
+        // Handle click/tap on logo hover prompt for mobile users
+        function handleLogoPromptClick() {
+            if (isMobile && typeof logoTargetUrl !== 'undefined') {
+                window.open(logoTargetUrl, '_blank');
+            }
         }
 
         function updateLogoHoverPromptPosition(mouseX, mouseY) {
