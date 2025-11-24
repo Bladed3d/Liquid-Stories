@@ -7,8 +7,8 @@
   "pages": [
     {
       "pageNumber": 1,
-      "image1Url": "pug-happy-day.png",
-      "image2Url": "pug-bad-day.png",
+      "image1Url": "images/pug-happy-day.jpg",
+      "image2Url": "images/pug-bad-day.jpg",
       "progressTitle": "A Pug Day",
       "backboardTexts": [
         {
@@ -33,8 +33,8 @@
     },
     {
       "pageNumber": 2,
-      "image1Url": "pug-bad-day.png",
-      "image2Url": "pug-insane.png",
+      "image1Url": "images/pug-bad-day.jpg",
+      "image2Url": "images/pug-insane.jpg",
       "progressTitle": "Bad Day",
       "backboardTexts": [
         {
@@ -59,8 +59,8 @@
     },
     {
       "pageNumber": 3,
-      "image1Url": "pug-insane.png.png",
-      "image2Url": "pug-gaming.png",
+      "image1Url": "images/pug-insane.jpg",
+      "image2Url": "images/pug-gaming.jpg",
       "progressTitle": "Best Day",
       "backboardTexts": [
         {
