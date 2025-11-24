@@ -8,13 +8,18 @@ An interactive storytelling platform where images reveal hidden narratives throu
 
 *(More stories coming soon!)*
 
-## 🎮 How to Play
+## 🚀 How to Experience Stories
 
-1. Navigate to any story folder in the `Stories/` directory
-2. Open `page-1.html` to begin the story
+**Instant Play - No Download Required!**
+
+**🌐 Web Version (Recommended):**
+1. Visit: `https://bladed3d.github.io/Liquid-Stories/`
+2. Click "Play Story" on any story card
 3. **Touch or click** the image to reveal the hidden narrative
 4. Use the **timeline** to navigate between story pages
 5. Adjust **Influence** to control how much area is revealed with each touch
+
+**📱 Works on all devices:** Desktop, tablet, and mobile!
 
 ## 🎛️ Story Controls
 
@@ -23,56 +28,12 @@ An interactive storytelling platform where images reveal hidden narratives throu
 - **Trails Toggle**: Enable/disable visual touch effects
 - **Timeline Navigation**: Jump between different story pages
 
-## 🚀 Getting Started
+## 🎯 Ready to Play?
 
-**No installation required!**
+**🌐 Start Your Story Journey:**
+`https://bladed3d.github.io/Liquid-Stories/`
 
-Simply:
-- Download or clone this repository
-- Navigate to any story folder
-- Open `page-1.html` in your web browser
-
-## 💻 Requirements
-
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Works on **desktop and mobile** devices
-- No special software or plugins needed
-
-## 🔧 Technology
-
-- **Pure HTML5/CSS3/JavaScript**
-- **Canvas-based** image transitions
-- **Touch & mouse** interaction support
-- **Local storage** for user preferences
-- **Responsive design** for all screen sizes
-
-## 📁 Repository Structure
-
-```
-Liquid-Stories/
-├── Stories/
-│   ├── README.md              # Story collection guide
-│   └── Pug-Day/               # First interactive story
-│       ├── page-1.html        # Story pages
-│       ├── page-2.html
-│       ├── page-3.html
-│       ├── story-config.json  # Story configuration
-│       └── images/            # Story artwork
-│           ├── pug-happy-day.jpg
-│           ├── pug-bad-day.jpg
-│           ├── pug-insane.jpg
-│           └── pug-gaming.jpg
-└── README.md                  # This file
-```
-
-## 🎨 Create Your Own Story
-
-Want to create interactive stories? The structure is simple:
-
-1. **Duplicate the Pug-Day folder**
-2. **Replace images** with your story artwork
-3. **Edit story-config.json** with your story details
-4. **Customize text** and timeline elements
+---
 
 ## 📞 Contact
 
