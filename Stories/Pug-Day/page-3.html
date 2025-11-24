@@ -282,9 +282,6 @@
         let touchStartTime = 0;
         let touchOnLogo = false;
         let touchHoldTimer = null;
-        let isPuckMoving = false;
-        let lastPuckMoveTime = 0;
-        let isWaitingForStill = false;
 
         // Update timeline node statuses
         function updateTimelineStatus() {
@@ -648,17 +645,17 @@
                 universalPuck.style.top = puckY + 'px';
                 universalPuck.classList.add('dragging');
 
-                // Reset touch detection variables
+                // Check if touch is over logo for mobile GameStop interaction
                 touchStartTime = Date.now();
                 touchOnLogo = isOverLogo(puckX, puckY);
-                isPuckMoving = true;
-                lastPuckMoveTime = Date.now();
-                isWaitingForStill = false;
 
-                // Clear any existing timers
-                if (touchHoldTimer) {
-                    clearTimeout(touchHoldTimer);
-                    touchHoldTimer = null;
+                if (touchOnLogo) {
+                    // Start hold timer after 500ms of touching logo
+                    touchHoldTimer = setTimeout(() => {
+                        if (touchOnLogo && !isCountingDown) {
+                            startCountdown();
+                        }
+                    }, 500);
                 }
             }
         }
@@ -673,10 +670,6 @@
                 puckVelX = puckX - prevPuckX; puckVelY = puckY - prevPuckY;
                 updateProgress();
 
-                // Update movement tracking
-                lastPuckMoveTime = Date.now();
-                isPuckMoving = true;
-
                 // Check logo hover for mobile
                 checkLogoHover(puckX, puckY);
 
@@ -688,12 +681,6 @@
                 if (wasOnLogo && !touchOnLogo && touchHoldTimer) {
                     clearTimeout(touchHoldTimer);
                     touchHoldTimer = null;
-                    isWaitingForStill = false;
-                }
-
-                // Start monitoring for "puck stops moving" when on logo
-                if (touchOnLogo && !isWaitingForStill && !isCountingDown) {
-                    isWaitingForStill = true;
                 }
             }
         }
@@ -715,21 +702,6 @@
                 // Reset touch tracking
                 touchOnLogo = false;
                 touchStartTime = 0;
-                isPuckMoving = false;
-                isWaitingForStill = false;
-            }
-        }
-
-        // Function to monitor if puck has stopped moving
-        function checkPuckStopped() {
-            if (!isMobile || !isWaitingForStill || isCountingDown) return;
-
-            const timeSinceLastMove = Date.now() - lastPuckMoveTime;
-
-            // If puck hasn't moved for 500ms and user is still touching logo
-            if (timeSinceLastMove >= 500 && touchOnLogo) {
-                isWaitingForStill = false;
-                startCountdown();
             }
         }
 
@@ -855,8 +827,7 @@
         }
 
         function showLogoHoverPrompt(mouseX, mouseY) {
-            // Only show hover prompt on desktop, not mobile
-            if (!isMobile && typeof logoTargetUrl !== 'undefined') {
+            if (typeof logoTargetUrl !== 'undefined') {
                 logoHoverPrompt.textContent = `Press 1 to visit ${logoTargetUrl}`;
                 logoHoverPrompt.style.display = 'block';
                 updateLogoHoverPromptPosition(mouseX, mouseY);
@@ -963,10 +934,6 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
             particles.forEach(p => { p.update(); p.draw(); });
-
-            // Check if puck has stopped moving for mobile GameStop interaction
-            checkPuckStopped();
-
             requestAnimationFrame(animate);
         }
 
