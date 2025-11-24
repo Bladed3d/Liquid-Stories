@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pug Days - Page 3</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: white; overflow: hidden; cursor: none; user-select: none; -webkit-user-select: none; touch-action: none; }
+        .hero { position: relative; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #backgroundCanvas { position: absolute; inset: 0; z-index: 1; background: #0a0a0a; }
+        #fluidCanvas { position: absolute; inset: 0; z-index: 2; background: transparent; }
+        .universal-puck { position: fixed; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.5), rgba(255,255,255,0.1)); border: 3px solid rgba(255,255,255,0.8); box-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3); pointer-events: none; z-index: 1000; transform: translate(-50%, -50%); display: block; left: 50%; top: 50%; }
+        .universal-puck.dragging { transform: translate(-50%, -50%) scale(1.2); box-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 60px rgba(255,255,255,0.5); }
+        .universal-puck.desktop-following { transform: translate(-50%, -50%) scale(1.0); }
+
+        /* Combined Progress Timeline */
+        .progress-timeline { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); padding: 7.5px 12.5px; border-radius: 6px; text-align: center; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.2); min-width: 250px; max-width: 90vw; }
+        .progress-title { font-size: 0.9rem; margin-bottom: 4px; opacity: 0.9; }
+        .progress-text { font-size: 0.8rem; font-weight: bold; color: #fe0048; text-shadow: 0 0 5px rgba(254, 0, 72, 0.5); margin-top: 2px; }
+
+        .timeline-wrapper { position: relative; display: flex; align-items: center; justify-content: space-between; margin: 6px 0; padding: 0 5px; }
+
+        .timeline-node { width: 25px; height: 25px; border-radius: 50%; border: 1.5px solid #444; display: flex; align-items: center; justify-content: center; font-size: 0.45rem; font-weight: bold; transition: all 0.3s ease; position: relative; cursor: pointer; z-index: 2; background: rgba(10, 10, 10, 0.9); }
+        .timeline-node.completed { border-color: #00ff00; background: rgba(0, 255, 0, 0.2); color: #00ff00; }
+        .timeline-node.current { border-color: #fe802d; background: rgba(254, 128, 45, 0.3); color: #fe802d; box-shadow: 0 0 7.5px rgba(254, 128, 45, 0.5); animation: pulse 2s infinite; }
+        .timeline-node.future { border-color: #666; background: rgba(102, 102, 102, 0.1); color: #666; }
+
+        .progress-bar-container { position: absolute; top: 50%; left: 12.5px; right: 12.5px; height: 4px; background: rgba(255, 255, 255, 0.2); border-radius: 2px; transform: translateY(-50%); z-index: 1; }
+        .progress-bar-fill { height: 100%; background: #fe0048; border-radius: 2px; transition: width 0.5s ease; width: 0%; }
+
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        /* Other UI Elements */
+        .puck-instructions { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); padding: 12px 20px; border-radius: 12px; text-align: center; z-index: 50; max-width: 90%; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .puck-instructions h4 { margin-bottom: 6px; font-size: 0.9rem; opacity: 1; }
+        .puck-instructions p { font-size: 0.8rem; opacity: 0.8; line-height: 1.4; }
+        .hamburger-menu { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 1001; transition: all 0.3s ease; }
+        .hamburger-menu:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
+        .hamburger-line { width: 24px; height: 2px; background: white; margin: 2px 0; transition: all 0.3s ease; }
+        .menu-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 1002; display: none; align-items: center; justify-content: center; }
+        .menu-backdrop.active { display: flex; }
+        .menu-panel { background: rgba(20, 20, 20, 0.98); backdrop-filter: blur(20px); border-radius: 20px; padding: 24px; max-width: 400px; width: 90%; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+        .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .menu-header h3 { font-size: 1.2rem; background: linear-gradient(45deg, #fe802d, #fe0048); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .close-menu { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .close-menu:hover { background: rgba(255, 0, 72, 0.2); border-color: #fe0048; }
+        .menu-controls { display: flex; flex-direction: column; gap: 12px; }
+        .menu-control-btn { padding: 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-size: 1rem; font-weight: 500; text-align: center; min-height: 50px; }
+        .menu-control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+        .menu-control-btn.active { background: linear-gradient(45deg, #fe802d, #fe0048); border-color: transparent; }
+        .controls { position: fixed; bottom: 20px; right: 20px; z-index: 100; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .controls h3 { font-size: 0.9rem; margin-bottom: 12px; opacity: 0.8; }
+        .control-btn { display: block; width: 100%; padding: 12px 16px; margin: 8px 0; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        .control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
+        .control-btn.active { background: linear-gradient(45deg, #fe802d, #fe0048); border-color: transparent; }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; text-align: center; font-size: 1.2rem; opacity: 0.9; }
+        .completion-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: rgba(254, 0, 72, 0.95); padding: 30px 40px; border-radius: 20px; text-align: center; z-index: 2000; box-shadow: 0 20px 60px rgba(254, 0, 72, 0.5); animation: popIn 0.5s ease forwards; }
+        @keyframes popIn { to { transform: translate(-50%, -50%) scale(1); } }
+
+        .logo-hover-prompt { position: fixed; background: rgba(0, 0, 0, 0.9); color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; z-index: 1500; pointer-events: none; border: 2px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Influence Slider Styles */
+        .influence-slider { width: 100%; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); outline: none; -webkit-appearance: none; appearance: none; cursor: pointer; margin: 8px 0; }
+        .influence-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(45deg, #fe802d, #fe0048); border: 2px solid rgba(255, 255, 255, 0.3); cursor: pointer; box-shadow: 0 4px 12px rgba(254, 0, 72, 0.3); }
+        .influence-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(45deg, #fe802d, #fe0048); border: 2px solid rgba(255, 255, 255, 0.3); cursor: pointer; box-shadow: 0 4px 12px rgba(254, 0, 72, 0.3); }
+        .influence-slider-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 4px; text-align: center; }
+        .toggle-switch { position: relative; width: 100%; height: 24px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; cursor: pointer; margin: 8px 0; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 255, 255, 0.8); transition: all 0.3s ease; }
+        .toggle-switch.active::after { left: calc(100% - 22px); background: linear-gradient(45deg, #fe802d, #fe0048); }
+        .toggle-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 4px; text-align: center; }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <canvas id="backgroundCanvas"></canvas>
+        <canvas id="fluidCanvas"></canvas>
+    </section>
+
+    <!-- Combined Progress Timeline -->
+    <div class="progress-timeline" id="progressTimeline">
+        <div class="progress-title" id="progressTitle">Best Day</div>
+
+        <div class="timeline-wrapper" id="timelineWrapper">
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <!-- Timeline nodes will be auto-generated here -->
+        </div>
+
+        <div class="progress-text" id="progressText">0% Revealed</div>
+    </div>
+
+    <div class="universal-puck" id="universalPuck"></div>
+
+    <div class="puck-instructions" id="puckInstructions">
+        <h4>Liquid Stories ™</h4>
+        <p>Find the words behind the picture.</p>
+    </div>
+
+    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <div class="menu-backdrop" id="menuBackdrop" onclick="closeMobileMenu()">
+        <div class="menu-panel">
+            <div class="menu-header">
+                <h3>Controls</h3>
+                <button class="close-menu" onclick="closeMobileMenu()">×</button>
+            </div>
+            <div class="menu-controls">
+                <div class="influence-slider-label">Influence: <span id="mobileInfluenceValue">105px</span></div>
+                <input type="range" class="influence-slider" id="mobileInfluenceSlider" min="50" max="300">
+                <div class="toggle-label">Trails</div>
+                <div class="toggle-switch" id="mobileTrailsToggle" onclick="mobileToggleTrails()"></div>
+                <button class="menu-control-btn" id="reverseModeBtn" onclick="toggleReverseMode()">Reverse Mode: <span id="reverseModeText">OFF</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls" id="desktopControls">
+        <h3>Controls</h3>
+        <div class="influence-slider-label">Influence: <span id="influenceValue">105px</span></div>
+        <input type="range" class="influence-slider" id="influenceSlider" min="50" max="300">
+        <div class="toggle-label">Trails</div>
+        <div class="toggle-switch" id="trailsToggle" onclick="toggleTrails()"></div>
+    </div>
+
+    <div class="loading" id="loading">Loading dual image system...</div>
+
+    <div class="logo-hover-prompt" id="logoHoverPrompt" style="display: none;">
+        Press 1 to visit website
+    </div>
+
+    <script>
+        // Story Configuration (Python-generated)
+        const storyConfig = {"story": {"title": "Pug Days", "pageCount": 3, "influenceRadius": 105}, "pages": [{"pageNumber": 1, "image1Url": "pug-happy-day.jpg", "image2Url": "pug-bad-day.jpg", "progressTitle": "A Pug Day", "backboardTexts": [{"text": "A Day for a Pug", "yOffset": -60, "color": "#fe0048", "size": 56}, {"text": "Can be a Good Day", "yOffset": 0, "color": "#fe0048", "size": 56}, {"text": "or a Bad Day", "yOffset": 60, "color": "#fe0048", "size": 46}]}, {"pageNumber": 2, "image1Url": "pug-bad-day.jpg", "image2Url": "pug-insane.jpg", "progressTitle": "Bad Day", "backboardTexts": [{"text": "or a Day Can Be", "yOffset": -60, "color": "#00ff00", "size": 56}, {"text": "an Insane Day", "yOffset": 0, "color": "#00ff00", "size": 56}, {"text": " ", "yOffset": 60, "color": "#00ff00", "size": 46}]}, {"pageNumber": 3, "image1Url": "pug-insane.jpg", "image2Url": "pug-gaming.jpg", "progressTitle": "Best Day", "backboardTexts": [{"text": "But Every Day", "yOffset": -60, "color": "#4169e1", "size": 56}, {"text": "is a Good Day", "yOffset": 0, "color": "#4169e1", "size": 56}, {"text": "for Gaming", "yOffset": 60, "color": "#4169e1", "size": 46}]}]};
+
+        const image1Url = 'pug-insane.jpg';
+        const image2Url = 'pug-gaming.jpg';
+        const backboardTexts = [{"text": "But Every Day", "yOffset": -60, "color": "#4169e1", "size": 56}, {"text": "is a Good Day", "yOffset": 0, "color": "#4169e1", "size": 56}, {"text": "for Gaming", "yOffset": 60, "color": "#4169e1", "size": 46}];
+        const gamestopLogoUrl = 'gamestop500.png';
+        const logoTargetUrl = 'https://www.gamestop.com/';
+        const totalPages = storyConfig.pages.length;
+        const currentPage = 3;
+        const isLastPage = currentPage >= totalPages;
+
+        // Core variables
+        const canvas = document.getElementById('fluidCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('backgroundCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const universalPuck = document.getElementById('universalPuck');
+        const progressTitle = document.getElementById('progressTitle');
+        const progressFill = document.getElementById('progressBarFill');
+        const progressText = document.getElementById('progressText');
+        const puckInstructions = document.getElementById('puckInstructions');
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const menuBackdrop = document.getElementById('menuBackdrop');
+        const desktopControls = document.getElementById('desktopControls');
+        const loading = document.getElementById('loading');
+
+        let particles = [];
+        let image1, image2;
+        let sourceImage1, sourceImage2;
+        let puckX, puckY;
+        let prevPuckX, prevPuckY;
+        let puckVelX = 0, puckVelY = 0;
+        let puckActive = false;
+        let mouseInCanvas = false;
+        // Load influenceRadius from config (will be updated from file)
+        let influenceRadius = 105;
+        let trailsEnabled = false;
+        let imageSize = 700;
+        let scaledWidth, scaledHeight;
+        let imageLoaded = false;
+        let currentImage = 1;
+        let transformationComplete = false;
+        let completionMessageShown = false;
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        let mobileMenuOpen = false;
+        let reverseMode = false;
+        let isDragging = false;
+        let loadedImages = 0;
+
+        // Logo interaction variables
+        let logoPosition = null;
+        let isHoveringOverLogo = false;
+        const logoHoverPrompt = document.getElementById('logoHoverPrompt');
+
+        // Update timeline node statuses
+        function updateTimelineStatus() {
+            const timelineNodes = document.querySelectorAll('.timeline-node');
+            const image2Count = particles.filter(p => p.currentImage === 2).length;
+            const currentPercentage = Math.round((image2Count / particles.length) * 100);
+
+            // Calculate current position in segments (0-1 for current page progress)
+            const currentPageSegment = (currentPage - 1) + (currentPercentage / 100);
+
+            timelineNodes.forEach((node, index) => {
+                const nodePosition = index; // 0-based position in timeline
+                node.className = `timeline-node ${nodePosition < currentPageSegment ? 'completed' : Math.abs(nodePosition - currentPageSegment) < 0.5 ? 'current' : 'future'}`;
+            });
+        }
+
+        // Generate Timeline
+        function generateTimeline() {
+            const timelineWrapper = document.getElementById('timelineWrapper');
+            timelineWrapper.innerHTML = '<div class="progress-bar-container"><div class="progress-bar-fill" id="progressBarFill"></div></div>';
+
+            // Calculate total circles: pages + 1
+            const totalCircles = totalPages + 1;
+
+            for (let i = 1; i <= totalCircles; i++) {
+                // Create timeline node
+                const node = document.createElement('div');
+                node.className = 'timeline-node future'; // Will be updated by updateTimelineStatus()
+
+                // Label nodes appropriately
+                if (i <= totalPages) {
+                    node.textContent = i;
+                    node.title = `Page ${i}`;
+                } else {
+                    node.textContent = 'End';
+                    node.title = 'Story Complete';
+                }
+
+                // Add click handler to navigate pages (only on page circles)
+                if (i <= totalPages && i !== currentPage) {
+                    node.onclick = () => window.location.href = `page-${i}.html`;
+                }
+
+                timelineWrapper.appendChild(node);
+            }
+
+            // Update progress fill reference (since we recreated the DOM)
+            window.progressFill = document.getElementById('progressBarFill');
+
+            // Initial status update
+            setTimeout(() => updateTimelineStatus(), 100);
+        }
+
+        // Resize canvases
+        function resizeCanvases() {
+            canvas.width = bgCanvas.width = window.innerWidth;
+            canvas.height = bgCanvas.height = window.innerHeight;
+            drawCouponBackground();
+            if (imageLoaded) initParticles();
+        }
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases(); // Call immediately after definition
+
+        // Draw backboard
+        function drawCouponBackground() {
+            bgCtx.fillStyle = '#0a0a0a';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+            bgCtx.font = 'bold 56px Arial';
+            bgCtx.textAlign = 'center';
+            bgCtx.textBaseline = 'middle';
+            backboardTexts.forEach(line => {
+                bgCtx.fillStyle = line.color;
+                bgCtx.font = `bold ${line.size}px Arial`;
+                bgCtx.fillText(line.text, bgCanvas.width / 2, bgCanvas.height / 2 + line.yOffset);
+            });
+
+            // Draw GameStop logo below the "for Gaming" text
+            const gamestopImg = new Image();
+            gamestopImg.src = gamestopLogoUrl;
+            gamestopImg.onload = () => {
+                const logoWidth = 300;
+                const logoHeight = (gamestopImg.height / gamestopImg.width) * logoWidth;
+                const logoX = bgCanvas.width / 2 - logoWidth / 2;
+                const logoY = bgCanvas.height / 2 + 120;
+                bgCtx.drawImage(gamestopImg, logoX, logoY, logoWidth, logoHeight);
+
+                // Store logo position for hover detection
+                logoPosition = {
+                    x: logoX,
+                    y: logoY,
+                    width: logoWidth,
+                    height: logoHeight
+                };
+            };
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, gridX, gridY) {
+                this.x = this.originalX = x;
+                this.y = this.originalY = y;
+                this.vx = this.vy = 0;
+                this.radius = 2;
+                this.mass = 1 + Math.random() * 0.5;
+                this.gridX = gridX;
+                this.gridY = gridY;
+                this.currentImage = this.targetImage = 1;
+                this.transitionProgress = 0;
+                this.rotation = 0;
+            }
+            update() {
+                const dx = this.x - puckX, dy = this.y - puckY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < influenceRadius) {
+                    const influence = 1 - (distance / influenceRadius);
+                    const angle = Math.atan2(dy, dx);
+                    const tangentX = -Math.sin(angle), tangentY = Math.cos(angle);
+                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
+                    this.vx += swirlStrength * influence * 0.3 / this.mass;
+                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
+                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
+                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
+                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
+
+                    // Transition logic
+                    const isReverseActive = reverseMode || isDragging;
+                    if (isReverseActive) {
+                        // Reverse: gradual to image1 (same growing transition)
+                        if (this.currentImage === 2 || this.targetImage === 2) {
+                            this.targetImage = 1;
+                            this.transitionProgress = Math.min(1, this.transitionProgress + 0.12 * influence);
+                        }
+                    } else {
+                        // Normal: image1 -> image2 transformation
+                        if (this.currentImage === 1) {
+                            this.targetImage = 2;
+                            this.transitionProgress = Math.min(1, this.transitionProgress + 0.12 * influence);
+                        }
+                    }
+                } else if (this.currentImage === 2 && !isDragging && !reverseMode) {
+                    this.targetImage = 1;
+                    this.transitionProgress = Math.max(0, this.transitionProgress - 0.005);
+                }
+                const springForce = 0.005;
+                this.vx += (this.originalX - this.x) * springForce;
+                this.vy += (this.originalY - this.y) * springForce;
+                const damping = 0.92;
+                this.vx *= damping; this.vy *= damping;
+                this.x += this.vx; this.y += this.vy;
+                this.rotation += this.vx * 0.01;
+                if (this.transitionProgress >= 1 && this.currentImage !== this.targetImage) this.currentImage = this.targetImage;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                const sourceImage = this.currentImage === 1 ? sourceImage1 : sourceImage2;
+                const pieceWidth = imageSize / 100, pieceHeight = imageSize / 100;
+                const sourceX = this.gridX * pieceWidth, sourceY = this.gridY * pieceHeight;
+                // Slightly larger to overlap and eliminate lines
+                const overlap = 2;
+                ctx.drawImage(sourceImage, sourceX, sourceY, pieceWidth, pieceHeight, -pieceWidth / 2 - overlap/2, -pieceHeight / 2 - overlap/2, pieceWidth + overlap, pieceHeight + overlap);
+                ctx.restore();
+            }
+            resetToImage1() {
+                this.currentImage = this.targetImage = 1;
+                this.transitionProgress = 0;
+            }
+            forceToImage2() {
+                this.currentImage = this.targetImage = 2;
+                this.transitionProgress = 1;
+            }
+        }
+
+        // Initialize particles
+        function initParticles() {
+            particles = [];
+            const imageX = (canvas.width - imageSize) / 2;
+            const imageY = (canvas.height - imageSize) / 2;
+            const spacing = imageSize / 100;
+            for (let gridY = 0; gridY < 100; gridY++) {
+                for (let gridX = 0; gridX < 100; gridX++) {
+                    const x = imageX + (gridX * spacing) + spacing / 2;
+                    const y = imageY + (gridY * spacing) + spacing / 2;
+                    particles.push(new Particle(x, y, gridX, gridY));
+                }
+            }
+        }
+
+        // Load images
+        function loadDualImages() {
+            const img1 = new Image();
+            img1.src = image1Url;
+            img1.onload = () => {
+                const resizedCanvas1 = resizeImage(img1);
+                sourceImage1 = resizedCanvas1;
+                checkImagesLoaded();
+            };
+            img1.onerror = () => {
+                sourceImage1 = createDemoImage('😊 START', '#FFD700', '#FFA500');
+                checkImagesLoaded();
+            };
+
+            const img2 = new Image();
+            img2.src = image2Url;
+            img2.onload = () => {
+                const resizedCanvas2 = resizeImage(img2);
+                sourceImage2 = resizedCanvas2;
+                checkImagesLoaded();
+            };
+            img2.onerror = () => {
+                sourceImage2 = createDemoImage('😰 END', '#4169E1', '#000080');
+                checkImagesLoaded();
+            };
+        }
+
+        // Resize image to fit 700x700
+        function resizeImage(img) {
+            const aspect = img.width / img.height;
+            scaledWidth = aspect > 1 ? imageSize : imageSize * aspect;
+            scaledHeight = aspect > 1 ? imageSize / aspect : imageSize;
+            const resizedCanvas = document.createElement('canvas');
+            resizedCanvas.width = scaledWidth;
+            resizedCanvas.height = scaledHeight;
+            const resizedCtx = resizedCanvas.getContext('2d');
+            resizedCtx.imageSmoothingEnabled = false;
+            resizedCtx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
+            return resizedCanvas;
+        }
+
+        // Create demo image fallback
+        function createDemoImage(textEmoji, color1, color2) {
+            const demoCanvas = document.createElement('canvas');
+            demoCanvas.width = imageSize;
+            demoCanvas.height = imageSize;
+            const demoCtx = demoCanvas.getContext('2d');
+            const gradient = demoCtx.createRadialGradient(imageSize/2, imageSize/2, 0, imageSize/2, imageSize/2, imageSize/2);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            demoCtx.fillStyle = gradient;
+            demoCtx.fillRect(0, 0, imageSize, imageSize);
+            demoCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            demoCtx.font = 'bold 48px Arial';
+            demoCtx.textAlign = 'center';
+            demoCtx.textBaseline = 'middle';
+            demoCtx.fillText(textEmoji.split(' ')[0], imageSize/2, imageSize/2 - 30);
+            demoCtx.fillText(textEmoji.split(' ')[1] + ' ' + textEmoji.split(' ')[2], imageSize/2, imageSize/2 + 30);
+            return demoCanvas;
+        }
+
+        function checkImagesLoaded() {
+            loadedImages++;
+            if (loadedImages === 2) {
+                imageLoaded = true;
+                loading.style.display = 'none';
+                initParticles();
+                loadInfluenceFromConfig();
+                setupInfluenceSlider();
+            }
+        }
+
+        function loadInfluenceFromConfig() {
+            try {
+                const saved = localStorage.getItem('pug-day-influence');
+                if (saved !== null) {
+                    influenceRadius = parseInt(saved, 10);
+                } else {
+                    console.log('Using default influence setting');
+                }
+            } catch (e) {
+                console.log('Could not load influence setting, using default');
+            }
+        }
+
+        // Update progress
+        function updateProgress() {
+            const image2Count = particles.filter(p => p.currentImage === 2).length;
+            const percentage2 = Math.round((image2Count / particles.length) * 100);
+
+            // Update progress bar width (now goes across timeline)
+            const currentProgressElement = document.getElementById('progressBarFill');
+            if (currentProgressElement) {
+                // Simple calculation: pages + 1 circles = pages segments
+                const currentSegment = (currentPage - 1) + (percentage2 / 100);
+                const totalSegments = totalPages;
+                const overallProgress = Math.min(100, (currentSegment / totalSegments) * 100);
+
+                // Debug logging
+                console.log(`Page ${currentPage}/${totalPages}, ${percentage2}% revealed:`);
+                console.log(`Current segment: ${currentSegment}, Total segments: ${totalSegments}`);
+                console.log(`Progress: ${overallProgress}%`);
+
+                currentProgressElement.style.width = overallProgress + '%';
+
+                // Update timeline to reflect current progress
+                updateTimelineStatus();
+            }
+
+            progressText.textContent = percentage2 + '% Revealed';
+
+            // Check if 100% revealed and switch to next page
+            if (percentage2 === 100 && !transformationComplete) {
+                completeTransformation(2);
+                if (!isLastPage) {
+                    setTimeout(() => {
+                        window.location.href = `page-${currentPage + 1}.html`;
+                    }, 2000);
+                } else if (!completionMessageShown) {
+                    completionMessageShown = true;
+                    showCompletionMessage('Story Complete!', '🎉 Amazing Journey! 🎉');
+                }
+            }
+        }
+
+        // Complete transformation
+        function completeTransformation(targetImage) {
+            if (transformationComplete) return;
+            transformationComplete = true;
+            currentImage = targetImage;
+            particles.forEach(p => {
+                p.currentImage = p.targetImage = targetImage;
+                p.transitionProgress = 0;
+            });
+            if (targetImage === 2) {
+                progressTitle.textContent = '✨ Complete! ✨';
+                const currentProgressElement = document.getElementById('progressBarFill');
+                if (currentProgressElement) {
+                    // Set progress to the end of current page (not full 100% unless it's the last page)
+                    const pageProgress = (currentPage / totalPages) * 100;
+                    currentProgressElement.style.width = pageProgress + '%';
+                }
+                progressText.textContent = '100% Revealed';
+            }
+            setTimeout(() => { transformationComplete = false; }, 2000);
+        }
+
+        // Show completion message
+        function showCompletionMessage(title, message) {
+            const completionDiv = document.createElement('div');
+            completionDiv.className = 'completion-message';
+            completionDiv.innerHTML = `<h2>${title}</h2><p>${message}</p>`;
+            document.body.appendChild(completionDiv);
+            setTimeout(() => { document.body.removeChild(completionDiv); }, 3000);
+        }
+
+        // Puck handlers
+        function handlePuckStart(e) {
+            if (isMobile) {
+                puckInstructions.style.display = 'none';
+                puckActive = true;
+                const touch = e.touches[0];
+                puckX = prevPuckX = touch.clientX;
+                puckY = prevPuckY = touch.clientY;
+                universalPuck.style.left = puckX + 'px';
+                universalPuck.style.top = puckY + 'px';
+                universalPuck.classList.add('dragging');
+            }
+        }
+        function handlePuckMove(e) {
+            if (isMobile && puckActive) {
+                const touch = e.touches[0];
+                prevPuckX = puckX; prevPuckY = puckY;
+                puckX = touch.clientX; puckY = touch.clientY;
+                universalPuck.style.left = puckX + 'px';
+                universalPuck.style.top = puckY + 'px';
+                universalPuck.classList.add('dragging');
+                puckVelX = puckX - prevPuckX; puckVelY = puckY - prevPuckY;
+                updateProgress();
+            }
+        }
+        function handlePuckEnd() {
+            if (isMobile) {
+                puckActive = false;
+                puckVelX = puckVelY = 0;
+                universalPuck.classList.remove('dragging');
+            }
+        }
+
+        // Desktop mouse handlers
+        function handleDesktopMouseMove(e) {
+            if (!isMobile) {
+                prevPuckX = puckX; prevPuckY = puckY;
+                puckX = e.clientX; puckY = e.clientY;
+                universalPuck.style.left = puckX + 'px';
+                universalPuck.style.top = puckY + 'px';
+                universalPuck.classList.add('desktop-following');
+                puckVelX = puckX - prevPuckX; puckVelY = puckY - prevPuckY;
+                updateProgress();
+
+                // Check if hovering over logo
+                checkLogoHover(puckX, puckY);
+            }
+        }
+        function handleDesktopMouseDown() {
+            if (!isMobile) {
+                isDragging = true;
+                universalPuck.classList.add('dragging');
+            }
+        }
+        function handleDesktopMouseUp() {
+            if (!isMobile) {
+                isDragging = false;
+                universalPuck.classList.remove('dragging');
+            }
+        }
+        function handleDesktopMouseEnter() {
+            if (!isMobile) {
+                mouseInCanvas = true;
+                universalPuck.style.display = 'block';
+            }
+        }
+        function handleDesktopMouseLeave() {
+            if (!isMobile) {
+                mouseInCanvas = false;
+                universalPuck.classList.remove('dragging', 'desktop-following');
+            }
+        }
+
+        // Logo hover detection
+        function checkLogoHover(mouseX, mouseY) {
+            if (!logoPosition) {
+                hideLogoHoverPrompt();
+                return;
+            }
+
+            const isOverLogo = mouseX >= logoPosition.x &&
+                              mouseX <= logoPosition.x + logoPosition.width &&
+                              mouseY >= logoPosition.y &&
+                              mouseY <= logoPosition.y + logoPosition.height;
+
+            if (isOverLogo && !isHoveringOverLogo) {
+                isHoveringOverLogo = true;
+                showLogoHoverPrompt(mouseX, mouseY);
+            } else if (!isOverLogo && isHoveringOverLogo) {
+                isHoveringOverLogo = false;
+                hideLogoHoverPrompt();
+            } else if (isOverLogo && isHoveringOverLogo) {
+                updateLogoHoverPromptPosition(mouseX, mouseY);
+            }
+        }
+
+        function showLogoHoverPrompt(mouseX, mouseY) {
+            if (typeof logoTargetUrl !== 'undefined') {
+                logoHoverPrompt.textContent = `Press 1 to visit ${logoTargetUrl}`;
+                logoHoverPrompt.style.display = 'block';
+                updateLogoHoverPromptPosition(mouseX, mouseY);
+            }
+        }
+
+        function hideLogoHoverPrompt() {
+            logoHoverPrompt.style.display = 'none';
+        }
+
+        function updateLogoHoverPromptPosition(mouseX, mouseY) {
+            logoHoverPrompt.style.left = (mouseX + 15) + 'px';
+            logoHoverPrompt.style.top = (mouseY - 40) + 'px';
+        }
+
+        // Keyboard event handler for logo navigation
+        function handleKeyPress(event) {
+            if (event.key === '1' && isHoveringOverLogo && typeof logoTargetUrl !== 'undefined') {
+                window.open(logoTargetUrl, '_blank');
+            }
+        }
+
+        // Mobile menu
+        function toggleMobileMenu() {
+            mobileMenuOpen = !mobileMenuOpen;
+            menuBackdrop.classList.toggle('active', mobileMenuOpen);
+        }
+        function closeMobileMenu() {
+            mobileMenuOpen = false;
+            menuBackdrop.classList.remove('active');
+        }
+
+        // Control functions
+        function saveInfluenceToConfig(value) {
+            try {
+                localStorage.setItem('pug-day-influence', value);
+                console.log('Influence setting saved to localStorage');
+            } catch (e) {
+                console.log('Could not save influence setting');
+            }
+        }
+
+        function setupInfluenceSlider() {
+            const desktopSlider = document.getElementById('influenceSlider');
+            const mobileSlider = document.getElementById('mobileInfluenceSlider');
+            const desktopValue = document.getElementById('influenceValue');
+            const mobileValue = document.getElementById('mobileInfluenceValue');
+
+            function updateInfluence(value) {
+                influenceRadius = parseInt(value);
+                if (desktopValue) desktopValue.textContent = value + 'px';
+                if (mobileValue) mobileValue.textContent = value + 'px';
+                if (desktopSlider) desktopSlider.value = value;
+                if (mobileSlider) mobileSlider.value = value;
+
+                // Save to config file
+                saveInfluenceToConfig(value);
+            }
+
+            // Initialize sliders with the current influenceRadius value
+            const initialValue = influenceRadius.toString();
+            updateInfluence(initialValue);
+
+            if (desktopSlider) {
+                desktopSlider.addEventListener('input', (e) => updateInfluence(e.target.value));
+            }
+            if (mobileSlider) {
+                mobileSlider.addEventListener('input', (e) => {
+                    updateInfluence(e.target.value);
+                    closeMobileMenu();
+                });
+            }
+
+            // Initialize with config value
+            updateInfluence(influenceRadius);
+        }
+
+        function toggleTrails() {
+            trailsEnabled = !trailsEnabled;
+            const desktopToggle = document.getElementById('trailsToggle');
+            const mobileToggle = document.getElementById('mobileTrailsToggle');
+            if (desktopToggle) desktopToggle.classList.toggle('active', trailsEnabled);
+            if (mobileToggle) mobileToggle.classList.toggle('active', trailsEnabled);
+        }
+
+        function mobileToggleTrails() {
+            toggleTrails();
+            closeMobileMenu();
+        }
+
+        function toggleReverseMode() {
+            reverseMode = !reverseMode;
+            document.getElementById('reverseModeText').textContent = reverseMode ? 'ON' : 'OFF';
+            document.getElementById('reverseModeBtn').classList.toggle('active', reverseMode);
+            closeMobileMenu();
+        }
+
+        // Animation loop
+        function animate() {
+            if (trailsEnabled) {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize
+        function initialize() {
+            // Set initial puck position above controls
+            puckX = window.innerWidth - 50;
+            puckY = window.innerHeight - 200;
+            prevPuckX = puckX;
+            prevPuckY = puckY;
+            universalPuck.style.left = puckX + 'px';
+            universalPuck.style.top = puckY + 'px';
+
+            generateTimeline();
+            loadDualImages();
+            animate();
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', handleKeyPress);
+
+        if (isMobile) {
+            document.addEventListener('touchstart', handlePuckStart, { passive: false });
+            document.addEventListener('touchmove', handlePuckMove, { passive: false });
+            document.addEventListener('touchend', handlePuckEnd);
+            desktopControls.style.display = 'none';
+        } else {
+            document.addEventListener('mousemove', handleDesktopMouseMove);
+            document.addEventListener('mousedown', handleDesktopMouseDown);
+            document.addEventListener('mouseup', handleDesktopMouseUp);
+            document.addEventListener('mouseenter', handleDesktopMouseEnter);
+            document.addEventListener('mouseleave', handleDesktopMouseLeave);
+            hamburgerMenu.style.display = 'none';
+        }
+
+        initialize();
+    </script>
+</body>
+</html>

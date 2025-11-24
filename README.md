@@ -1,76 +1,85 @@
-# Liquid Stories 🌊
+# Liquid Stories ™
 
-**Interactive storytelling with liquid paint transformations**
+An interactive storytelling platform where images reveal hidden narratives through touch and interaction.
 
-## Overview
+## 📖 Available Stories
 
-Liquid Stories creates immersive narrative experiences where users paint and transform images to reveal story progression. Each "page" in the story is revealed through an intuitive liquid paint interface, creating a unique interactive storytelling experience.
+🐶 **[Pug Day](Stories/Pug-Day/)** - A pug's emotional journey through the day
 
-## Quick Start
+*(More stories coming soon!)*
 
-### Development Version
-Open `HtmlTests/2image-liquid-paint-v3.html` in your browser to see the current working timeline system.
+## 🎮 How to Play
 
-### Project Structure
+1. Navigate to any story folder in the `Stories/` directory
+2. Open `page-1.html` to begin the story
+3. **Touch or click** the image to reveal the hidden narrative
+4. Use the **timeline** to navigate between story pages
+5. Adjust **Influence** to control how much area is revealed with each touch
+
+## 🎛️ Story Controls
+
+- **Touch/Click**: Reveal parts of the hidden story image
+- **Influence Slider**: Control the reveal radius (50-300px)
+- **Trails Toggle**: Enable/disable visual touch effects
+- **Timeline Navigation**: Jump between different story pages
+
+## 🚀 Getting Started
+
+**No installation required!**
+
+Simply:
+- Download or clone this repository
+- Navigate to any story folder
+- Open `page-1.html` in your web browser
+
+## 💻 Requirements
+
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Works on **desktop and mobile** devices
+- No special software or plugins needed
+
+## 🔧 Technology
+
+- **Pure HTML5/CSS3/JavaScript**
+- **Canvas-based** image transitions
+- **Touch & mouse** interaction support
+- **Local storage** for user preferences
+- **Responsive design** for all screen sizes
+
+## 📁 Repository Structure
+
 ```
 Liquid-Stories/
-├── HtmlTests/                    # HTML prototype versions
-│   ├── 2image-liquid-paint-v1.html    # Original version
-│   ├── 2image-liquid-paint-v2.html    # Puck positioning
-│   ├── 2image-liquid-paint-v3.html    # Timeline with LED debug
-│   └── BackBoard*.html                 # Story content pages
-├── Docs/                           # Documentation
-│   └── CommercialDeploy.md            # Production migration plan
-├── .claude/                        # AI development workflow
-├── assets/                         # Story assets (images, fonts)
-└── README.md                       # This file
+├── Stories/
+│   ├── README.md              # Story collection guide
+│   └── Pug-Day/               # First interactive story
+│       ├── page-1.html        # Story pages
+│       ├── page-2.html
+│       ├── page-3.html
+│       ├── story-config.json  # Story configuration
+│       └── images/            # Story artwork
+│           ├── pug-happy-day.jpg
+│           ├── pug-bad-day.jpg
+│           ├── pug-insane.jpg
+│           └── pug-gaming.jpg
+└── README.md                  # This file
 ```
 
-## Current Features (v3)
+## 🎨 Create Your Own Story
 
-- ✅ **Liquid Paint Transformation** - Smooth particle-based image morphing
-- ✅ **Timeline Visualization** - Visual progress tracking through story pages
-- ✅ **LED Debug System** - Real-time development debugging with breadcrumb trails
-- ✅ **Dynamic Background Content** - Story text loaded from external HTML files
-- ✅ **Responsive Design** - Works on desktop and mobile devices
-- ✅ **Performance Optimized** - Efficient particle physics and rendering
+Want to create interactive stories? The structure is simple:
 
-## Roadmap
+1. **Duplicate the Pug-Day folder**
+2. **Replace images** with your story artwork
+3. **Edit story-config.json** with your story details
+4. **Customize text** and timeline elements
 
-### v4 - Modular Architecture (In Progress)
-- Config-based story system
-- Modular code organization (400-line modules)
-- Preload next page for seamless transitions
-- Simplified maintenance
+## 📞 Contact
 
-### Production Deployment (Future)
-- Next.js + Vercel deployment
-- Backend API protection
-- Asset encryption
-- Commercial features
+Experience the magic of interactive storytelling!
 
-## Development
-
-### Version History
-- **v1** - Basic dual-image transformation
-- **v2** - Puck positioning improvements
-- **v3** - Timeline system with LED debugging
-- **v4** - Modular architecture (coming soon)
-
-### Key Technologies
-- Vanilla JavaScript (no frameworks)
-- HTML5 Canvas for particle rendering
-- SVG for timeline visualization
-- CSS3 for animations and effects
-
-## Contributing
-
-This project uses the LED Breadcrumbs development methodology with AI agent teams. See `.claude/START-HERE.md` for development workflow details.
-
-## License
-
-*Proprietary - All rights reserved*
+**Liquid Stories™** - Where every touch reveals a new chapter.
 
 ---
 
-**Creating stories that flow like liquid** 🎨✨
+*Interactive storytelling for the digital age*
