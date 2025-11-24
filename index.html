@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Stories - Interactive Storytelling</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .stories-grid {
+            display: grid;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .story-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .story-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .story-title {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .story-description {
+            margin-bottom: 25px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .play-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            text-decoration: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .story-title {
+                font-size: 1.5em;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 Liquid Stories</h1>
+        <p class="subtitle">Interactive storytelling where images reveal hidden narratives</p>
+
+        <div class="stories-grid">
+            <div class="story-card">
+                <div class="story-title">🐶 Pug Day</div>
+                <p class="story-description">
+                    A delightful journey through a pug's emotional day. Experience the transformation from happy moments to chaotic gaming sessions!
+                </p>
+                <a href="Stories/Pug-Day/page-1.html" class="play-button">▶️ Play Story</a>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>🎮 How to Play</h3>
+            <ul>
+                <li><strong>Click or touch</strong> the image to reveal the hidden story</li>
+                <li>Use the <strong>timeline</strong> to navigate between story pages</li>
+                <li>Adjust the <strong>Influence slider</strong> to control reveal area</li>
+                <li>Toggle <strong>Trails</strong> for visual effects while touching</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 40px; opacity: 0.7; font-size: 0.9em;">
+            <p>🌟 More stories coming soon!</p>
+            <p>Built with interactive storytelling technology</p>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.story-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
