@@ -48,17 +48,11 @@
         .menu-controls { display: flex; flex-direction: column; gap: 12px; }
         .menu-control-btn { padding: 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; font-size: 1rem; font-weight: 500; text-align: center; min-height: 50px; }
         .menu-control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
-        .menu-control-btn.active { background: linear-gradient(45deg, #fe802d, #fe0048); border-color: transparent; }
-        .controls { position: fixed; bottom: 20px; right: 20px; z-index: 100; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); }
-        .controls h3 { font-size: 0.9rem; margin-bottom: 12px; opacity: 0.8; }
-        .control-btn { display: block; width: 100%; padding: 12px 16px; margin: 8px 0; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
-        .control-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
-        .control-btn.active { background: linear-gradient(45deg, #fe802d, #fe0048); border-color: transparent; }
-        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; text-align: center; font-size: 1.2rem; opacity: 0.9; }
-        .completion-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: rgba(254, 0, 72, 0.95); padding: 30px 40px; border-radius: 20px; text-align: center; z-index: 2000; box-shadow: 0 20px 60px rgba(254, 0, 72, 0.5); animation: popIn 0.5s ease forwards; }
-        @keyframes popIn { to { transform: translate(-50%, -50%) scale(1); } }
-
+        .mobile-controls { display: flex; flex-direction: column; gap: 8px; }
+        .desktop-controls { display: flex; flex-direction: column; gap: 12px; }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.9); padding: 20px; border-radius: 12px; text-align: center; z-index: 2000; border: 1px solid rgba(255, 255, 255, 0.2); }
         .logo-hover-prompt { position: fixed; background: rgba(0, 0, 0, 0.9); color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; z-index: 1500; pointer-events: none; border: 2px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); animation: fadeIn 0.3s ease; }
+        .logo-hover-prompt.mobile-clickable { pointer-events: auto; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -76,49 +70,47 @@
             <div class="progress-bar-container">
                 <div class="progress-bar-fill" id="progressBarFill"></div>
             </div>
-            <!-- Timeline nodes will be auto-generated here -->
         </div>
 
         <div class="progress-text" id="progressText">0% Revealed</div>
     </div>
 
-    <div class="universal-puck" id="universalPuck"></div>
-
     <div class="puck-instructions" id="puckInstructions">
-        <h4>Liquid Stories ™</h4>
-        <p>Find the words behind the picture.</p>
+        <h4>Move to Reveal</h4>
+        <p>Drag your finger or mouse to uncover the hidden image</p>
     </div>
 
-    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+    <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-line"></div>
         <div class="hamburger-line"></div>
         <div class="hamburger-line"></div>
     </div>
 
-    <div class="menu-backdrop" id="menuBackdrop" onclick="closeMobileMenu()">
+    <div class="menu-backdrop" id="menuBackdrop">
         <div class="menu-panel">
             <div class="menu-header">
-                <h3>Controls</h3>
-                <button class="close-menu" onclick="closeMobileMenu()">×</button>
+                <h3>Story Controls</h3>
+                <div class="close-menu" id="closeMenu">✕</div>
             </div>
-            <div class="menu-controls">
-                <button class="menu-control-btn" onclick="mobileAdjustInfluence(10)">More Influence</button>
-                <button class="menu-control-btn" onclick="mobileAdjustInfluence(-10)">Less Influence</button>
-                <button class="menu-control-btn" onclick="mobileToggleTrails()">Toggle Trails</button>
-                <button class="menu-control-btn" onclick="mobileResetToKidHappy()">Reset to Kid Happy</button>
-                <button class="menu-control-btn" onclick="mobileAutoCompleteKidScared()">Complete to Kid Scared</button>
-                <button class="menu-control-btn" id="reverseModeBtn" onclick="toggleReverseMode()">Reverse Mode: <span id="reverseModeText">OFF</span></button>
+            <div class="mobile-controls" id="mobileControls" style="display: none;">
+                <button class="menu-control-btn" onclick="toggleTrails()">
+                    <span id="trailsToggleText">Enable Trails</span>
+                </button>
+            </div>
+            <div class="desktop-controls" id="desktopControls">
+                <button class="menu-control-btn" onclick="toggleTrails()">
+                    <span id="trailsToggleText">Enable Trails</span>
+                </button>
+                <div style="margin-top: 8px;">
+                    <label class="toggle-label">Influence Radius</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 0.8rem;">Small</span>
+                        <input type="range" class="influence-slider" id="influenceSlider" min="60" max="150" value="105">
+                        <span style="font-size: 0.8rem;">Large</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="controls" id="desktopControls">
-        <h3>Controls</h3>
-        <button class="control-btn" onclick="adjustInfluence(10)">More Influence</button>
-        <button class="control-btn" onclick="adjustInfluence(-10)">Less Influence</button>
-        <button class="control-btn" onclick="toggleTrails()">Toggle Trails</button>
-        <button class="control-btn" onclick="resetToKidHappy()">Reset to Kid Happy</button>
-        <button class="control-btn" onclick="autoCompleteKidScared()">Complete to Kid Scared</button>
     </div>
 
     <div class="loading" id="loading">Loading dual image system...</div>
@@ -131,8 +123,8 @@
         // Story Configuration (Python-generated)
         const storyConfig = {{STORY_CONFIG}};
 
-        const image1Url = '{{IMAGE1_URL}}';
-        const image2Url = '{{IMAGE2_URL}}';
+        const image1Url = 'images/{{IMAGE1_URL}}';
+        const image2Url = 'images/{{IMAGE2_URL}}';
         const backboardTexts = {{BACKBOARD_TEXTS}};
         {{LOGO_URL_DECLARATION}}
         {{LOGO_TARGET_URL}}
@@ -156,68 +148,57 @@
         const loading = document.getElementById('loading');
 
         let particles = [];
-        let image1, image2;
-        let sourceImage1, sourceImage2;
-        let puckX, puckY;
-        let prevPuckX, prevPuckY;
-        let puckVelX = 0, puckVelY = 0;
-        let puckActive = false;
-        let mouseInCanvas = false;
-        let influenceRadius = 105;
-        let trailsEnabled = false;
-        let imageSize = 700;
-        let scaledWidth, scaledHeight;
+        let img1 = new Image();
+        let img2 = new Image();
         let imageLoaded = false;
-        let currentImage = 1;
-        let transformationComplete = false;
-        let completionMessageShown = false;
-        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        let mobileMenuOpen = false;
-        let reverseMode = false;
-        let isDragging = false;
-        let loadedImages = 0;
+
+        // Touch variables
+        let touchStartTime = 0;
+        let touchOnLogo = false;
+        let touchHoldTimer = null;
+        let countdownTimer = null;
+        let countdownInterval = null;
+        let countdownValue = 3;
+        let isCountingDown = false;
 
         // Logo interaction variables
         let logoPosition = null;
         let isHoveringOverLogo = false;
         const logoHoverPrompt = document.getElementById('logoHoverPrompt');
+        const countdownModal = document.getElementById('countdownModal');
 
-        // Generate Timeline
-        function generateTimeline() {
-            const timelineWrapper = document.getElementById('timelineWrapper');
-            timelineWrapper.innerHTML = '<div class="progress-bar-container"><div class="progress-bar-fill" id="progressBarFill"></div></div>';
+        // Device detection and compatibility
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const hasHover = window.matchMedia('(hover: hover)').matches;
+        const isMobileDevice = isMobile || !hasHover;
 
-            // Calculate total circles: pages + 1
-            const totalCircles = totalPages + 1;
+        // Touch and mouse state management
+        let puckActive = false;
+        let mouseInCanvas = false;
+        let puckX = window.innerWidth / 2;
+        let puckY = window.innerHeight / 2;
+        let prevPuckX = puckX;
+        let prevPuckY = puckY;
+        let puckVelX = 0;
+        let puckVelY = 0;
+        let mouseVelX = 0;
+        let mouseVelY = 0;
+        let transformationComplete = false;
 
-            for (let i = 1; i <= totalCircles; i++) {
-                // Create timeline node
-                const node = document.createElement('div');
-                node.className = 'timeline-node future'; // Will be updated by updateTimelineStatus()
+        // Physics and interaction
+        const PARTICLE_COUNT = 2500;
+        const INFLUENCE_RADIUS = parseInt(storyConfig.story?.influenceRadius || '105');
+        let trails = [];
+        let maxTrails = isMobileDevice ? 8 : 12;
+        let mobileMenuOpen = false;
 
-                // Label nodes appropriately
-                if (i <= totalPages) {
-                    node.textContent = i;
-                    node.title = `Page ${i}`;
-                } else {
-                    node.textContent = 'End';
-                    node.title = 'Story Complete';
-                }
+        // Touch hold detection variables
+        let touchStartTime = 0;
+        let touchOnLogo = false;
+        let touchHoldTimer = null;
 
-                // Add click handler to navigate pages (only on page circles)
-                if (i <= totalPages && i !== currentPage) {
-                    node.onclick = () => window.location.href = `page-${i}.html`;
-                }
-
-                timelineWrapper.appendChild(node);
-            }
-
-            // Update progress fill reference (since we recreated the DOM)
-            window.progressFill = document.getElementById('progressBarFill');
-
-            // Initial status update
-            setTimeout(() => updateTimelineStatus(), 100);
-        }
+        // Menu and UI state
+        let influenceRadius = INFLUENCE_RADIUS;
 
         // Update timeline node statuses
         function updateTimelineStatus() {
@@ -225,16 +206,168 @@
             const image2Count = particles.filter(p => p.currentImage === 2).length;
             const currentPercentage = Math.round((image2Count / particles.length) * 100);
 
-            // Calculate current position in segments (0-1 for current page progress)
             const currentPageSegment = (currentPage - 1) + (currentPercentage / 100);
+            const totalSegments = totalPages;
 
             timelineNodes.forEach((node, index) => {
-                const nodePosition = index; // 0-based position in timeline
-                node.className = `timeline-node ${nodePosition < currentPageSegment ? 'completed' : Math.abs(nodePosition - currentPageSegment) < 0.5 ? 'current' : 'future'}`;
+                const nodeNumber = index + 1;
+                const isCompleted = nodeNumber < currentPage;
+                const isCurrent = nodeNumber === currentPage;
+                const isFuture = nodeNumber > currentPage;
+
+                node.classList.toggle('completed', isCompleted || (isCurrent && currentPercentage > 0));
+                node.classList.toggle('current', isCurrent && currentPercentage === 0);
+                node.classList.toggle('future', isFuture && !(isCurrent && currentPercentage === 0));
+
+                if (!node.textContent) {
+                    node.textContent = nodeNumber;
+                }
             });
         }
 
-        // Resize canvases
+        // Initialize timeline nodes
+        function initializeTimeline() {
+            const timelineWrapper = document.getElementById('timelineWrapper');
+            timelineWrapper.innerHTML = '<div class="progress-bar-container"><div class="progress-bar-fill" id="progressBarFill"></div></div>';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const node = document.createElement('div');
+                node.className = 'timeline-node';
+                node.textContent = i;
+                node.addEventListener('click', () => {
+                    if (i < currentPage) {
+                        window.location.href = `page-${i}.html`;
+                    }
+                });
+                timelineWrapper.appendChild(node);
+            }
+
+            updateTimelineStatus();
+        }
+
+        // Mobile menu
+        function toggleMobileMenu() {
+            mobileMenuOpen = !mobileMenuOpen;
+            menuBackdrop.classList.toggle('active', mobileMenuOpen);
+        }
+        function closeMobileMenu() {
+            mobileMenuOpen = false;
+            menuBackdrop.classList.remove('active');
+        }
+
+        // Control functions
+        function saveInfluenceToConfig(value) {
+            try {
+                localStorage.setItem('pug-day-influence', value);
+                console.log('Influence setting saved to localStorage');
+            } catch (e) {
+                console.log('Could not save influence setting');
+            }
+        }
+
+        function loadInfluenceFromConfig() {
+            try {
+                const saved = localStorage.getItem('pug-day-influence');
+                if (saved !== null) {
+                    influenceRadius = parseInt(saved, 10);
+                } else {
+                    console.log('Using default influence setting');
+                }
+            } catch (e) {
+                console.log('Could not load influence setting, using default');
+            }
+        }
+
+        // Update progress
+        function updateProgress() {
+            const image2Count = particles.filter(p => p.currentImage === 2).length;
+            const percentage2 = Math.round((image2Count / particles.length) * 100);
+
+            const currentProgressElement = document.getElementById('progressBarFill');
+            if (currentProgressElement) {
+                const currentSegment = (currentPage - 1) + (percentage2 / 100);
+                const totalSegments = totalPages;
+                const overallProgress = Math.min(100, (currentSegment / totalSegments) * 100);
+
+                currentProgressElement.style.width = overallProgress + '%';
+                updateTimelineStatus();
+            }
+
+            progressText.textContent = percentage2 + '% Revealed';
+
+            if (percentage2 === 100 && !transformationComplete) {
+                completeTransformation(2);
+                if (!isLastPage) {
+                    setTimeout(() => {
+                        window.location.href = `page-${currentPage + 1}.html`;
+                    }, 2000);
+                }
+            }
+        }
+
+        // Particle system
+        function createParticle(x, y) {
+            return {
+                x, y,
+                size: Math.random() * 3 + 1,
+                speedX: (Math.random() - 0.5) * 2,
+                speedY: (Math.random() - 0.5) * 2,
+                currentImage: 1,
+                opacity: 1,
+                life: 1,
+                transitionSpeed: 0.02
+            };
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push(createParticle(Math.random() * canvas.width, Math.random() * canvas.height));
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.speedX * 0.5;
+                p.y += p.speedY * 0.5;
+                p.speedX *= 0.99;
+                p.speedY *= 0.99;
+
+                if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                    particles[i] = createParticle(Math.random() * canvas.width, Math.random() * canvas.height);
+                }
+            }
+        }
+
+        function drawPuck(x, y) {
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, influenceRadius);
+            const imageData1 = ctx.getImageData(x - influenceRadius, y - influenceRadius, influenceRadius * 2, influenceRadius * 2);
+            const imageData2 = ctx.getImageData(x - influenceRadius, y - influenceRadius, influenceRadius * 2, influenceRadius * 2);
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                const dx = p.x - x;
+                const dy = p.y - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < influenceRadius && p.currentImage === 1) {
+                    const influence = 1 - (distance / influenceRadius);
+                    if (Math.random() < influence * 0.3) {
+                        p.currentImage = 2;
+                    }
+                }
+            }
+
+            if (trails.length > maxTrails) {
+                trails.shift();
+            }
+            trails.push({ x, y, life: 1.0 });
+
+            updateProgress();
+        }
+
+        // Canvas setup
         function resizeCanvases() {
             canvas.width = bgCanvas.width = window.innerWidth;
             canvas.height = bgCanvas.height = window.innerHeight;
@@ -242,9 +375,7 @@
             if (imageLoaded) initParticles();
         }
         window.addEventListener('resize', resizeCanvases);
-        resizeCanvases(); // Call immediately after definition
 
-        // Draw backboard
         function drawCouponBackground() {
             bgCtx.fillStyle = '#0a0a0a';
             bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
@@ -260,157 +391,68 @@
             {{LOGO_RENDERING_CODE}}
         }
 
-        // Particle class
-        class Particle {
-            constructor(x, y, gridX, gridY) {
-                this.x = this.originalX = x;
-                this.y = this.originalY = y;
-                this.vx = this.vy = 0;
-                this.radius = 2;
-                this.mass = 1 + Math.random() * 0.5;
-                this.gridX = gridX;
-                this.gridY = gridY;
-                this.currentImage = this.targetImage = 1;
-                this.transitionProgress = 0;
-                this.rotation = 0;
-            }
-            update() {
-                const dx = this.x - puckX, dy = this.y - puckY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < influenceRadius) {
-                    const influence = 1 - (distance / influenceRadius);
-                    const angle = Math.atan2(dy, dx);
-                    const tangentX = -Math.sin(angle), tangentY = Math.cos(angle);
-                    const swirlStrength = puckVelX * tangentX + puckVelY * tangentY;
-                    this.vx += swirlStrength * influence * 0.3 / this.mass;
-                    this.vy += (puckVelX * tangentY - puckVelY * tangentX) * influence * 0.3 / this.mass;
-                    const radialForce = Math.min(puckVelX * puckVelX + puckVelY * puckVelY, 100);
-                    this.vx += (tangentX * radialForce * influence * 0.01) / this.mass;
-                    this.vy += (tangentY * radialForce * influence * 0.01) / this.mass;
-
-                    // Transition logic
-                    const isReverseActive = reverseMode || isDragging;
-                    if (isReverseActive) {
-                        // Reverse: gradual to image1 (same growing transition)
-                        if (this.currentImage === 2 || this.targetImage === 2) {
-                            this.targetImage = 1;
-                            this.transitionProgress = Math.min(1, this.transitionProgress + 0.12 * influence);
-                        }
-                    } else {
-                        // Normal: image1 -> image2 transformation
-                        if (this.currentImage === 1) {
-                            this.targetImage = 2;
-                            this.transitionProgress = Math.min(1, this.transitionProgress + 0.12 * influence);
-                        }
-                    }
-                } else if (this.currentImage === 2 && !isDragging && !reverseMode) {
-                    this.targetImage = 1;
-                    this.transitionProgress = Math.max(0, this.transitionProgress - 0.005);
-                }
-                const springForce = 0.005;
-                this.vx += (this.originalX - this.x) * springForce;
-                this.vy += (this.originalY - this.y) * springForce;
-                const damping = 0.92;
-                this.vx *= damping; this.vy *= damping;
-                this.x += this.vx; this.y += this.vy;
-                this.rotation += this.vx * 0.01;
-                if (this.transitionProgress >= 1 && this.currentImage !== this.targetImage) this.currentImage = this.targetImage;
-            }
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.rotation);
-                const sourceImage = this.currentImage === 1 ? sourceImage1 : sourceImage2;
-                const pieceWidth = imageSize / 100, pieceHeight = imageSize / 100;
-                const sourceX = this.gridX * pieceWidth, sourceY = this.gridY * pieceHeight;
-                // Slightly larger to overlap and eliminate lines
-                const overlap = 2;
-                ctx.drawImage(sourceImage, sourceX, sourceY, pieceWidth, pieceHeight, -pieceWidth / 2 - overlap/2, -pieceHeight / 2 - overlap/2, pieceWidth + overlap, pieceHeight + overlap);
-                ctx.restore();
-            }
-            resetToImage1() {
-                this.currentImage = this.targetImage = 1;
-                this.transitionProgress = 0;
-            }
-            forceToImage2() {
-                this.currentImage = this.targetImage = 2;
-                this.transitionProgress = 1;
+        function completeTransformation(targetImage) {
+            transformationComplete = true;
+            for (let p of particles) {
+                p.currentImage = targetImage;
             }
         }
 
-        // Initialize particles
-        function initParticles() {
-            particles = [];
-            const imageX = (canvas.width - imageSize) / 2;
-            const imageY = (canvas.height - imageSize) / 2;
-            const spacing = imageSize / 100;
-            for (let gridY = 0; gridY < 100; gridY++) {
-                for (let gridX = 0; gridX < 100; gridX++) {
-                    const x = imageX + (gridX * spacing) + spacing / 2;
-                    const y = imageY + (gridY * spacing) + spacing / 2;
-                    particles.push(new Particle(x, y, gridX, gridY));
+        // Main draw loop
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (!imageLoaded) {
+                requestAnimationFrame(draw);
+                return;
+            }
+
+            const imgToDraw1 = img1.complete && img1.naturalHeight !== 0 ? img1 : createMissingImageDemo('Missing Image 1');
+            const imgToDraw2 = img2.complete && img2.naturalHeight !== 0 ? img2 : createMissingImageDemo('Missing Image 2');
+
+            for (let p of particles) {
+                ctx.globalAlpha = p.opacity * p.life;
+                if (p.currentImage === 1) {
+                    ctx.drawImage(imgToDraw1, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+                } else {
+                    ctx.drawImage(imgToDraw2, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
                 }
             }
+
+            // Draw trails
+            ctx.globalAlpha = 0.3;
+            for (let trail of trails) {
+                trail.life *= 0.95;
+                ctx.globalAlpha = trail.life * 0.3;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 20;
+                ctx.beginPath();
+                ctx.arc(trail.x, trail.y, influenceRadius * 0.3, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            ctx.globalAlpha = 1;
+
+            if (puckActive) {
+                drawPuck(puckX, puckY);
+            }
+
+            updateParticles();
+            requestAnimationFrame(draw);
         }
 
-        // Load images
-        function loadDualImages() {
-            const img1 = new Image();
-            img1.src = image1Url;
-            img1.onload = () => {
-                const resizedCanvas1 = resizeImage(img1);
-                sourceImage1 = resizedCanvas1;
-                checkImagesLoaded();
-            };
-            img1.onerror = () => {
-                sourceImage1 = createDemoImage('😊 START', '#FFD700', '#FFA500');
-                checkImagesLoaded();
-            };
-
-            const img2 = new Image();
-            img2.src = image2Url;
-            img2.onload = () => {
-                const resizedCanvas2 = resizeImage(img2);
-                sourceImage2 = resizedCanvas2;
-                checkImagesLoaded();
-            };
-            img2.onerror = () => {
-                sourceImage2 = createDemoImage('😰 END', '#4169E1', '#000080');
-                checkImagesLoaded();
-            };
-        }
-
-        // Resize image to fit 700x700
-        function resizeImage(img) {
-            const aspect = img.width / img.height;
-            scaledWidth = aspect > 1 ? imageSize : imageSize * aspect;
-            scaledHeight = aspect > 1 ? imageSize / aspect : imageSize;
-            const resizedCanvas = document.createElement('canvas');
-            resizedCanvas.width = scaledWidth;
-            resizedCanvas.height = scaledHeight;
-            const resizedCtx = resizedCanvas.getContext('2d');
-            resizedCtx.imageSmoothingEnabled = false;
-            resizedCtx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
-            return resizedCanvas;
-        }
-
-        // Create demo image fallback
-        function createDemoImage(textEmoji, color1, color2) {
+        // Helper functions
+        function createMissingImageDemo(text) {
             const demoCanvas = document.createElement('canvas');
-            demoCanvas.width = imageSize;
-            demoCanvas.height = imageSize;
+            demoCanvas.width = 200;
+            demoCanvas.height = 200;
             const demoCtx = demoCanvas.getContext('2d');
-            const gradient = demoCtx.createRadialGradient(imageSize/2, imageSize/2, 0, imageSize/2, imageSize/2, imageSize/2);
-            gradient.addColorStop(0, color1);
-            gradient.addColorStop(1, color2);
-            demoCtx.fillStyle = gradient;
-            demoCtx.fillRect(0, 0, imageSize, imageSize);
-            demoCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            demoCtx.font = 'bold 48px Arial';
+            demoCtx.fillStyle = '#333';
+            demoCtx.fillRect(0, 0, 200, 200);
+            demoCtx.fillStyle = '#fff';
+            demoCtx.font = '14px Arial';
             demoCtx.textAlign = 'center';
-            demoCtx.textBaseline = 'middle';
-            demoCtx.fillText(textEmoji.split(' ')[0], imageSize/2, imageSize/2 - 30);
-            demoCtx.fillText(textEmoji.split(' ')[1] + ' ' + textEmoji.split(' ')[2], imageSize/2, imageSize/2 + 30);
+            demoCtx.fillText(text, 100, 100);
             return demoCanvas;
         }
 
@@ -420,78 +462,27 @@
                 imageLoaded = true;
                 loading.style.display = 'none';
                 initParticles();
+                loadInfluenceFromConfig();
+                setupInfluenceSlider();
             }
         }
 
-        // Update progress
-        function updateProgress() {
-            const image2Count = particles.filter(p => p.currentImage === 2).length;
-            const percentage2 = Math.round((image2Count / particles.length) * 100);
-
-            // Update progress bar width (now goes across timeline)
-            const currentProgressElement = document.getElementById('progressBarFill');
-            if (currentProgressElement) {
-                // Simple calculation: pages + 1 circles = pages segments
-                const currentSegment = (currentPage - 1) + (percentage2 / 100);
-                const totalSegments = totalPages;
-                const overallProgress = Math.min(100, (currentSegment / totalSegments) * 100);
-
-                currentProgressElement.style.width = overallProgress + '%';
-
-                // Update timeline to reflect current progress
-                updateTimelineStatus();
-            }
-
-            progressText.textContent = percentage2 + '% Revealed';
-
-            // Check if 100% revealed and switch to next page
-            if (percentage2 === 100 && !transformationComplete) {
-                completeTransformation(2);
-                if (!isLastPage) {
-                    setTimeout(() => {
-                        window.location.href = `page-${currentPage + 1}.html`;
-                    }, 2000);
-                } else if (!completionMessageShown) {
-                    completionMessageShown = true;
-                    showCompletionMessage('Story Complete!', '🎉 Amazing Journey! 🎉');
+        function loadInfluenceFromConfig() {
+            try {
+                const saved = localStorage.getItem('pug-day-influence');
+                if (saved !== null) {
+                    influenceRadius = parseInt(saved, 10);
+                } else {
+                    console.log('Using default influence setting');
                 }
+            } catch (e) {
+                console.log('Could not load influence setting, using default');
             }
         }
 
-        // Complete transformation
-        function completeTransformation(targetImage) {
-            if (transformationComplete) return;
-            transformationComplete = true;
-            currentImage = targetImage;
-            particles.forEach(p => {
-                p.currentImage = p.targetImage = targetImage;
-                p.transitionProgress = 0;
-            });
-            if (targetImage === 2) {
-                progressTitle.textContent = '✨ Complete! ✨';
-                const currentProgressElement = document.getElementById('progressBarFill');
-                if (currentProgressElement) {
-                    // Set progress to the end of current page (not full 100% unless it's the last page)
-                    const pageProgress = (currentPage / totalPages) * 100;
-                    currentProgressElement.style.width = pageProgress + '%';
-                }
-                progressText.textContent = '100% Revealed';
-            }
-            setTimeout(() => { transformationComplete = false; }, 2000);
-        }
-
-        // Show completion message
-        function showCompletionMessage(title, message) {
-            const completionDiv = document.createElement('div');
-            completionDiv.className = 'completion-message';
-            completionDiv.innerHTML = `<h2>${title}</h2><p>${message}</p>`;
-            document.body.appendChild(completionDiv);
-            setTimeout(() => { document.body.removeChild(completionDiv); }, 3000);
-        }
-
-        // Puck handlers
+        // Touch handlers
         function handlePuckStart(e) {
-            if (isMobile) {
+            if (isMobileDevice) {
                 puckInstructions.style.display = 'none';
                 puckActive = true;
                 const touch = e.touches[0];
@@ -500,10 +491,23 @@
                 universalPuck.style.left = puckX + 'px';
                 universalPuck.style.top = puckY + 'px';
                 universalPuck.classList.add('dragging');
+
+                // Reset touch detection variables
+                touchStartTime = Date.now();
+                touchOnLogo = isOverLogo(puckX, puckY);
+
+                if (touchOnLogo) {
+                    touchHoldTimer = setTimeout(() => {
+                        if (touchOnLogo && !isCountingDown) {
+                            startCountdown();
+                        }
+                    }, 500);
+                }
             }
         }
+
         function handlePuckMove(e) {
-            if (isMobile && puckActive) {
+            if (isMobileDevice && puckActive) {
                 const touch = e.touches[0];
                 prevPuckX = puckX; prevPuckY = puckY;
                 puckX = touch.clientX; puckY = touch.clientY;
@@ -512,51 +516,73 @@
                 universalPuck.classList.add('dragging');
                 puckVelX = puckX - prevPuckX; puckVelY = puckY - prevPuckY;
                 updateProgress();
+
+                // Check logo hover for mobile
+                checkLogoHover(puckX, puckY);
+
+                // Track if user moves off logo while touching
+                const wasOnLogo = touchOnLogo;
+                touchOnLogo = isOverLogo(puckX, puckY);
+
+                // If user moves off logo while holding, cancel the hold timer
+                if (wasOnLogo && !touchOnLogo && touchHoldTimer) {
+                    clearTimeout(touchHoldTimer);
+                    touchHoldTimer = null;
+                }
             }
         }
+
         function handlePuckEnd() {
-            if (isMobile) {
+            if (isMobileDevice) {
                 puckActive = false;
                 puckVelX = puckVelY = 0;
                 universalPuck.classList.remove('dragging');
+
+                // Cancel countdown if user releases early
+                cancelCountdown();
+
+                // Reset touch tracking
+                touchOnLogo = false;
+                touchStartTime = 0;
             }
         }
 
         // Desktop mouse handlers
         function handleDesktopMouseMove(e) {
-            if (!isMobile) {
+            if (!isMobileDevice) {
                 prevPuckX = puckX; prevPuckY = puckY;
                 puckX = e.clientX; puckY = e.clientY;
                 universalPuck.style.left = puckX + 'px';
                 universalPuck.style.top = puckY + 'px';
                 universalPuck.classList.add('desktop-following');
-                puckVelX = puckX - prevPuckX; puckVelY = puckY - prevPuckY;
-                updateProgress();
 
-                // Check if hovering over logo
+                if (mouseInCanvas) {
+                    puckVelX = puckX - prevPuckX; puckVelY = puckY - prevPuckY;
+                    updateProgress();
+                }
+
+                // Check logo hover for desktop
                 checkLogoHover(puckX, puckY);
             }
         }
+
         function handleDesktopMouseDown() {
-            if (!isMobile) {
-                isDragging = true;
-                universalPuck.classList.add('dragging');
-            }
-        }
-        function handleDesktopMouseUp() {
-            if (!isMobile) {
-                isDragging = false;
-                universalPuck.classList.remove('dragging');
-            }
-        }
-        function handleDesktopMouseEnter() {
-            if (!isMobile) {
+            if (!isMobileDevice) {
                 mouseInCanvas = true;
-                universalPuck.style.display = 'block';
+                universalPuck.classList.add('dragging');
+                universalPuck.classList.remove('desktop-following');
             }
         }
+
+        function handleDesktopMouseUp() {
+            if (!isMobileDevice) {
+                mouseInCanvas = false;
+                universalPuck.classList.remove('dragging', 'desktop-following');
+            }
+        }
+
         function handleDesktopMouseLeave() {
-            if (!isMobile) {
+            if (!isMobileDevice) {
                 mouseInCanvas = false;
                 universalPuck.classList.remove('dragging', 'desktop-following');
             }
@@ -587,10 +613,12 @@
 
         function showLogoHoverPrompt(mouseX, mouseY) {
             if (typeof logoTargetUrl !== 'undefined') {
-                if (isMobile) {
+                if (isMobileDevice) {
                     logoHoverPrompt.textContent = 'Tap here to go to GameStop';
+                    logoHoverPrompt.classList.add('mobile-clickable');
                 } else {
                     logoHoverPrompt.textContent = `Press 1 to visit ${logoTargetUrl}`;
+                    logoHoverPrompt.classList.remove('mobile-clickable');
                 }
                 logoHoverPrompt.style.display = 'block';
                 updateLogoHoverPromptPosition(mouseX, mouseY);
@@ -603,7 +631,7 @@
 
         // Handle click/tap on logo hover prompt for mobile users
         function handleLogoPromptClick() {
-            if (isMobile && typeof logoTargetUrl !== 'undefined') {
+            if (isMobileDevice && typeof logoTargetUrl !== 'undefined') {
                 window.open(logoTargetUrl, '_blank');
             }
         }
@@ -613,6 +641,53 @@
             logoHoverPrompt.style.top = (mouseY - 40) + 'px';
         }
 
+        function isOverLogo(x, y) {
+            if (!logoPosition) return false;
+
+            return x >= logoPosition.x &&
+                   x <= logoPosition.x + logoPosition.width &&
+                   y >= logoPosition.y &&
+                   y <= logoPosition.y + logoPosition.height;
+        }
+
+        // Countdown functions for mobile interaction
+        function startCountdown() {
+            isCountingDown = true;
+            countdownValue = 3;
+            countdownModal.classList.add('active');
+            countdownTimerDisplay.textContent = countdownValue;
+
+            countdownInterval = setInterval(() => {
+                countdownValue--;
+                countdownTimerDisplay.textContent = countdownValue;
+
+                if (countdownValue <= 0) {
+                    clearInterval(countdownInterval);
+                    openGameStopWebsite();
+                    hideCountdownModal();
+                    isCountingDown = false;
+                }
+            }, 1000);
+        }
+
+        function cancelCountdown() {
+            if (isCountingDown) {
+                clearInterval(countdownInterval);
+                hideCountdownModal();
+                isCountingDown = false;
+            }
+        }
+
+        function hideCountdownModal() {
+            countdownModal.classList.remove('active');
+        }
+
+        function openGameStopWebsite() {
+            if (typeof logoTargetUrl !== 'undefined') {
+                window.open(logoTargetUrl, '_blank');
+            }
+        }
+
         // Keyboard event handler for logo navigation
         function handleKeyPress(event) {
             if (event.key === '1' && isHoveringOverLogo && typeof logoTargetUrl !== 'undefined') {
@@ -620,93 +695,70 @@
             }
         }
 
-        // Mobile menu
-        function toggleMobileMenu() {
-            mobileMenuOpen = !mobileMenuOpen;
-            menuBackdrop.classList.toggle('active', mobileMenuOpen);
-        }
-        function closeMobileMenu() {
-            mobileMenuOpen = false;
-            menuBackdrop.classList.remove('active');
-        }
-
         // Control functions
-        function adjustInfluence(delta) {
-            influenceRadius = Math.max(50, Math.min(300, influenceRadius + delta));
-        }
         function toggleTrails() {
-            trailsEnabled = !trailsEnabled;
-            document.querySelectorAll('.control-btn')[1]?.classList.toggle('active');
-            document.querySelectorAll('.menu-control-btn')[1]?.classList.toggle('active');
-        }
-        function resetToKidHappy() {
-            transformationComplete = false;
-            completionMessageShown = false;
-            particles.forEach(p => p.resetToImage1());
-            progressTitle.textContent = '{{PROGRESS_TITLE}}';
-            updateProgress();
-        }
-        function autoCompleteKidScared() {
-            particles.forEach(p => p.forceToImage2());
-            updateProgress();
-            completeTransformation(2);
-        }
-        function mobileAdjustInfluence(delta) { adjustInfluence(delta); closeMobileMenu(); }
-        function mobileToggleTrails() { toggleTrails(); closeMobileMenu(); }
-        function mobileResetToKidHappy() { resetToKidHappy(); closeMobileMenu(); }
-        function mobileAutoCompleteKidScared() { autoCompleteKidScared(); closeMobileMenu(); }
-        function toggleReverseMode() {
-            reverseMode = !reverseMode;
-            document.getElementById('reverseModeText').textContent = reverseMode ? 'ON' : 'OFF';
-            document.getElementById('reverseModeBtn').classList.toggle('active', reverseMode);
-            closeMobileMenu();
+            trails.length = 0;
+            const trailsToggle = document.getElementById('trailsToggle');
+            const trailsToggleText = document.getElementById('trailsToggleText');
+            trailsToggle.classList.toggle('active');
+            trailsToggleText.textContent = trailsToggle.classList.contains('active') ? 'Disable Trails' : 'Enable Trails';
         }
 
-        // Animation loop
-        function animate() {
-            if (trailsEnabled) {
-                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            } else {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function setupInfluenceSlider() {
+            const slider = document.getElementById('influenceSlider');
+            if (slider) {
+                slider.value = influenceRadius;
+                slider.addEventListener('input', (e) => {
+                    influenceRadius = parseInt(e.target.value);
+                    saveInfluenceToConfig(influenceRadius);
+                });
             }
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animate);
         }
 
         // Initialize
-        function initialize() {
-            // Set initial puck position above controls
-            puckX = window.innerWidth - 50;
-            puckY = window.innerHeight - 200;
-            prevPuckX = puckX;
-            prevPuckY = puckY;
-            universalPuck.style.left = puckX + 'px';
-            universalPuck.style.top = puckY + 'px';
+        window.addEventListener('load', () => {
+            initializeTimeline();
+            resizeCanvases();
+            draw();
 
-            generateTimeline();
-            loadDualImages();
-            animate();
-        }
+            img1.onload = checkImagesLoaded;
+            img2.onload = checkImagesLoaded;
+            img1.onerror = checkImagesLoaded;
+            img2.onerror = checkImagesLoaded;
 
-        // Event listeners
-        document.addEventListener('keydown', handleKeyPress);
+            img1.src = image1Url;
+            img2.src = image2Url;
 
-        if (isMobile) {
-            document.addEventListener('touchstart', handlePuckStart, { passive: false });
-            document.addEventListener('touchmove', handlePuckMove, { passive: false });
-            document.addEventListener('touchend', handlePuckEnd);
-            desktopControls.style.display = 'none';
-        } else {
-            document.addEventListener('mousemove', handleDesktopMouseMove);
-            document.addEventListener('mousedown', handleDesktopMouseDown);
-            document.addEventListener('mouseup', handleDesktopMouseUp);
-            document.addEventListener('mouseenter', handleDesktopMouseEnter);
-            document.addEventListener('mouseleave', handleDesktopMouseLeave);
-            hamburgerMenu.style.display = 'none';
-        }
+            // Touch events
+            if (isMobileDevice) {
+                document.addEventListener('touchstart', handlePuckStart, { passive: false });
+                document.addEventListener('touchmove', handlePuckMove, { passive: false });
+                document.addEventListener('touchend', handlePuckEnd, { passive: false });
 
-        initialize();
+                mobileControls.style.display = 'flex';
+                desktopControls.style.display = 'none';
+            } else {
+                document.addEventListener('mousemove', handleDesktopMouseMove);
+                document.addEventListener('mousedown', handleDesktopMouseDown);
+                document.addEventListener('mouseup', handleDesktopMouseUp);
+                document.addEventListener('mouseleave', handleDesktopMouseLeave);
+
+                desktopControls.style.display = 'flex';
+                mobileControls.style.display = 'none';
+            }
+
+            // Menu events
+            hamburgerMenu.addEventListener('click', toggleMobileMenu);
+            closeMenu.addEventListener('click', closeMobileMenu);
+            menuBackdrop.addEventListener('click', (e) => {
+                if (e.target === menuBackdrop) {
+                    closeMobileMenu();
+                }
+            });
+
+            // Keyboard event listener
+            document.addEventListener('keypress', handleKeyPress);
+        });
     </script>
 </body>
 </html>
