@@ -64,9 +64,34 @@ After role-playing the other team members, retrieve IQ2's response from the back
 
 ---
 
+### Step 3: Retrieve IQ2's Response
+
+After role-playing the other team members, retrieve IQ2's response from the background task.
+
+**CRITICAL: YOU MUST ACTUALLY WAIT FOR AND USE IQ2'S RESPONSE.**
+
+❌ **NEVER simulate or fake IQ2's input**
+❌ **NEVER shortcut the process by writing dialogue yourself**
+❌ **NEVER pretend you collaborated when you didn't**
+
+✅ **ALWAYS actually invoke IQ2 via llama-server API**
+✅ **ALWAYS wait for the real response**
+✅ **ALWAYS use the actual response in your synthesis**
+
+**Why this matters**: The user can tell when collaboration is fake. The GPU should actually be processing. IQ2 should actually be contributing. This is not optional.
+
+---
+
 ### Step 4: Synthesize and Create
 
-Combine all perspectives into the final deliverable.
+**GENUINE collaboration only:**
+1. IQ2's actual response (retrieved from background task)
+2. Character Weaver's perspective (role-played with character profile)
+3. Zen Scribe's perspective (role-played with character profile)
+
+Combine ALL ACTUAL INPUT into the final deliverable.
+
+**If you did not actually invoke IQ2, you are not following the process.**
 
 ---
 
