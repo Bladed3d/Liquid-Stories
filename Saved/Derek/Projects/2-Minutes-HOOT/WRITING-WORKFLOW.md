@@ -60,19 +60,62 @@ When Part 1 is complete, activate the team:
 
 ---
 
-### Step 3: Synthesize One-Page Lesson (Part 3)
+### Step 3: Integration Round (Part 2.5) - CRITICAL NEW STEP
 
-Combine all perspectives into concise final lesson:
-- Qdrant research (Part 1) - authentic source material
-- IQ2's actual response (Part 2) - structure and audience insights
-- Character Weaver's guidance (Part 2) - psychological depth and voice
-- Zen Scribe's execution (Part 2) - authentic language
+**Before writing Part 3, the team must explicitly map insights to the lesson structure.**
 
-**Create Part 3**: "The Perfected Lesson" - one-page, 2-minute read
+The Integration Round ensures ALL brilliant insights from Part 2 actually make it into the final lesson.
+
+**Process:**
+
+1. **Review Round**: Each team member identifies their key insights from Part 2 dialogue
+2. **Mapping Round**: Explicitly state where each insight belongs in the final lesson
+3. **Synthesis Check**: Verify nothing important is left behind
+4. **Flow Check**: Ensure the lesson will read as one cohesive piece, not disjointed snippets
+
+**What the Integration Round Produces:**
+
+A structured outline where:
+- Every insight from Part 2 has a designated place
+- The narrative arc flows naturally
+- Multiple insights are woven together (not left as separate quotes)
+- Derek's voice carries through the entire lesson
+
+**Example of Integration:**
+
+Instead of leaving insights as separate quotes:
+> **Character Weaver**: Asking transforms character. It requires ego dissolution...
+> **Zen Scribe**: The question is the door...
+
+The Integration Round weaves them into unified prose:
+> "Asking transforms character. It requires ego dissolution, courage, and sacred reverence for truth. It's not a technique — it's a way of BEING. The question is the door. The sincere question is the open door. The insincere question is the closed door pretending to be open."
+
+**Create Part 2.5**: "The Integration Outline" with explicit mapping of insights to lesson sections
 
 ---
 
-### Step 4: Save and Display
+### Step 4: Write the Unified Lesson (Part 3)
+
+**Zen Scribe writes the final lesson** based on:
+- Qdrant research (Part 1) - authentic source material
+- All team insights (Part 2) - the rich dialogue
+- Integration outline (Part 2.5) - where everything goes
+
+**Zen Scribe's Responsibility:**
+
+Write as Derek speaking directly to the reader. Not a compilation of quotes, but a cohesive, flowing lesson that:
+
+1. **Integrates ALL insights** from the Integration Round
+2. **Flows naturally** from beginning to end
+3. **Speaks in Derek's authentic voice** - conversational, direct, powerful
+4. **Transforms the reader** through emotional journey
+5. **Avoids inappropriate content** (e.g., "You teach best what you need to learn" is Derek's motivation, not the reader's lesson)
+
+**Create Part 3**: "The Perfected Lesson" - one-page, 2-minute read, written as if Derek is speaking directly to the reader
+
+---
+
+### Step 5: Save and Display
 
 **CRITICAL**: After saving the lesson file, **always display it in the lesson viewer**:
 
