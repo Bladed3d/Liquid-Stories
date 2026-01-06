@@ -70,6 +70,28 @@ Combine all perspectives into the final deliverable.
 
 ---
 
+### Step 5: Display After Writing (CRITICAL WORKFLOW)
+
+**ALWAYS display written content in the appropriate viewer immediately after saving.**
+
+**When content is written and saved:**
+
+1. **If a viewer exists for the content type**, launch it automatically:
+   ```bash
+   # Example for lessons:
+   python lesson-viewer.py "path/to/lesson.md" --team '["IQ2", "Character Weaver", "Zen Scribe"]' &
+   ```
+
+2. **Team headers**: When viewers support `--team` parameter, show active collaborators
+
+3. **Do not wait to be asked** — this is automatic workflow
+
+**Why**: The user needs to immediately see what was written, with context of who collaborated.
+
+**NEVER save content without displaying it for review.**
+
+---
+
 ## Why This System?
 
 **Role-playing is superior because:**
@@ -98,4 +120,5 @@ When asked to "consult the writing team":
 3. ✅ Role-play each perspective
 4. ✅ Retrieve IQ2 response
 5. ✅ Synthesize all input
-6. ❌ DO NOT use Task tool subagent_type for these agents
+6. ✅ **Display in viewer after writing** (automatic - do not wait to be asked)
+7. ❌ DO NOT use Task tool subagent_type for these agents
