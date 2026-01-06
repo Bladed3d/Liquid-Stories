@@ -6,28 +6,73 @@
 
 ## Lesson Creation Workflow
 
-### Step 1: Activate Writing Team
-When asked to write or rewrite a lesson:
+### Step 1: Research Derek's Reference Library (Part 1)
+
+**MANDATORY: Use Qdrant semantic search FIRST**
+
+```bash
+cd Saved/Derek/Reference-Library/scripts
+python search.py "lesson topic keywords" --limit 15
+```
+
+**What This Provides**:
+- Authentic Derek quotes and writings
+- His actual voice, phrasing, and examples
+- Semantic similarity (not brute-force search)
+- Source file paths for reference
+
+**Why This Matters**:
+- Part 1 of lesson needs Derek's ORIGINAL INSIGHT from his actual writings
+- Not approximations or character profile summaries
+- Authentic source material is foundation for everything
+
+**Create Part 1**: "The Original Insight" with Qdrant research findings
+
+---
+
+### Step 2: Activate Writing Team Collaboration (Part 2)
+
+When Part 1 is complete, activate the team:
 
 1. **Ask IQ2 FIRST** via llama-server API (background process)
-   - Use curl with anti-repetition parameters: `repeat_penalty: 1.1`, `repeat_last_n: 64`
-   - Ask about structure, emotional journey, transformation
+   ```bash
+   curl -s -X POST http://127.0.0.1:8080/completion \
+     -H "Content-Type: application/json" \
+     -d '{
+       "prompt": "Share key quotes from research and ask for structure/audience guidance...",
+       "n_predict": 1500,
+       "repeat_penalty": 1.1,
+       "repeat_last_n": 64
+     }' &
+   ```
 
 2. **While IQ2 processes, role-play Character Weaver and Zen Scribe**
    - Read Derek Character Profile for voice guidance
    - Character Weaver: Understands Derek's psychology and how he'd approach the topic
    - Zen Scribe: Knows how to execute authentic language based on Character Weaver's guidance
 
-3. **Retrieve IQ2 response** and synthesize all perspectives
+3. **Retrieve IQ2 response** and conduct GENUINE back-and-forth dialogue
+   - **NEVER simulate or fake IQ2's input**
+   - **NEVER shortcut by writing dialogue yourself**
+   - **ALWAYS use IQ2's actual response**
 
-### Step 2: Write the Lesson
+**Create Part 2**: "The Writing Team Dialogue" with genuine collaboration
 
-Create lesson with authentic Derek voice using:
-- Character Weaver's psychological guidance
-- Zen Scribe's language execution
-- IQ2's narrative and audience insights
+---
 
-### Step 3: Save and Display
+### Step 3: Synthesize One-Page Lesson (Part 3)
+
+Combine all perspectives into concise final lesson:
+- Qdrant research (Part 1) - authentic source material
+- IQ2's actual response (Part 2) - structure and audience insights
+- Character Weaver's guidance (Part 2) - psychological depth and voice
+- Zen Scribe's execution (Part 2) - authentic language
+
+**Create Part 3**: "The Perfected Lesson" - one-page, 2-minute read
+
+---
+
+### Step 4: Save and Display
 
 **CRITICAL**: After saving the lesson file, **always display it in the lesson viewer**:
 
