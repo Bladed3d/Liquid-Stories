@@ -152,10 +152,10 @@ When Part 1 is complete, activate the team:
    **⚠️ CRITICAL: You MUST run this command BEFORE role-playing other team members.**
    **⚠️ CRITICAL: Wait for IQ2 response BEFORE proceeding to Step 4.**
 
-2. **While IQ2 processes, engage Zen Master and Character Weaver**
+2. **While IQ2 processes, engage Zen Scribe and Character Weaver**
    - Read Derek Character Profile for psychological understanding
-   - **Zen Master**: Provides mystical wisdom, spiritual insight, timeless truth (direct pointing to reality)
-   - **Character Weaver**: Records Zen Master's insights through Derek's character voice (scribe role)
+   - **Zen Scribe**: Records the teaching in Derek's authentic voice
+   - **Character Weaver**: Provides character understanding to guide Zen Scribe
 
 3. **Retrieve IQ2 response** and conduct GENUINE back-and-forth dialogue
    - **NEVER simulate or fake IQ2's input**
@@ -164,7 +164,7 @@ When Part 1 is complete, activate the team:
 
 **Create Part 2**: "The Writing Team Dialogue" with genuine collaboration
 
-**⚠️ VERIFICATION: Part 2 includes IQ2 section? Part 2 includes Zen Master? Part 2 includes Character Weaver? If ANY missing, DO NOT PROCEED.**
+**⚠️ VERIFICATION: Part 2 includes IQ2 section? Part 2 includes Zen Scribe? Part 2 includes Character Weaver? If ANY missing, DO NOT PROCEED.**
 
 ---
 
@@ -306,8 +306,8 @@ Naming convention: `lesson-XXX-title-version-depth-YYYY-MM-DD.md`
 | Persona | Role | File Reference |
 |---------|------|----------------|
 | IQ2 | Story Architect + Audience Advisor | llama-server API on port 8080 |
-| Zen Master | Mystical Wisdom Specialist | `.claude/agents/zen-master.md` |
-| Character Weaver | Derek Character Specialist + Scribe & Writer | `.claude/agents/character-weaver.md` |
+| Zen Scribe | Voice Execution Specialist | `.claude/agents/zen-scribe.md` |
+| Character Weaver | Derek Character Specialist | `.claude/agents/character-weaver.md` |
 | lesson-editor-depth | Validation-Enhancement + Depth Synthesis | `.claude/agents/lesson-editor-depth.md` |
 
 **Derek Character Profile**: `Saved/Derek/Projects/2-Minutes-HOOT/derek-character-profile.md`
