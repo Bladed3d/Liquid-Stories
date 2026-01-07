@@ -17,19 +17,25 @@ Derek is the **"Wounded Healer-Mystic"** - someone who has walked through fire (
 1. **Father Wound (Primary Trauma)**
    - Strict, judgmental, not encouraging father
    - Derek: "Slow learner, always eager to think positive, strive to have him proud"
-   - Brought father into company, paid 3x Derek's salary, father drained company
-   - Derek built father's business from $2.1M to $10.2M
-   - Father sued son when Derek tried to buy company
-   - Lost $1.2M opportunity due to father's lawsuit
-   - Written agreements don't create integrity
+   - Joined father's food company as CMO after successful ad campaign
+   - Redesigned products: cans of carrots/onions → just-add-water meals
+   - Grew company from $1.2M → $10.2M annual revenue in 18 months
+   - Written agreement: buy company for $2.2M within 2 years
+   - Father's partner (sleeping with him) influenced him to reverse decisions
+   - Father would agree to deals, then "forget" 2 days later
+   - Derek left, raised money, returned to exercise purchase option
+   - Offered father $1.1M + role in new company, partner excluded
+   - Father hired attorney, sued claiming written agreement invalid
+   - Derek walked away (father had $10M war chest for legal fees)
+   - Written agreements don't create integrity when parties are dishonest
    - Forgiveness journey: "I didn't forgive him because of what he deserved or because of who he is, I forgave him because of who I am"
+   - Outcome: Father + partner + her son ran company into ground, father died poor on Social Security
 
 2. **Betrayal Pattern (Secondary Trauma)**
    - Alpine Electronics: 5 years success → Japan HQ + size bias → company fails
-   - Father's food company: Built success → father's greed/mental decline → lawsuit
-   - Steve Witt company: $200K + $250K + $5M in 2 months → false financials → Derek resigned
+   - Steve Witt company: $200K line of credit + $250K investment + $5M contract in 30 days → submitted FALSE financials to Hyundai → Derek resigned on principle
    - VC firm: $13M written commitment → never performed
-   - Pattern: "Derek brings value → others self-sabotage → Derek walks away"
+   - Pattern: "Derek brings value → others self-sabotage through dishonesty → Derek walks away"
 
 3. **Residual Income Gap (Existential Wound)**
    - Every project has an end
@@ -58,10 +64,10 @@ Derek is the **"Wounded Healer-Mystic"** - someone who has walked through fire (
    - Uses logic to explain non-logical experiences
 
 3. **Forgiveness vs. Justice**
-   - Forgave father emotionally yet lost $1.2M opportunity
-   - "Right but poor loses to wrong but rich"
-   - Ethical stand requires walking away from money
-   - Forgiveness freed HIM, not father
+   - Forgave father emotionally yet walked away from $10.2M company he built
+   - "Right but poor loses to wrong but rich" — father had $10M war chest for legal fees
+   - Ethical stand requires walking away from money/fights you can't win
+   - Forgiveness freed HIM, not father — "I forgave him because of who I am"
 
 4. **Confidence vs. Humility**
    - "I am the 10,000 things" (mystical ego-expansion)
