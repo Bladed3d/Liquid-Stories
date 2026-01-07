@@ -1,6 +1,8 @@
-# 2 Minutes to HOOT - Writing Workflow
+# 2 Minutes to HOOT - Writing Workflow (Depth Version)
 
-**Purpose**: Guide for AI collaboration on lesson creation
+**Purpose**: Guide for AI collaboration on in-depth lesson creation
+**Use when**: You want longer, psychologically rich lessons (3,500-4,500 characters)
+**Contrast with**: Writing-Workflow.md for concise lessons (2,500-3,500 characters)
 
 ---
 
@@ -136,7 +138,7 @@ When Part 1 is complete, activate the team:
 
 ---
 
-### Step 4: Integration Round (Part 2.5) - CRITICAL NEW STEP
+### Step 4: Integration Round (Part 2.5) - CRITICAL
 
 **Before writing Part 3, the team must explicitly map insights to the lesson structure.**
 
@@ -156,6 +158,7 @@ A structured outline where:
 - The narrative arc flows naturally
 - Multiple insights are woven together (not left as separate quotes)
 - Derek's voice carries through the entire lesson
+- **Depth layers are mapped** (psychological exploration, emotional journey, resistance patterns)
 
 **Example of Integration:**
 
@@ -172,15 +175,15 @@ The Integration Round weaves them into unified prose:
 
 ### Step 5: Write the Unified Lesson (Part 3)
 
-**lesson-editor agent crafts the final lesson** using Validation-Enhancement Framework
+**lesson-editor-depth agent crafts the final lesson** using Validation-Enhancement Framework + Psychological Depth Layer
 
-Invoke lesson-editor agent:
+Invoke lesson-editor-depth agent:
 ```bash
-Task tool with subagent_type="lesson-editor"
-Prompt: "Read the lesson file at [path] and craft Part 3 following Validation-Enhancement Framework"
+Task tool with subagent_type="lesson-editor-depth"
+Prompt: "Read the lesson file at [path] and craft Part 3 following Validation-Enhancement Framework with Psychological Depth"
 ```
 
-**lesson-editor's Role** (not Zen Scribe):
+**lesson-editor-depth's Role**:
 
 Synthesizes Parts 1-2.5 into flowing lesson with:
 - **Three-Source Validation**: Every enhancement validated by Derek's writings
@@ -188,9 +191,10 @@ Synthesizes Parts 1-2.5 into flowing lesson with:
 - **Practical Examples**: "Not/Instead" format (created from Derek's principles)
 - **Cross-References**: Embedded connections to previous lessons (if validated by Search 3)
 - **Dramatic Buildup Opening**: v10's compelling narrative structure
+- **Psychological Depth Layer**: Multi-level exploration (fear, resistance, transformation)
 - **Drift Detection**: Safeguards against psychologizing mystical teachings
 
-**lesson-editor Creates**:
+**lesson-editor-depth Creates**:
 
 1. **Dramatic Buildup Opening**:
    - Buildup: "Great inventors... understood something profound:"
@@ -203,26 +207,37 @@ Synthesizes Parts 1-2.5 into flowing lesson with:
    - Validated enhancements (from Search 2)
    - Sincerity distinctions (Derek's exact questions)
 
-3. **Character Transformation**:
+3. **Psychological Depth Layer** (NEW for depth version):
+   - **Three-level fear exploration**: Surface fear → Deeper fear → Deepest fear
+   - **Resistance patterns**: What blocks readers from this teaching
+   - **Emotional journey**: From stuckness to transformation
+   - **Character transformation arc**: Ego dissolution process elaborated
+   - **Relatability**: "You might be afraid to ask..." type sections
+
+4. **Character Transformation**:
    - Ego dissolution, courage, sacred reverence (from team insights)
+   - Elaborated transformation journey
    - "Flows from vs through you" mechanism (Stephen King example from Search 2)
 
-4. **Practical Application**:
+5. **Practical Application**:
    - "Not/Instead" examples (created from Derek's principles)
    - "So how do you practice this?" bridge
+   - More detailed examples (4-6 pairs vs 2-4 in concise version)
 
-5. **Empowering Conclusion**:
+6. **Empowering Conclusion**:
    - "This is what empowerment actually looks like"
    - Cross-reference to Lesson 002 if discussing "flows through you" (validated by Search 3)
+   - Foundations summary connecting to previous lessons
 
 **Quality Targets**:
-- Length: ~2,500-3,500 characters (v10 was 3,832, v19 was 2,102)
+- Length: ~3,500-4,500 characters (depth version)
 - Voice: Derek speaking directly to reader ("you" throughout)
 - Mystical language: Preserved EXACTLY ("vacuum that the Universe fills")
 - No psychologizing: Drift detection passed (all green flags)
+- Psychological depth: Fear levels, resistance patterns, emotional journey
 - Post-lesson metadata: Related Concepts, Writing Team, Process
 
-**Create Part 3**: "The Lesson" - one-page, flowing, validated enhancement of Derek's teachings
+**Create Part 3**: "The Lesson" - flowing, psychologically rich, validated enhancement of Derek's teachings
 
 ---
 
@@ -245,7 +260,8 @@ python lesson-viewer.py "path/to/lesson.md" --team '["IQ2", "Character Weaver", 
 Saved/Derek/Projects/2-Minutes-HOOT/daily-lessons/
 ```
 
-Naming convention: `lesson-XXX-title-version-YYYY-MM-DD.md`
+Naming convention: `lesson-XXX-title-version-depth-YYYY-MM-DD.md`
+(Note: Add "-depth" suffix to distinguish from concise versions)
 
 ---
 
@@ -256,15 +272,34 @@ Naming convention: `lesson-XXX-title-version-YYYY-MM-DD.md`
 | IQ2 | Story Architect + Audience Advisor | llama-server API on port 8080 |
 | Character Weaver | Derek Character Specialist | `.claude/agents/character-weaver.md` |
 | Zen Scribe | Voice Execution Specialist | `.claude/agents/zen-scribe.md` |
-| lesson-editor | Validation-Enhancement Synthesis | `.claude/agents/lesson-editor.md` |
+| lesson-editor-depth | Validation-Enhancement + Depth Synthesis | `.claude/agents/lesson-editor-depth.md` |
 
 **Derek Character Profile**: `Saved/Derek/Projects/2-Minutes-HOOT/derek-character-profile.md`
 
-**lesson-editor Framework**: Validation-Enhancement Framework
+**lesson-editor-depth Framework**: Validation-Enhancement Framework + Psychological Depth Layer
 - Three-Source Validation Rule
 - Dramatic Buildup Opening (v10's narrative structure)
+- Psychological Depth Layer (three-level fear, resistance, emotional journey)
 - Drift Detection Warnings
-- Length Target: 2,500-3,500 characters
+- Length Target: 3,500-4,500 characters
+
+---
+
+## When to Use Each Workflow
+
+**Use Writing-Workflow.md (concise)** when:
+- ✅ Creating lessons for the "2 Minutes to HOOT" book (current project)
+- ✅ Target length: 2,500-3,500 characters
+- ✅ Focus: Core teachings with validated enhancement
+- ✅ Result: Punchy, powerful, one-page lessons
+
+**Use Writing-Workflow-Depth.md (this file)** when:
+- ✅ Creating expanded content for future projects
+- ✅ Target length: 3,500-4,500 characters
+- ✅ Focus: Psychological exploration, emotional journey, detailed transformation
+- ✅ Result: Rich, developmental, multi-page lessons
+
+Both workflows use the same research and team collaboration process — only the final synthesis differs.
 
 ---
 
