@@ -4,6 +4,29 @@
 
 ---
 
+## ⚠️ MANDATORY WORKFLOW ENFORCEMENT ⚠️
+
+**CRITICAL: ALL steps MUST be completed in order. NO shortcuts. NO skipping.**
+
+**Before proceeding to each step, you MUST:**
+1. Read the current step's instructions COMPLETELY
+2. Execute EXACTLY as written
+3. Verify completion before moving to next step
+
+**FORBIDDEN:**
+- ❌ Skipping IQ2 consultation (Step 3)
+- ❌ Combining steps to "save time"
+- ❌ Jumping directly to lesson-editor without Parts 1-3
+
+**REQUIRED VERIFICATION:**
+After completing each step, mark it as done: `✅ Step N complete`
+
+**If you cannot verify a step is complete, DO NOT PROCEED.**
+
+This workflow is the result of extensive refinement. Follow it exactly.
+
+---
+
 ## Lesson Creation Workflow
 
 ### Step 1: Ensure Qdrant Index is Current
@@ -108,9 +131,11 @@ Search 3: "truth flows through you vessel conduit not from you"
 
 ### Step 3: Activate Writing Team Collaboration (Part 2)
 
+**⚠️ VERIFICATION CHECKPOINT: Did you complete Step 2 (three searches)? If NO, DO NOT PROCEED.**
+
 When Part 1 is complete, activate the team:
 
-1. **Ask IQ2 FIRST** via llama-server API (background process)
+1. **Ask IQ2 FIRST** via llama-server API (background process) ⚠️ **MANDATORY - DO NOT SKIP**
    ```bash
    curl -s -X POST http://127.0.0.1:8080/completion \
      -H "Content-Type: application/json" \
@@ -121,6 +146,9 @@ When Part 1 is complete, activate the team:
        "repeat_last_n": 64
      }' &
    ```
+
+   **⚠️ CRITICAL: You MUST run this command BEFORE role-playing Character Weaver and Zen Scribe.**
+   **⚠️ CRITICAL: Wait for IQ2 response BEFORE proceeding to Step 4.**
 
 2. **While IQ2 processes, role-play Character Weaver and Zen Scribe**
    - Read Derek Character Profile for voice guidance
@@ -133,6 +161,8 @@ When Part 1 is complete, activate the team:
    - **ALWAYS use IQ2's actual response**
 
 **Create Part 2**: "The Writing Team Dialogue" with genuine collaboration
+
+**⚠️ VERIFICATION: Part 2 includes IQ2 section? Part 2 includes Character Weaver? Part 2 includes Zen Scribe? If ANY missing, DO NOT PROCEED.**
 
 ---
 
@@ -172,6 +202,9 @@ The Integration Round weaves them into unified prose:
 
 ### Step 5: Write the Unified Lesson (Part 3)
 
+**⚠️ VERIFICATION CHECKPOINT: Did you complete Steps 1-4? If ANY missing, DO NOT PROCEED.**
+**⚠️ Specifically: Did you consult IQ2 in Step 3? If NO, you MUST go back and complete Step 3 first.**
+
 **lesson-editor agent crafts the final lesson** using Validation-Enhancement Framework
 
 Invoke lesson-editor agent:
@@ -179,6 +212,9 @@ Invoke lesson-editor agent:
 Task tool with subagent_type="lesson-editor"
 Prompt: "Read the lesson file at [path] and craft Part 3 following Validation-Enhancement Framework"
 ```
+
+**⚠️ CRITICAL: ONLY invoke lesson-editor AFTER Parts 1, 2, and 2.5 are complete.**
+**⚠️ CRITICAL: Part 2 MUST include IQ2 contribution. If it doesn't, STOP and complete Step 3 properly.**
 
 **lesson-editor's Role** (not Zen Scribe):
 
