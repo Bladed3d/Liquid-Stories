@@ -149,13 +149,13 @@ When Part 1 is complete, activate the team:
      }' &
    ```
 
-   **⚠️ CRITICAL: You MUST run this command BEFORE role-playing Character Weaver and Zen Scribe.**
+   **⚠️ CRITICAL: You MUST run this command BEFORE role-playing other team members.**
    **⚠️ CRITICAL: Wait for IQ2 response BEFORE proceeding to Step 4.**
 
-2. **While IQ2 processes, role-play Character Weaver and Zen Scribe**
-   - Read Derek Character Profile for voice guidance
-   - Character Weaver: Understands Derek's psychology and how he'd approach the topic
-   - Zen Scribe: Knows how to execute authentic language based on Character Weaver's guidance
+2. **While IQ2 processes, engage Zen Master and Character Weaver**
+   - Read Derek Character Profile for psychological understanding
+   - **Zen Master**: Provides mystical wisdom, spiritual insight, timeless truth (direct pointing to reality)
+   - **Character Weaver**: Records Zen Master's insights through Derek's character voice (scribe role)
 
 3. **Retrieve IQ2 response** and conduct GENUINE back-and-forth dialogue
    - **NEVER simulate or fake IQ2's input**
@@ -164,7 +164,7 @@ When Part 1 is complete, activate the team:
 
 **Create Part 2**: "The Writing Team Dialogue" with genuine collaboration
 
-**⚠️ VERIFICATION: Part 2 includes IQ2 section? Part 2 includes Character Weaver? Part 2 includes Zen Scribe? If ANY missing, DO NOT PROCEED.**
+**⚠️ VERIFICATION: Part 2 includes IQ2 section? Part 2 includes Zen Master? Part 2 includes Character Weaver? If ANY missing, DO NOT PROCEED.**
 
 ---
 
@@ -306,8 +306,8 @@ Naming convention: `lesson-XXX-title-version-depth-YYYY-MM-DD.md`
 | Persona | Role | File Reference |
 |---------|------|----------------|
 | IQ2 | Story Architect + Audience Advisor | llama-server API on port 8080 |
-| Character Weaver | Derek Character Specialist | `.claude/agents/character-weaver.md` |
-| Zen Scribe | Voice Execution Specialist | `.claude/agents/zen-scribe.md` |
+| Zen Master | Mystical Wisdom Specialist | `.claude/agents/zen-master.md` |
+| Character Weaver | Derek Character Specialist + Scribe & Writer | `.claude/agents/character-weaver.md` |
 | lesson-editor-depth | Validation-Enhancement + Depth Synthesis | `.claude/agents/lesson-editor-depth.md` |
 
 **Derek Character Profile**: `Saved/Derek/Projects/2-Minutes-HOOT/derek-character-profile.md`
