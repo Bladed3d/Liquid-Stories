@@ -1,6 +1,7 @@
 ---
 name: breadcrumbs
 description: Add LED breadcrumb debugging instrumentation to functional code. Instruments critical paths (auth, API calls, database ops) without modifying business logic. Use after development is complete to add observability.
+tools: Read, Write, Edit, Glob, Grep
 model: haiku
 ---
 
