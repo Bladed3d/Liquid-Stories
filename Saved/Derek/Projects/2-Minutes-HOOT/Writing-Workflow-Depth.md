@@ -6,29 +6,6 @@
 
 ---
 
-## ⚠️ MANDATORY WORKFLOW ENFORCEMENT ⚠️
-
-**CRITICAL: ALL steps MUST be completed in order. NO shortcuts. NO skipping.**
-
-**Before proceeding to each step, you MUST:**
-1. Read the current step's instructions COMPLETELY
-2. Execute EXACTLY as written
-3. Verify completion before moving to next step
-
-**FORBIDDEN:**
-- ❌ Skipping IQ2 consultation (Step 3)
-- ❌ Combining steps to "save time"
-- ❌ Jumping directly to lesson-editor-depth without Parts 1-3
-
-**REQUIRED VERIFICATION:**
-After completing each step, mark it as done: `✅ Step N complete`
-
-**If you cannot verify a step is complete, DO NOT PROCEED.**
-
-This workflow is the result of extensive refinement. Follow it exactly.
-
----
-
 ## Lesson Creation Workflow
 
 ### Step 1: Ensure Qdrant Index is Current
@@ -133,11 +110,9 @@ Search 3: "truth flows through you vessel conduit not from you"
 
 ### Step 3: Activate Writing Team Collaboration (Part 2)
 
-**⚠️ VERIFICATION CHECKPOINT: Did you complete Step 2 (three searches)? If NO, DO NOT PROCEED.**
-
 When Part 1 is complete, activate the team:
 
-1. **Ask IQ2 FIRST** via llama-server API (background process) ⚠️ **MANDATORY - DO NOT SKIP**
+1. **Ask IQ2 FIRST** via llama-server API (background process)
    ```bash
    curl -s -X POST http://127.0.0.1:8080/completion \
      -H "Content-Type: application/json" \
@@ -149,13 +124,10 @@ When Part 1 is complete, activate the team:
      }' &
    ```
 
-   **⚠️ CRITICAL: You MUST run this command BEFORE role-playing other team members.**
-   **⚠️ CRITICAL: Wait for IQ2 response BEFORE proceeding to Step 4.**
-
-2. **While IQ2 processes, engage Zen Scribe and Character Weaver**
-   - Read Derek Character Profile for psychological understanding
-   - **Zen Scribe**: Records the teaching in Derek's authentic voice
-   - **Character Weaver**: Provides character understanding to guide Zen Scribe
+2. **While IQ2 processes, role-play Character Weaver and Zen Scribe**
+   - Read Derek Character Profile for voice guidance
+   - Character Weaver: Understands Derek's psychology and how he'd approach the topic
+   - Zen Scribe: Knows how to execute authentic language based on Character Weaver's guidance
 
 3. **Retrieve IQ2 response** and conduct GENUINE back-and-forth dialogue
    - **NEVER simulate or fake IQ2's input**
@@ -163,8 +135,6 @@ When Part 1 is complete, activate the team:
    - **ALWAYS use IQ2's actual response**
 
 **Create Part 2**: "The Writing Team Dialogue" with genuine collaboration
-
-**⚠️ VERIFICATION: Part 2 includes IQ2 section? Part 2 includes Zen Scribe? Part 2 includes Character Weaver? If ANY missing, DO NOT PROCEED.**
 
 ---
 
@@ -205,9 +175,6 @@ The Integration Round weaves them into unified prose:
 
 ### Step 5: Write the Unified Lesson (Part 3)
 
-**⚠️ VERIFICATION CHECKPOINT: Did you complete Steps 1-4? If ANY missing, DO NOT PROCEED.**
-**⚠️ Specifically: Did you consult IQ2 in Step 3? If NO, you MUST go back and complete Step 3 first.**
-
 **lesson-editor-depth agent crafts the final lesson** using Validation-Enhancement Framework + Psychological Depth Layer
 
 Invoke lesson-editor-depth agent:
@@ -215,9 +182,6 @@ Invoke lesson-editor-depth agent:
 Task tool with subagent_type="lesson-editor-depth"
 Prompt: "Read the lesson file at [path] and craft Part 3 following Validation-Enhancement Framework with Psychological Depth"
 ```
-
-**⚠️ CRITICAL: ONLY invoke lesson-editor-depth AFTER Parts 1, 2, and 2.5 are complete.**
-**⚠️ CRITICAL: Part 2 MUST include IQ2 contribution. If it doesn't, STOP and complete Step 3 properly.**
 
 **lesson-editor-depth's Role**:
 
@@ -306,8 +270,8 @@ Naming convention: `lesson-XXX-title-version-depth-YYYY-MM-DD.md`
 | Persona | Role | File Reference |
 |---------|------|----------------|
 | IQ2 | Story Architect + Audience Advisor | llama-server API on port 8080 |
-| Zen Scribe | Voice Execution Specialist | `.claude/agents/zen-scribe.md` |
 | Character Weaver | Derek Character Specialist | `.claude/agents/character-weaver.md` |
+| Zen Scribe | Voice Execution Specialist | `.claude/agents/zen-scribe.md` |
 | lesson-editor-depth | Validation-Enhancement + Depth Synthesis | `.claude/agents/lesson-editor-depth.md` |
 
 **Derek Character Profile**: `Saved/Derek/Projects/2-Minutes-HOOT/derek-character-profile.md`

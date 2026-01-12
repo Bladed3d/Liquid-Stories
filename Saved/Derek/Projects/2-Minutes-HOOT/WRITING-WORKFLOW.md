@@ -6,31 +6,107 @@
 
 ## Lesson Creation Workflow
 
-### Step 1: Research Derek's Reference Library (Part 1)
+### Step 1: Ensure Qdrant Index is Current
 
-**MANDATORY: Use Qdrant semantic search FIRST**
+**ASK USER FIRST: "Should I re-index the Reference Library?"**
 
+Only run if user approves:
 ```bash
 cd Saved/Derek/Reference-Library/scripts
-python search.py "lesson topic keywords" --limit 15
+python index.py
 ```
 
-**What This Provides**:
-- Authentic Derek quotes and writings
-- His actual voice, phrasing, and examples
-- Semantic similarity (not brute-force search)
-- Source file paths for reference
+**When to Ask**:
+- ✅ At the START of a lesson creation day (ask once)
+- ✅ After user adds NEW writings to the library
+- ✅ If search results seem incomplete or outdated
+- ❌ NOT before every lesson (user will say when)
 
-**Why This Matters**:
-- Part 1 of lesson needs Derek's ORIGINAL INSIGHT from his actual writings
-- Not approximations or character profile summaries
-- Authentic source material is foundation for everything
+**Example Dialogue**:
+```
+AI: "I'm ready to create the lesson. Should I re-index the Reference Library first?"
+User: "No, I already did that this morning."
+AI: "Great! Let's proceed with research."
+```
 
-**Create Part 1**: "The Original Insight" with Qdrant research findings
+**Time**: ~1-2 minutes for full re-index
+
+**Why Ask**:
+- User is active participant in writing
+- May have already indexed today
+- Avoids wasteful re-indexing
 
 ---
 
-### Step 2: Activate Writing Team Collaboration (Part 2)
+### Step 2: Multi-Source Research (Part 1)
+
+**MANDATORY: Use three-search Qdrant approach for validated enhancement**
+
+Run THREE sequential searches to gather:
+1. Core teachings
+2. Enhancement material (historical proof, metaphors, examples)
+3. Cross-reference detection (connections to previous lessons)
+
+```bash
+cd Saved/Derek/Reference-Library/scripts
+
+# Search 1: Core Lesson Content
+python search.py "lesson topic keywords" --limit 15
+
+# Search 2: Enhancement Material
+python search.py "enhancement terms" --limit 10
+# Enhancement terms: "invention", "discovery", "contemplation", "historical figures", "metaphors"
+
+# Search 3: Cross-Reference Detection
+python search.py "related concepts from previous lessons" --limit 10
+# Related concepts: "truth flows through", "empty cup", "teachable", "sacred practice"
+```
+
+**What Each Search Provides:**
+
+**Search 1: Core Lesson Content**
+- Derek's foundational teachings on the topic
+- Primary source material for the lesson
+- His exact voice, phrasing, and key insights
+
+**Search 2: Enhancement Material**
+- Metaphors and analogies Derek uses
+- Historical examples (inventors, contemplation practices)
+- Real-world applications Derek has described
+- **Critical for**: Opening hooks (Newton/Einstein proof), practical examples, validation
+
+**Search 3: Cross-Reference Detection**
+- Related lesson concepts with strong overlap (>0.75 similarity)
+- Opportunities for embedded references (max 1-2 per lesson)
+- Validation that enhancements align with previous teachings
+
+**Why Three Searches?**
+- Single search was too limiting — missed metaphor connections and cross-lesson themes
+- Multi-search enables validated enhancement without message drift
+- Search 2 validates historical proof (e.g., Derek mentions "inventor and creator" category → Newton/Einstein enhancement is valid)
+- Search 3 ensures lessons interconnect and build on each other
+
+**Example: Lesson 004 "Asking"**
+
+Search 1: "asking better questions sincere insincere vacuum"
+→ Returns: "universe hates a vacuum", "sincerity test questions", "better questions reveal truth"
+
+Search 2: "Newton Einstein contemplation question vacuum invention discovery"
+→ Returns: Derek mentions "inventor and creator" category, Stephen King contemplation practice
+→ **Validates**: Newton/Einstein enhancement (Derek writes about this category)
+
+Search 3: "truth flows through you vessel conduit not from you"
+→ Returns: Strong overlap with Lesson 002 "Truth Flows Through You"
+→ **Enables**: Embedded cross-reference when discussing "answer flows through you"
+
+**Create Part 1**: "The Original Insight" organized into three labeled sections:
+- Core Teachings (from Search 1)
+- Validation & Enhancement (from Search 2)
+- Cross-References (from Search 3)
+
+---
+
+### Step 3: Activate Writing Team Collaboration (Part 2)
 
 When Part 1 is complete, activate the team:
 
@@ -60,7 +136,7 @@ When Part 1 is complete, activate the team:
 
 ---
 
-### Step 3: Integration Round (Part 2.5) - CRITICAL NEW STEP
+### Step 4: Integration Round (Part 2.5) - CRITICAL NEW STEP
 
 **Before writing Part 3, the team must explicitly map insights to the lesson structure.**
 
@@ -94,28 +170,63 @@ The Integration Round weaves them into unified prose:
 
 ---
 
-### Step 4: Write the Unified Lesson (Part 3)
+### Step 5: Write the Unified Lesson (Part 3)
 
-**Zen Scribe writes the final lesson** based on:
-- Qdrant research (Part 1) - authentic source material
-- All team insights (Part 2) - the rich dialogue
-- Integration outline (Part 2.5) - where everything goes
+**lesson-editor agent crafts the final lesson** using Validation-Enhancement Framework
 
-**Zen Scribe's Responsibility:**
+Invoke lesson-editor agent:
+```bash
+Task tool with subagent_type="lesson-editor"
+Prompt: "Read the lesson file at [path] and craft Part 3 following Validation-Enhancement Framework"
+```
 
-Write as Derek speaking directly to the reader. Not a compilation of quotes, but a cohesive, flowing lesson that:
+**lesson-editor's Role** (not Zen Scribe):
 
-1. **Integrates ALL insights** from the Integration Round
-2. **Flows naturally** from beginning to end
-3. **Speaks in Derek's authentic voice** - conversational, direct, powerful
-4. **Transforms the reader** through emotional journey
-5. **Avoids inappropriate content** (e.g., "You teach best what you need to learn" is Derek's motivation, not the reader's lesson)
+Synthesizes Parts 1-2.5 into flowing lesson with:
+- **Three-Source Validation**: Every enhancement validated by Derek's writings
+- **Historical Proof**: Newton/Einstein, etc. (only if validated by Search 2)
+- **Practical Examples**: "Not/Instead" format (created from Derek's principles)
+- **Cross-References**: Embedded connections to previous lessons (if validated by Search 3)
+- **Dramatic Buildup Opening**: v10's compelling narrative structure
+- **Drift Detection**: Safeguards against psychologizing mystical teachings
 
-**Create Part 3**: "The Perfected Lesson" - one-page, 2-minute read, written as if Derek is speaking directly to the reader
+**lesson-editor Creates**:
+
+1. **Dramatic Buildup Opening**:
+   - Buildup: "Great inventors... understood something profound:"
+   - Line break (dramatic pause)
+   - Payoff: "[Most profound concept]"
+   - Deepening: Historical proof, context from Derek's writings
+
+2. **Development**:
+   - Derek's core teachings (from Search 1)
+   - Validated enhancements (from Search 2)
+   - Sincerity distinctions (Derek's exact questions)
+
+3. **Character Transformation**:
+   - Ego dissolution, courage, sacred reverence (from team insights)
+   - "Flows from vs through you" mechanism (Stephen King example from Search 2)
+
+4. **Practical Application**:
+   - "Not/Instead" examples (created from Derek's principles)
+   - "So how do you practice this?" bridge
+
+5. **Empowering Conclusion**:
+   - "This is what empowerment actually looks like"
+   - Cross-reference to Lesson 002 if discussing "flows through you" (validated by Search 3)
+
+**Quality Targets**:
+- Length: ~2,500-3,500 characters (v10 was 3,832, v19 was 2,102)
+- Voice: Derek speaking directly to reader ("you" throughout)
+- Mystical language: Preserved EXACTLY ("vacuum that the Universe fills")
+- No psychologizing: Drift detection passed (all green flags)
+- Post-lesson metadata: Related Concepts, Writing Team, Process
+
+**Create Part 3**: "The Lesson" - one-page, flowing, validated enhancement of Derek's teachings
 
 ---
 
-### Step 5: Save and Display
+### Step 6: Save and Display
 
 **CRITICAL**: After saving the lesson file, **always display it in the lesson viewer**:
 
@@ -145,8 +256,15 @@ Naming convention: `lesson-XXX-title-version-YYYY-MM-DD.md`
 | IQ2 | Story Architect + Audience Advisor | llama-server API on port 8080 |
 | Character Weaver | Derek Character Specialist | `.claude/agents/character-weaver.md` |
 | Zen Scribe | Voice Execution Specialist | `.claude/agents/zen-scribe.md` |
+| lesson-editor | Validation-Enhancement Synthesis | `.claude/agents/lesson-editor.md` |
 
 **Derek Character Profile**: `Saved/Derek/Projects/2-Minutes-HOOT/derek-character-profile.md`
+
+**lesson-editor Framework**: Validation-Enhancement Framework
+- Three-Source Validation Rule
+- Dramatic Buildup Opening (v10's narrative structure)
+- Drift Detection Warnings
+- Length Target: 2,500-3,500 characters
 
 ---
 
