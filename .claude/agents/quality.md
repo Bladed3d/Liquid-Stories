@@ -81,30 +81,22 @@ cat breadcrumb-debug.log | grep "LED 80"  # Error range 8000-8099
 cat breadcrumb-debug.log | grep "Error"
 ```
 
-**Step 4.5: RUN FULL BUILD (MANDATORY for Next.js)**
-```bash
-npm run build
-```
-This catches errors that `tsc --noEmit` misses. Vercel runs this exact command.
-If this fails, verdict is NEEDS_FIX regardless of test results.
-
 **Step 5: DECIDE** - Apply decision matrix (see below)
 
 **Step 6: REPORT** - Structured verdict with RAW proof
 
 ### Decision Matrix
 
-| Developer Claims | My Results | LED Errors | Build | Verdict |
-|------------------|------------|------------|-------|---------|
-| 0 failed, exit 0 | 0 failed, exit 0 | None | Pass | **APPROVED** |
-| 0 failed, exit 0 | 0 failed, exit 0 | None | **FAIL** | **NEEDS_FIX** |
-| 0 failed, exit 0 | X failed, exit 1 | Any | Any | **ESCALATE** |
-| X failed, exit 1 | Same X failed | Any | Any | **NEEDS_FIX** |
-| X failed, exit 1 | 0 failed, exit 0 | Any | Any | **ESCALATE** |
-| 0 failed, exit 0 | 0 failed, exit 0 | Found | Any | **NEEDS_FIX** |
-| Any | Same failure 3x+ | Any | Any | **ESCALATE** (loop detected) |
+| Developer Claims | My Results | LED Errors | Verdict |
+|------------------|------------|------------|---------|
+| 0 failed, exit 0 | 0 failed, exit 0 | None | **APPROVED** |
+| 0 failed, exit 0 | X failed, exit 1 | Any | **ESCALATE** |
+| X failed, exit 1 | Same X failed | Any | **NEEDS_FIX** |
+| X failed, exit 1 | 0 failed, exit 0 | Any | **ESCALATE** |
+| 0 failed, exit 0 | 0 failed, exit 0 | Found | **NEEDS_FIX** |
+| Any | Same failure 3x+ | Any | **ESCALATE** (loop detected) |
 
-**Build failures override everything** - even if tests pass, a failing `npm run build` means NEEDS_FIX.
+**Note:** Build verification (`npm run build`) is Developer Agent's responsibility. Quality Agent assumes build passed if Developer committed code.
 
 ### Key Questions
 
@@ -246,7 +238,6 @@ Before reporting, confirm:
 - [ ] Recorded exit code
 - [ ] Compared results with Developer's claims
 - [ ] Checked breadcrumb log for LED errors
-- [ ] **Ran `npm run build` (MANDATORY for Next.js projects)**
 - [ ] Created comparison table
 - [ ] Made clear verdict: APPROVED / NEEDS_FIX / ESCALATE
 - [ ] Included complete proof for Main Claude
