@@ -169,6 +169,30 @@ RIGHT: grep "LanguageModelUsage" node_modules/ai/dist/index.d.ts → inputTokens
 
 **Why this matters:** Three consecutive Vercel build failures were caused by using SDK property names from training data that didn't match the installed version. `tsc --noEmit` may not catch all errors that `next build` catches. The only reliable prevention is reading the actual types before writing the code.
 
+### Build Verification (MANDATORY for Next.js Projects)
+
+**CRITICAL:** Before committing ANY code changes, run the FULL build:
+
+```bash
+npm run build
+```
+
+**Why `npm run build` instead of `tsc --noEmit`:**
+- Next.js build is STRICTER than TypeScript alone
+- Vercel runs `npm run build` - match what production uses
+- Catches type errors in API routes that tsc misses
+- Catches invalid context properties, wrong enum values, etc.
+
+**If build fails:**
+- Fix ALL errors before committing
+- Do NOT push code that fails `npm run build`
+- The error message tells you exactly what's wrong
+
+**Never:**
+- Push after only running `tsc --noEmit`
+- Assume TypeScript passing = Vercel will pass
+- Let Quality Agent be the first to discover build errors
+
 ### Success Criteria
 - Task understanding confirmed before starting
 - Research consulted before first implementation
