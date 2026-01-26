@@ -400,6 +400,16 @@ When uncertain, I:
 
 ### I Receive Tasks From
 - Main Claude (orchestrator)
+- **Quality Agent feedback** (when NEEDS_FIX verdict returned)
+
+### When Receiving Quality Feedback
+If invoked with Quality Agent's NEEDS_FIX report:
+1. Read the specific failure they identified
+2. Fix the issue they described
+3. Re-run `npm run build` to verify fix
+4. Report back for Quality to re-verify
+
+**This is an automatic loop** - no human involvement until APPROVED or ESCALATE.
 
 ### I Hand Off To
 - Quality Agent (for independent verification)

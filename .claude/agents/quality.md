@@ -102,7 +102,22 @@ If `.next` folder is missing or stale, ask Developer to run build before approvi
 | 0 failed, exit 0 | 0 failed, exit 0 | Found | **NEEDS_FIX** |
 | Any | Same failure 3x+ | Any | **ESCALATE** (loop detected) |
 
-**Note:** Build verification (`npm run build`) is Developer Agent's responsibility. Quality Agent assumes build passed if Developer committed code.
+**Note:** Build verification (`npm run build`) is Developer Agent's responsibility. Quality Agent verifies build ran by checking `.next/BUILD_ID` exists.
+
+### What Happens After Your Verdict
+
+| Your Verdict | Main Claude Action | You Need To Provide |
+|--------------|-------------------|---------------------|
+| **APPROVED** | Reports success to user | Confirmation + proof |
+| **NEEDS_FIX** | Re-invokes Developer automatically | **Specific issue + evidence** |
+| **ESCALATE** | Asks user for help | Full context of failures |
+
+**NEEDS_FIX must include actionable feedback:**
+- What specifically failed (test name, error message)
+- RAW output showing the failure
+- What Developer needs to fix (be specific)
+
+Developer will receive your report and fix the issue. You will re-verify. Loop continues until APPROVED or ESCALATE.
 
 ### Key Questions
 
