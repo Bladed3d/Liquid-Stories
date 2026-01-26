@@ -81,6 +81,12 @@ cat breadcrumb-debug.log | grep "LED 80"  # Error range 8000-8099
 cat breadcrumb-debug.log | grep "Error"
 ```
 
+**Step 4.5: VERIFY BUILD RAN** - Confirm Developer ran `npm run build`
+```bash
+ls -la .next/BUILD_ID  # Should exist with recent timestamp
+```
+If `.next` folder is missing or stale, ask Developer to run build before approving.
+
 **Step 5: DECIDE** - Apply decision matrix (see below)
 
 **Step 6: REPORT** - Structured verdict with RAW proof
@@ -238,6 +244,7 @@ Before reporting, confirm:
 - [ ] Recorded exit code
 - [ ] Compared results with Developer's claims
 - [ ] Checked breadcrumb log for LED errors
+- [ ] Verified `.next/BUILD_ID` exists (confirms build ran)
 - [ ] Created comparison table
 - [ ] Made clear verdict: APPROVED / NEEDS_FIX / ESCALATE
 - [ ] Included complete proof for Main Claude
