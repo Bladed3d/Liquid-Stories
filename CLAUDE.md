@@ -127,21 +127,23 @@ This project uses a 5-advisor team system for strategic thinking sessions:
 
 ### LED Debug Workflow (Production Error Resolution)
 
-**When user reports production errors or asks about system health:**
+**When user says "check the errors" or "check the admin panel" or reports production issues:**
 
-1. **Pull errors automatically** - Don't ask user to describe them
-2. **Use the LED Debugger Agent** - `Task tool, subagent_type="led-debugger"`
-3. **Agent will**: Pull errors → Trace LED codes → Diagnose → Fix → Verify
-
-**API Access (if DEBUG_SERVICE_KEY is set):**
+1. **Pull errors immediately** - Don't ask user to describe them, just fetch:
 ```bash
-curl "https://advisor-team.vercel.app/api/debug/led-status?key=$DEBUG_SERVICE_KEY"
+curl -k -s "https://advisor-team.vercel.app/api/debug/led-status?key=7cf907a45dca307f29bdb3a164a3192d961b3000bb6dfc7ae66583d40cc3ee2d"
 ```
 
-**Fallback (Playwright):**
+2. **Review the response** - Shows errors grouped by LED code with counts and timestamps
+
+3. **For each error type**, trace to source using the `source_hints` in the response or grep:
+```bash
+grep -rn "LED_CODE_HERE" advisor-team-mvp/
 ```
-Navigate to /admin → System Errors section → Parse errors
-```
+
+4. **Fix issues** using Developer Agent workflow (Task tool, subagent_type="developer")
+
+5. **Verify** with `npm run build` and re-check the API
 
 **LED Code Quick Reference:**
 | LED | Meaning | First Check |
@@ -150,6 +152,11 @@ Navigate to /admin → System Errors section → Parse errors
 | 4090 | AI API error | API key, rate limits |
 | 7390 | UI/session operation failed | hooks/useSessions.ts |
 | 7391 | Fetch error | Network, endpoint status |
+
+**Full LED reference:** `advisor-team-mvp/lib/led-ranges.ts`
+**Agent guide:** `.claude/agents/led-debugger.md`
+
+**DO NOT ask user to paste errors.** The whole point is autonomous debugging.
 
 **Full LED ranges:** `advisor-team-mvp/lib/led-ranges.ts`
 **Agent reference:** `.claude/agents/led-debugger.md`
