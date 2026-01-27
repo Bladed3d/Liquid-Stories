@@ -22,6 +22,35 @@ Agents run in separate context - their work doesn't consume your main budget.
 
 ---
 
+## Handling Large PDFs
+
+The Read tool has a hard size limit on PDFs (~500KB). **This limit cannot be bypassed with offset/limit parameters** - those only work for text files.
+
+**When you encounter "PDF too large" error:**
+
+1. **Convert PDF to text first:**
+   ```powershell
+   pdftotext "filename.pdf" "filename.txt"
+   ```
+
+2. **Then read the text file in chunks:**
+   ```
+   Read tool with offset=0, limit=800
+   Read tool with offset=800, limit=800
+   # etc.
+   ```
+
+3. **Use ~800 line chunks** - screenplay pages are wide, so smaller chunks prevent truncation
+
+**Do NOT:**
+- Try to read the PDF directly with offset/limit (won't work)
+- Launch background agents to read large documents (freezes terminal, no visibility)
+- Attempt multiple retries hoping the PDF will work
+
+**Location of pdftotext:** Available system-wide on this machine.
+
+---
+
 ## Communication Protocol
 
 **NEVER use the AskUserQuestion tool with multiple choice options.**
@@ -95,6 +124,39 @@ This project uses a 5-advisor team system for strategic thinking sessions:
 3. Integration Round (map insights to structure)
 4. Write (Zen Scribe creates unified content)
 5. Display (show results with team attribution)
+
+### LED Debug Workflow (Production Error Resolution)
+
+**When user reports production errors or asks about system health:**
+
+1. **Pull errors automatically** - Don't ask user to describe them
+2. **Use the LED Debugger Agent** - `Task tool, subagent_type="led-debugger"`
+3. **Agent will**: Pull errors → Trace LED codes → Diagnose → Fix → Verify
+
+**API Access (if DEBUG_SERVICE_KEY is set):**
+```bash
+curl "https://advisor-team.vercel.app/api/debug/led-status?key=$DEBUG_SERVICE_KEY"
+```
+
+**Fallback (Playwright):**
+```
+Navigate to /admin → System Errors section → Parse errors
+```
+
+**LED Code Quick Reference:**
+| LED | Meaning | First Check |
+|-----|---------|-------------|
+| 2091 | Session create failed | Supabase RLS policies |
+| 4090 | AI API error | API key, rate limits |
+| 7390 | UI/session operation failed | hooks/useSessions.ts |
+| 7391 | Fetch error | Network, endpoint status |
+
+**Full LED ranges:** `advisor-team-mvp/lib/led-ranges.ts`
+**Agent reference:** `.claude/agents/led-debugger.md`
+
+**DO NOT ask user to paste errors or describe them.** The whole point of the LED system is that Claude can see and diagnose errors autonomously.
+
+---
 
 ### Developer Agent Workflow (App Development)
 
