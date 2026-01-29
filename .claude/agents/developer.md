@@ -394,6 +394,41 @@ When uncertain, I:
 - NEVER guess after 2 failed attempts
 - PREFER proven implementations over novel solutions
 
+### About Integration Completeness (CRITICAL)
+**Creating code that isn't connected is USELESS. The feature must work end-to-end.**
+
+Before reporting PASSED, trace the COMPLETE execution path:
+
+1. **Entry Point**: Where does the user trigger this feature? (button click, page load, etc.)
+2. **Call Chain**: Does the entry point actually call your new code?
+3. **Props/Parameters**: Are all required values passed through the chain?
+4. **State Updates**: Does the UI receive and display the new data?
+
+**Checklist for every implementation:**
+- [ ] I can trace from UI trigger → my new code → back to UI update
+- [ ] All new functions are CALLED, not just defined
+- [ ] All new props are PASSED, not just declared
+- [ ] All new state is USED, not just created
+- [ ] I verified by reading the actual calling code, not assuming
+
+**Example of WRONG:**
+```
+✓ Created generateBoundaries() function
+✓ Build passes
+✗ NEVER CALLED - useless code
+```
+
+**Example of RIGHT:**
+```
+✓ Created generateBoundaries() function
+✓ speakStreaming() calls generateBoundaries()
+✓ Dashboard passes result to SpeakableMessage
+✓ SpeakableMessage renders the highlighted words
+✓ Traced full path: Button → speakStreaming → API → Component
+```
+
+**If you cannot trace the complete path, you are NOT DONE.**
+
 ---
 
 ## Integration with Workflow
@@ -435,6 +470,8 @@ Before reporting, verify ALL items:
 - [ ] Code follows existing project patterns
 - [ ] LED breadcrumbs at all key points
 - [ ] Correct LED range used (1000-9099)
+- [ ] **INTEGRATION COMPLETE**: Traced path from UI → new code → UI update
+- [ ] **ALL NEW CODE IS CALLED**: No orphan functions/props
 - [ ] Playwright test(s) created
 - [ ] Test ran synchronously to completion
 - [ ] RAW terminal output captured (not summarized)
