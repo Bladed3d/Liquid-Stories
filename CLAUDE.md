@@ -165,6 +165,36 @@ grep -rn "LED_CODE_HERE" advisor-team-mvp/
 
 ---
 
+### Chat Search - STOP! READ THIS FIRST!
+
+**If working on chat search, DO NOT add more regex patterns.**
+
+The regex approach has caused 8+ hours of debugging across 2 days:
+- Day 1: "chat" vs "chats" (1 character)
+- Day 2: "search" vs "research" (2 characters)
+
+**THE FIX:** Implement LLM function calling, not more patterns.
+
+**Implementation Guide:** `Docs/CHAT-SEARCH-FUNCTION-CALLING-IMPLEMENTATION.md`
+
+Read that document FIRST. It explains:
+- How to define a `search_chat_history` tool
+- How to include it in API requests
+- How to handle tool calls in responses
+- Why this is the only correct solution
+
+**Do NOT:**
+- Add more regex patterns to `CHAT_HISTORY_PATTERNS`
+- Try to "fix" `extractChatSearchTerms()`
+- Assume the current approach can be salvaged
+
+**Current state (2026-01-28):**
+- Regex patterns exist as temporary bandaid
+- SQL function `search_chat_messages` works correctly
+- Function calling implementation is REQUIRED, not optional
+
+---
+
 ### Developer Agent Workflow (App Development)
 
 **For any coding/implementation tasks, use this 3-phase verification chain:**
