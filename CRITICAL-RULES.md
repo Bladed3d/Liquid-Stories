@@ -52,6 +52,11 @@
 6. **NEVER force push to main/master**
 7. **NEVER commit .env or credential files**
 8. **NEVER amend pushed commits without explicit permission**
+9. **ALWAYS check branch before committing production fixes**
+   - Run `git branch --show-current` BEFORE committing
+   - Bug fixes go to `main` unless user says otherwise
+   - If on a feature branch and fixing a production bug, ASK: "main or feature branch?"
+   - `advisor-team-mvp` is a submodule - commits there need explicit branch awareness
 
 ---
 
@@ -70,9 +75,26 @@
 
 ---
 
-## Development Loop
+## Development Loop - Agent Architecture
 
-9. **NEVER ask user to test manually**
+**THE WHOLE POINT OF AGENTS IS CONTEXT CONSERVATION**
+
+9. **Main Claude MUST call agents for implementation work**
+   - Main Claude's context is precious - calling agents offloads work to separate contexts
+   - Agents return summaries, not full transcripts
+   - This IS the correct architecture
+
+10. **SUBAGENTS CANNOT SPAWN OTHER SUBAGENTS**
+    - This is a Claude Code architectural limitation
+    - If Main Claude spawns Agent A, Agent A CANNOT spawn Agent B
+    - Attempting nested spawning causes heap crashes (24GB exhausted)
+    - **CORRECT:** Main Claude is the ONLY orchestrator
+    - **WRONG:** PM agent spawning Developer agent spawning anything
+    - Workflow documents (like `.claude/workflows/pm-workflow.md`) tell Main Claude what to do
+    - Main Claude reads workflow, spawns agents directly, one level only
+    - Discovered 2026-01-30 via Ralph plugin analysis and official Claude Code docs
+
+11. **NEVER ask user to test manually**
    - AI runs tests via Playwright MCP
    - AI reads console output
    - AI diagnoses issues

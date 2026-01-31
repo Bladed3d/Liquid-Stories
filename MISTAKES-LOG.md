@@ -305,6 +305,180 @@ Every hour spent adding regex patterns is an hour NOT spent on the correct solut
 
 ---
 
+## 2026-01-29: TTS Word Highlighting - CSS Styles Applied but Invisible
+
+### What Happened
+1. User reported word-level highlighting not working for TTS playback over 20+ tests
+2. Voice played correctly, LED breadcrumbs showed full TTS pipeline working (4310→4320→4321→4323)
+3. DOM inspection via Playwright showed `.word-speaking` class WAS being applied to word spans
+4. However, computed styles showed `backgroundColor: rgba(0, 0, 0, 0)` - TRANSPARENT
+5. The yellow highlight color defined in styled-jsx was being ignored
+
+### Root Cause
+**styled-jsx only auto-scopes CSS to DIRECT JSX elements, NOT dynamically generated elements.**
+
+In `SpeakableMessage.tsx`:
+```tsx
+// These spans are generated dynamically in renderWords()
+boundaries.forEach((wb, wordIndex) => {
+  words.push(
+    <span key={wordIndex} className={getWordClass(unitIndex, wordIndex)}>
+      {wb.text}
+    </span>
+  )
+})
+
+// This styled-jsx block ONLY scoped to direct JSX elements
+<style jsx>{`
+  .word-speaking { background-color: #fef08a; }  // ← Never applied to dynamic spans!
+`}</style>
+```
+
+The scoped CSS was transformed to something like `.word-speaking.jsx-abc123` but the dynamically generated spans only had `.word-speaking` without the hash suffix.
+
+### What Was Lost/Broken
+- TTS word highlighting completely invisible for 20+ user tests
+- User frustration from repeated testing
+- Debug time chasing wrong suspects (word boundaries, tracking logic, timing)
+
+### Prevention Rule
+**When using styled-jsx with dynamically generated elements (map, forEach, etc.), use one of these approaches:**
+
+```tsx
+// OPTION 1: Global scope for dynamic elements (RECOMMENDED)
+<style jsx global>{`
+  .speakable-message .word-speaking {
+    background-color: #fef08a;
+  }
+`}</style>
+
+// OPTION 2: Inline styles on dynamic elements
+words.push(
+  <span
+    key={i}
+    style={{ backgroundColor: isSpeaking ? '#fef08a' : 'transparent' }}
+  >
+    {text}
+  </span>
+)
+
+// OPTION 3: CSS Modules (different file structure)
+import styles from './SpeakableMessage.module.css'
+<span className={styles.wordSpeaking}>
+```
+
+**Quick test:** If styles aren't applying, check `getComputedStyle(element)` in browser console. If values are defaults (transparent, 0px), the scoped CSS isn't reaching the element.
+
+### Secondary Issue: Timing Lag (300ms behind voice)
+
+After fixing CSS, highlights were ~300ms behind the voice due to audio output latency.
+
+**Fix:** Added timing offset in `useTTS.ts`:
+```typescript
+const HIGHLIGHT_ADVANCE_MS = 300
+const elapsed = (this.audioContext.currentTime - this.chunkStartTime) * 1000 + HIGHLIGHT_ADVANCE_MS
+```
+
+### System Fix Applied
+1. Split styles in `SpeakableMessage.tsx`:
+   - Kept sentence styles as scoped `<style jsx>`
+   - Changed word styles to `<style jsx global>` with parent selector `.speakable-message .word-speaking`
+2. Added `HIGHLIGHT_ADVANCE_MS = 300` constant in `useTTS.ts` to compensate for audio latency
+3. Both fixes committed and deployed
+
+### Debugging Lesson
+**LED breadcrumbs can confirm pipeline is working, but CSS scoping issues are invisible to application logging.** When UI elements have correct classes but wrong appearance, always check computed styles via browser devtools or Playwright evaluate.
+
+---
+
+## 2026-01-30: Agent Workflow Heap Crash - Nested Spawning (CORRECTED)
+
+### What Happened
+1. User ran Project Manager agent on a simple POC (QR Upload - 8 tasks)
+2. Claude Code crashed with "JavaScript heap out of memory" (24GB exhausted)
+3. Multiple Claude sessions attempted fixes over several hours
+4. Initial diagnosis was WRONG: thought background spawning would fix it
+5. PM v2 was created with background spawning - STILL CRASHED
+6. User demanded actual research instead of guessing
+7. Research of official Claude Code docs and Ralph plugin revealed the real problem
+
+### Root Cause (ACTUAL)
+**SUBAGENTS CANNOT SPAWN OTHER SUBAGENTS - Claude Code architectural limitation.**
+
+From official Claude Code documentation:
+> "Cannot spawn other subagents (no nesting)"
+
+The PM design was fundamentally impossible:
+```
+Main Claude → spawns PM (now PM is a subagent)
+                PM tries to spawn Task Breakdown → ARCHITECTURAL VIOLATION
+                                                    → crash
+```
+
+It doesn't matter if spawning is foreground or background. **Subagents cannot spawn subagents at all.**
+
+### Why Earlier Fixes Failed
+1. **PM v1 (foreground spawning)** - Crashed because nested spawning isn't allowed
+2. **PM v2 (background spawning)** - Still crashed because nested spawning isn't allowed
+3. **6 background agent experiment** - Worked because Main Claude spawned them, not a subagent
+
+The experiment succeeded because Main Claude was the spawner. PM crashed because PM (a subagent) tried to spawn.
+
+### What Was Lost/Broken
+- 12+ Claude sessions over multiple days
+- User frustration from repeated crashes and wrong diagnoses
+- Hours of debugging the wrong problem
+- User had to insist on actual research instead of guessing
+
+### Prevention Rules
+
+**1. SUBAGENTS CANNOT SPAWN SUBAGENTS**
+- This is non-negotiable Claude Code architecture
+- No amount of background/foreground tweaking changes this
+- If an agent needs to spawn agents, it CANNOT be an agent itself
+
+**2. Orchestrators must be WORKFLOWS, not AGENTS**
+- PM cannot be spawned via Task tool
+- PM must be a workflow document that Main Claude reads and follows
+- Main Claude spawns all worker agents directly
+
+**3. Research BEFORE guessing**
+- User explicitly said: "Instead of guessing, what do you need to find out the truth?"
+- Check official docs, check working examples (Ralph), understand the architecture
+- Don't guess for 12 sessions when research would answer in 30 minutes
+
+### System Fix Applied (2026-01-30 - FINAL)
+
+**1. PM moved from agent to workflow:**
+- OLD: `.claude/agents/project-manager.md` (unusable - subagent can't spawn)
+- NEW: `.claude/workflows/pm-workflow.md` (instructions for Main Claude)
+
+**2. Architecture corrected:**
+```
+WRONG (crashes):
+Main Claude → PM agent → Task Breakdown agent → CRASH
+
+CORRECT (works):
+Main Claude reads pm-workflow.md
+Main Claude → Task Breakdown agent → returns result
+Main Claude → Test Agent → returns result
+Main Claude → Developer agent → returns result
+Main Claude → Quality agent → returns result
+```
+
+**3. Documentation updated:**
+- `CRITICAL-RULES.md` - Rule 10 now states "subagents cannot spawn subagents"
+- `CLAUDE.md` - References workflow, not PM agent
+- This MISTAKES-LOG entry corrected from wrong diagnosis
+
+### How Ralph Plugin Does It (Reference)
+Ralph uses a **stop hook** (bash script) that intercepts session exit and re-feeds the same prompt. There is NO agent spawning - just one Claude session iterating via file persistence. Ralph doesn't have this problem because it never tries nested spawning.
+
+### Lesson
+**When something crashes repeatedly across many sessions, stop guessing and research the actual architecture.** The official docs clearly state "cannot spawn other subagents" - this was the answer all along.
+
+---
+
 *This log is append-only. Never delete entries.*
 
 ## 2026-01-22: Broke Voice Input by Pushing Untested "Fix"
@@ -489,5 +663,50 @@ Specifically for advisor-team-mvp:
 - Ambassador status API now returns `referrals` array from commissions table
 - Progress bar detail view uses `ambassadorStatus.referrals` for "joined" group
 - Pending still comes from `invite_codes` (correct source for unsent/unredeemed)
+
+---
+
+## 2026-01-30: Committed Fix to Feature Branch Instead of Main
+
+### What Happened
+1. User reported sandbox updates not working in production
+2. Claude investigated and found the fix (sandbox content not being passed to AI)
+3. Claude committed and pushed to `feature/mobile-vertical-layout` instead of `main`
+4. Vercel deployed the feature branch preview, not production
+5. User had to point out the mistake
+6. Had to cherry-pick commit to main and push again
+
+### Root Cause
+1. Claude was on the feature branch when starting work
+2. Did not check which branch was active before committing
+3. Did not ask user "main or feature branch?" for a production bug fix
+4. Assumed current branch was correct without verifying
+
+### What Was Lost/Broken
+- Time wasted on incorrect deployment
+- User had to catch the mistake
+- Extra git operations to fix
+
+### Prevention Rule
+**BEFORE committing any fix, check the branch and ask if unclear:**
+
+```bash
+# ALWAYS run this before committing
+git branch --show-current
+```
+
+**For bug fixes that need to go to production:**
+1. Check current branch: `git branch --show-current`
+2. If not on `main`, ask user: "This is a production fix. Should I commit to main or stay on [current-branch]?"
+3. Switch to main if needed: `git checkout main && git pull`
+4. THEN make changes and commit
+
+**Default assumptions:**
+- Bug fixes → `main` (unless user says otherwise)
+- New features → feature branch
+- When in doubt → ASK
+
+### System Fix Applied
+- Added this rule to MISTAKES-LOG.md so future Claude sessions read it
 
 ---
