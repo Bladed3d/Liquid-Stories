@@ -710,3 +710,269 @@ git branch --show-current
 - Added this rule to MISTAKES-LOG.md so future Claude sessions read it
 
 ---
+
+## 2026-01-31: Git Branch Confusion - Cosmetic Changes Mixed with Mobile Layout
+
+### What Happened
+1. User wanted to make cosmetic changes (grain texture, markdown rendering, gold accents)
+2. Previous session had left the working directory on `mobile` branch
+3. User made changes on localhost, tested, approved them
+4. When time to commit to `main`, Claude stashed changes and applied to main
+5. Build failed - `mobile` branch's page.tsx imported MobileTopBar/MobileBottomPanel
+6. These components don't exist on `main`
+7. User was confused and frustrated - they thought they could edit files and choose destination later
+8. Required surgical cleanup to separate cosmetic changes from mobile layout changes
+
+### Root Cause
+**User's mental model:** "I edit files, then choose which git branch to upload to"
+**Git's reality:** "Branches physically change the files in your folder. You're always editing a specific branch's version."
+
+When you check out `mobile` branch, your folder contains mobile code. Edits layer on top of that. You can't later "route" those edits to a different branch cleanly - you're editing the mobile version.
+
+Claude should have:
+1. Checked the branch at session start
+2. Asked: "You're on mobile branch. Should I switch to main?"
+3. Switched BEFORE any editing began
+
+### What Was Lost/Broken
+- 30+ minutes of frustration and confusion
+- User trust in git as a "safety net"
+- Clean separation of cosmetic vs mobile work
+
+### Prevention Rule
+**AT EVERY SESSION START involving advisor-team-mvp code:**
+```bash
+cd advisor-team-mvp && git branch --show-current
+```
+
+Then tell user: "You're on [branch]. Should I switch to main before we start?"
+
+If user wants work to end up on `main`, switch BEFORE making any changes. Not after.
+
+### User's Key Insight
+> "I thought Git was a fallback and a help. It turns out it's a predominant influence and criteria I have to watch out for at the start of being creative."
+
+Git branch management should be Claude's job, not the user's mental overhead.
+
+### System Fix Applied
+- Added rule #10 to CRITICAL-RULES.md: Check and announce git branch at session start
+- Added this entry to MISTAKES-LOG.md
+
+---
+
+## 2026-02-02: Scroll-to-Image Not Working - Data Stripped Before Database Save
+
+### What Happened
+1. User reported sandbox panel should show the image associated with whichever chat message is currently visible
+2. Scrolling to view previous images in chat history wasn't updating the sandbox panel
+3. Multiple debugging sessions tried various fixes over multiple sessions
+4. First attempt: Added `requestAnimationFrame` to fix race condition - didn't help
+5. Second attempt: Changed IntersectionObserver to check all images, not just entries - partial improvement
+6. Third attempt: Added more IntersectionObserver thresholds (0, 0.1, 0.25, 0.5, 0.75, 1) - helped but wasn't root cause
+7. **Actual problem discovered via Grok consultation:** Messages were saved to database WITHOUT the `:::sandbox-image-result:::` markers
+8. The `processSandboxContent()` function stripped markers for UI display, and that CLEANED content was being saved to DB
+9. When loading historical messages, `extractImageFromMessage()` found nothing because markers were gone
+
+### Root Cause
+**DATA TRANSFORMATION APPLIED BEFORE PERSISTENCE**
+
+The flow was:
+```
+AI returns message with :::sandbox-image-result::: markers
+  → processSandboxContent() strips markers for display
+    → stripped content saved to database  ← BUG: Should save ORIGINAL
+      → On reload, no markers exist
+        → extractImageFromMessage() returns null
+          → IntersectionObserver has nothing to track
+```
+
+The function `processSandboxContent()` was correctly designed to clean messages for UI display. The mistake was calling it BEFORE saving to the database instead of AFTER loading from the database.
+
+### What Was Lost/Broken
+- Multiple debugging sessions chasing wrong suspects (race conditions, observer thresholds, tracking logic)
+- User frustration from repeated failed fixes
+- Historical images in chat could never be scrolled to because their markers were already gone from DB
+
+### Prevention Rule
+**PRESERVE ORIGINAL DATA IN DATABASE, TRANSFORM ONLY FOR DISPLAY**
+
+```javascript
+// WRONG - transforms before save
+const cleanedContent = processSandboxContent(message.content)
+await saveToDatabase({ ...message, content: cleanedContent })  // Markers gone forever!
+
+// RIGHT - save original, transform on read
+await saveToDatabase({ ...message, content: message.content })  // Markers preserved
+// Later, when displaying:
+const displayContent = processSandboxContent(loadedMessage.content)
+```
+
+**General principle:** Database should store the canonical, complete version of data. UI transformations (stripping markers, formatting, sanitizing) happen at display time, not persistence time.
+
+**For special content markers:**
+1. Define the marker format clearly (e.g., `:::sandbox-image-result:::`)
+2. Store messages WITH markers in database
+3. Strip markers only in the UI rendering layer
+4. Use data attributes to preserve extracted info for JS access:
+   ```tsx
+   <div data-has-image="true" data-image-content={extractedImageJson}>
+     {displayContentWithMarkersStripped}
+   </div>
+   ```
+
+### Secondary Issue: Images Showing Both Inline AND in Sandbox
+
+The same image was appearing twice - once inline in the chat message and once in the sandbox panel. This was confusing and wasted space.
+
+**Fix:** Changed inline display to show only a small icon (the framed picture emoji) in chat, with actual image rendering only in the sandbox panel.
+
+### How Grok Helped
+
+After multiple failed internal debugging attempts, Grok consultation broke the loop. Grok suggested checking "whether messages are being saved to the database with or without the markers" - which led directly to finding the root cause.
+
+**Lesson:** When internal analysis keeps missing the root cause, external perspective (Grok, research) can identify blind spots.
+
+### System Fix Applied
+1. Modified message saving to preserve original content WITH markers
+2. Call `processSandboxContent()` only at display time, not save time
+3. Added `data-has-image` and `data-image-content` attributes to message elements for IntersectionObserver tracking
+4. Changed inline image display to show only icon, full image only in sandbox
+5. IntersectionObserver uses thresholds `[0, 0.1, 0.25, 0.5, 0.75, 1]` to catch all visibility states
+
+---
+
+## 2026-02-02: Told User to Test When Code Wasn't Pushed
+
+### What Happened
+1. PM workflow completed 15/17 tasks for Image Data Collection feature
+2. Developer agents completed code changes and claimed "pushed" for some tasks
+3. Main Claude presented summary saying "ready to test" with migration scripts
+4. User ran database migrations and tested the feature
+5. Feature didn't work - no session numbers, no data capture
+6. Investigation revealed: Most code changes were never committed/pushed
+7. Only 1 of many commits was actually pushed; rest were local uncommitted changes
+8. User wasted time testing against old deployed code
+
+### Root Cause
+1. **Trusted agent claims without verification** - Developer agent for Task 4 pushed, but subsequent tasks did NOT push
+2. **No git status check before declaring ready** - Main Claude never ran `git status` to verify
+3. **Assumed "build passes" means "deployed"** - Build verification is local, not deployment verification
+4. **Multiple agents, no aggregate verification** - Each agent worked in isolation; no final check that ALL changes were committed
+
+### What Was Lost/Broken
+- User's time running test that couldn't possibly work
+- User trust in workflow reliability
+- User frustration
+
+### Prevention Rule
+**BEFORE telling user "ready to test", ALWAYS run:**
+```bash
+git status --short
+```
+
+**If ANY modified files appear:**
+- Code is NOT deployed
+- Commit and push first
+- Wait for deployment
+- THEN tell user to test
+
+**Do NOT trust agent claims of "pushed" without verification.**
+
+### System Fix Applied
+- Added "Mandatory Git Verification Before User Testing" section to `.claude/workflows/pm-workflow.md`
+- Added this entry to MISTAKES-LOG.md
+
+---
+
+## 2026-02-02: Pushed Code Without Running Build - Syntax Error in Production
+
+### What Happened
+1. After discovering uncommitted code, Main Claude committed and pushed immediately
+2. Did not run `npm run build` locally before pushing
+3. Vercel deployment failed with syntax error: triple backticks inside template literal
+4. User saw the build error on Vercel dashboard
+5. Had to fix and push again
+
+### Root Cause
+1. **Rushed to fix previous mistake** - After being called out for not pushing, pushed without verification
+2. **Trusted developer agent's build claim** - Agent said "build passes" but the actual pushed code had a syntax error
+3. **No local build verification by Main Claude** - Main Claude should run build directly, not trust agent output
+
+### What Was Lost/Broken
+- Broken Vercel deployment
+- User's time waiting for failed build
+- Continued erosion of trust
+
+### Prevention Rule
+**Main Claude must run build DIRECTLY before any push:**
+```bash
+cd advisor-team-mvp && npm run build && echo "BUILD SUCCESS" || echo "BUILD FAILED"
+```
+
+**Do NOT:**
+- Trust agent claims of "build passes"
+- Push without seeing "BUILD SUCCESS" from a command Main Claude ran
+- Rush to fix one mistake by creating another
+
+### System Fix Applied
+- Updated "Mandatory Build Verification" section in pm-workflow.md
+- Main Claude must run build command directly, not rely on agent output
+
+---
+
+## 2026-02-03: Local Build Passes, Vercel Build Fails (Recurring)
+
+### What Happened
+1. Developer agent and Main Claude both ran `npm run build` - passed
+2. Code was committed and pushed to git
+3. Vercel build failed with TypeScript error: `'context' does not exist in type 'FailContext'`
+4. User had to catch the error from Vercel dashboard
+5. This pattern has happened multiple times across sessions
+
+### Root Cause
+**Local builds differ from Vercel builds:**
+1. Local `.next` cache masks errors - Vercel builds from scratch
+2. Local may have different TypeScript settings
+3. Running just `npm run build` doesn't match Vercel's `npx prisma generate && npm run build`
+4. Build cache can hide type errors that only appear on clean builds
+
+### What Was Lost/Broken
+- User had to manually check Vercel dashboard
+- Multiple round-trips to fix errors that should have been caught locally
+- User trust in the development workflow
+- User explicitly said: "I'm tired of being a test dummy"
+
+### Prevention Rule
+**Match Vercel's exact build process locally:**
+
+```bash
+# WRONG - uses cache, may miss errors
+npm run build
+
+# RIGHT - matches Vercel (clean build)
+rm -rf .next && npm run build
+```
+
+**Better: Use pre-push git hook to enforce this automatically.**
+
+### System Fix Applied
+1. Created `advisor-team-mvp/scripts/pre-push` - git hook that runs Vercel's exact build
+2. Configured git: `git config core.hooksPath scripts`
+3. Hook clears `.next` cache, runs prisma generate if needed, runs build
+4. Hook BLOCKS push if build fails
+5. Updated pm-workflow.md Phase 1 to configure hooks path
+6. Updated Mandatory Build Verification section with correct build command
+
+### How Pre-Push Hook Works
+```
+Developer runs: git push
+    ↓
+Hook runs: rm -rf .next && npm run build
+    ↓
+If build FAILS → Push blocked, error shown
+If build PASSES → Push proceeds to remote
+```
+
+**User never has to remember to run the build - git enforces it.**
+
+---

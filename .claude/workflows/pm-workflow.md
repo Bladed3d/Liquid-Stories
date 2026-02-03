@@ -47,7 +47,14 @@ Before spawning any agents, verify:
 1. **Target directory exists** (or create it)
 2. **package.json exists** (for npm projects)
 3. **PRD is available** (user provides path or content)
-4. **Dev server environment ready:**
+4. **Git pre-push hook configured** (prevents "local passes, Vercel fails"):
+   ```bash
+   cd advisor-team-mvp
+   git config core.hooksPath scripts
+   ```
+   This ensures every push runs Vercel's exact build command first.
+
+5. **Dev server environment ready:**
    ```bash
    # Check if something is on port 3000
    netstat -ano | findstr :3000
@@ -138,27 +145,29 @@ Task({
 
 ```
 retry_count = 0
+research_findings = null
+previous_failure = null
 
 while retry_count < 3:
   retry_count++
 
-  # At retry 2, get research help
-  if retry_count == 2:
-    Task({
+  # At retry 2, proactively get research help (if not already done via RESEARCH_NEEDED)
+  if retry_count == 2 && !research_findings:
+    research_findings = Task({
       description: "Research: [task name]",
-      prompt: "Find proven solutions for [problem]",
+      prompt: `Find proven solutions for: ${previous_failure}`,
       subagent_type: "research",
       model: "sonnet"
     })
 
   # Developer implements
-  Task({
+  developer_result = Task({
     description: "Implement: [task name]",
     prompt: `
       Task: [description]
       Test Spec: [spec from 4a]
-      ${retry_count > 1 ? "Previous failure: [error]" : ""}
-      ${retry_count >= 2 ? "Research findings: [research]" : ""}
+      ${previous_failure ? "Previous failure: " + previous_failure : ""}
+      ${research_findings ? "Research findings: " + research_findings : ""}
 
       Implement code to pass the test.
 
@@ -171,6 +180,19 @@ while retry_count < 3:
     subagent_type: "developer",
     model: "sonnet"
   })
+
+  # Check Developer result first
+  if developer_result.status == "RESEARCH_NEEDED":
+    # Developer needs more specific research
+    research_findings = Task({
+      description: "Research: [developer's research query]",
+      prompt: developer_result.research_query,
+      subagent_type: "research",
+      model: "sonnet"
+    })
+    # Don't count this as a retry - developer hasn't tried with research yet
+    retry_count--
+    continue  # Loop back, developer will get research_findings on next iteration
 
   # Quality verifies
   Task({
@@ -192,6 +214,10 @@ while retry_count < 3:
   if verdict == "ESCALATE":
     # Stop and tell user
     return ESCALATE with full context
+
+  # NEEDS_FIX - capture failure details for next iteration
+  previous_failure = quality_result.failure_details
+  # Loop continues to next retry
 
 # If 3 retries exhausted
 if retry_count >= 3:
@@ -224,6 +250,19 @@ Files Changed:
 Test Results: All passing
 Build Status: Success
 ```
+
+---
+
+## Developer Status Handling
+
+Developer agent can return these statuses:
+
+| Status | Main Claude Action |
+|--------|-------------------|
+| **PASSED** | Proceed to Quality verification |
+| **FAILED** | Increment retry, loop back with error context |
+| **RESEARCH_NEEDED** | Spawn Research Agent with provided query, re-invoke Developer with findings (don't increment retry) |
+| **ESCALATING** | Stop and report to user |
 
 ---
 
@@ -272,35 +311,75 @@ All agents are in `.claude/agents/`.
 
 ---
 
+## Mandatory Git Verification Before User Testing
+
+**NEVER tell user "ready to test" without verifying code is deployed.**
+
+Before declaring work complete or asking user to test:
+
+```bash
+# Check for uncommitted changes
+git status --short
+
+# If changes exist, they are NOT deployed
+# Commit and push before telling user to test
+```
+
+**If `git status` shows modified files:**
+- DO NOT tell user to test
+- Commit the changes first
+- Push to trigger deployment
+- Wait for deployment to complete
+- THEN tell user to test
+
+**Why this matters:**
+- Developer agents may claim "pushed" without actually pushing
+- User testing against old code wastes their time
+- Discovered 2026-02-02: Told user to test when code wasn't pushed
+
+---
+
 ## Mandatory Build Verification
 
 **NEVER commit or push code without verifying the build passes.**
 
-After Developer agent returns, Main Claude MUST:
+After Developer agent returns, Main Claude MUST run Vercel's EXACT build command (not just `npm run build`):
 
 ```bash
-# Run build and capture output
-"C:/Program Files/nodejs/npm.cmd" run build 2>&1 | tail -30
-
-# Check exit code
-echo $?
+# Main Claude runs this - matches Vercel's build exactly
+cd advisor-team-mvp && rm -rf .next && npm run build && echo "BUILD SUCCESS" || echo "BUILD FAILED"
 ```
+
+**Why `rm -rf .next` first:**
+- Vercel builds from scratch (no cache)
+- Local cache can hide TypeScript errors
+- This was discovered 2026-02-03 after multiple "local passes, Vercel fails" incidents
 
 **If build fails:**
 - DO NOT commit
 - DO NOT push
-- Send error back to Developer agent for fix
+- Fix the error or send back to Developer agent
 - This counts as a retry
 
 **If build passes:**
 - Commit the changes
-- Push to feature branch
+- Push to trigger deployment
 - Continue to Quality verification
+
+**Safety Net: Pre-push Git Hook**
+
+Even if Main Claude forgets to run the build, the pre-push hook will catch it:
+- Hook location: `advisor-team-mvp/scripts/pre-push`
+- Configured via: `git config core.hooksPath scripts`
+- Runs Vercel's exact build before allowing push
+- BLOCKS push if build fails
 
 **Why this matters:**
 - Developer agents may claim "build passes" without actually verifying
-- Vercel will reject broken code anyway - catch it locally first
-- Saves time and avoids broken preview deployments
+- Agent output may be truncated or misleading
+- Local cache can mask TypeScript errors that Vercel catches
+- Pre-push hook is the last line of defense
+- Discovered 2026-02-02: Pushed code with syntax error because Main Claude didn't run build directly
 
 ---
 
