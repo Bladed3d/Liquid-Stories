@@ -15,6 +15,32 @@ Touch, click, and explore interactive stories that respond to your every move.
 
 ---
 
+## 🔧 Development Tools
+
+### 💾 Conversation Logging
+For AI-assisted development sessions, this project includes automated conversation logging:
+
+```bash
+# Start logging a development session
+python terminal-logger.py start "Feature Implementation Session"
+
+# Log key accomplishments
+python terminal-logger.py log "Completed LED breadcrumb system implementation"
+
+# Stop logging
+python terminal-logger.py stop
+```
+
+**Benefits:**
+- Complete conversation preservation
+- Automatic timestamping
+- Professional documentation
+- Future reference and progress tracking
+
+See `TERMINAL-LOGGING-README.md` for detailed usage instructions.
+
+---
+
 ## 📖 Current Stories
 
 🐶 **Pug Day**

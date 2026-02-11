@@ -56,7 +56,22 @@
    - Run `git branch --show-current` BEFORE committing
    - Bug fixes go to `main` unless user says otherwise
    - If on a feature branch and fixing a production bug, ASK: "main or feature branch?"
-   - `advisor-team-mvp` is a submodule - commits there need explicit branch awareness
+
+10. **AT SESSION START: Check and announce the git branch**
+    - Run `git branch --show-current` in advisor-team-mvp at start of any coding session
+    - Tell user: "You're on [branch]. Should I switch to main?"
+    - **WHY THIS MATTERS:** Git branches physically change the files in the folder. If user is on `mobile` branch, they're editing mobile code - not "neutral" files they can later route to any branch. User learned this the hard way on 2026-01-31.
+    - If user wants changes to go to `main`, switch to `main` BEFORE making any edits
+    - This prevents the mess of trying to separate changes after the fact
+
+11. **ONLY commit and push inside `advisor-team-mvp/` — NEVER the parent Liquid-Stories repo**
+    - The MVP app is fully self-contained at `D:\Projects\Ai\Liquid-Stories\advisor-team-mvp`
+    - Its git remote is `Bladed3d/AdvisorTeam.git` — this is the ONLY repo that needs pushes
+    - `Liquid-Stories` is a wrapper repo holding docs and a submodule pointer — DO NOT push to it
+    - DO NOT run `git add advisor-team-mvp` or `git commit` from the Liquid-Stories root
+    - DO NOT create "update submodule" commits in the parent repo
+    - **All git operations (add, commit, push) happen from INSIDE `advisor-team-mvp/`**
+    - **WHY:** 35+ unnecessary "Update advisor-team-mvp submodule" commits were pushed to Liquid-Stories. The submodule pointer updates are noise — the real commits are already in AdvisorTeam.
 
 ---
 
@@ -104,12 +119,26 @@
     - After 3 failures: STOP and escalate with full context
     - Do NOT keep guessing
 
-11. **ALWAYS run `npm run build` before pushing (Next.js projects)**
-    - `tsc --noEmit` is NOT enough - Next.js build is stricter
-    - Vercel runs `npm run build` - match what production uses
+11. **ALWAYS run FULL build verification before pushing (Next.js projects)**
+    - **REQUIRED COMMAND:** `rm -rf .next node_modules/.cache && npx tsc --noEmit && npm run build`
+    - `npm run build` ALONE is NOT enough - local cache masks TypeScript errors
+    - `npx tsc --noEmit` must run SEPARATELY before `npm run build`
+    - Cache clearing (`rm -rf .next node_modules/.cache`) is MANDATORY
     - Build failures = DO NOT PUSH until fixed
-    - This catches: invalid context properties, wrong enum values, type mismatches
-    - **The Developer Agent and Quality Agent MUST both run this**
+    - **WHY:** Vercel builds from clean state. Local cache hides errors Vercel catches.
+    - **Discovered 2026-02-03:** 8+ commits failed on Vercel after passing local `npm run build`
+    - **The Developer Agent and Quality Agent MUST both run the FULL command**
+
+12. **TWO-TIER deployment verification (Tests enforce this - cannot be skipped)**
+    - **Tier 1 (Smoke Test):** After EACH phase push - verify deployment succeeded (not 404)
+    - **Tier 2 (Deployment Test):** After ALL phases - verify feature works on production
+    - Quality Agent runs both tiers as part of test suite
+    - Tests cannot be ignored - Quality cannot return APPROVED without them passing
+    - **If 404:** Vercel build failed - run `rm -rf .next node_modules/.cache && npx tsc --noEmit && npm run build`
+    - **If 500:** Runtime error - fix and re-push
+    - Full workflow: `.claude/workflows/pm-workflow.md` → Phases 4c and 5
+    - Test Agent instructions: `.claude/agents/test-agent.md` → "Mandatory Tests"
+    - **Discovered 2026-02-03:** API returned 404 after "successful" push - caught and fixed automatically
 
 ---
 
@@ -197,6 +226,53 @@ rm "D:/source/file.md"
 
 ---
 
+## Database Migrations
+
+21. **ALL migrations go in ONE place: `Docs/migrations/`**
+    - Format: `YYYYMMDD_description.sql`
+    - DO NOT create migration folders anywhere else
+    - DO NOT put migrations inside `advisor-team-mvp/`
+    - Before creating a migration, LIST existing migrations to see the pattern
+    - **WHY:** 3 different Claudes created 3 different migration folders. This is the one place.
+
+---
+
+## Code Migration & Refactoring
+
+22. **Migration ≠ Recreation**
+    - When moving code to a new location, COPY the actual working code
+    - Do NOT write new "clean" versions that omit functionality
+    - Do NOT create "placeholder" or "shell" code that will be "filled in later"
+    - If original is 2900 lines and new is 450 lines, STOP - you're deleting 2450 lines of features
+    - **WHY:** 2026-02-04 refactoring created placeholder pages, deleted working code, broke production
+
+23. **Working-First Migration Pattern**
+    - **Step 1:** Copy ENTIRE file to new location (all 2900 lines, not a summary)
+    - **Step 2:** Verify it WORKS at new location (not just compiles - actually test the feature)
+    - **Step 3:** Only THEN start modifying/slimming the original
+    - **Step 4:** NEVER delete from original until new location is functionally verified in production
+    - "Build passes" is NOT verification. "Feature works" is verification.
+
+24. **Line Count Sanity Check**
+    - Before declaring any migration/refactoring complete, compare line counts:
+      ```
+      Original file: X lines
+      New file(s): Y lines total
+      ```
+    - If Y < X/2, something is wrong - you're losing functionality
+    - ASK USER before proceeding: "Original was X lines, new is Y lines. That's Z lines unaccounted for. Should I continue?"
+    - This applies to: file moves, component extraction, route restructuring, any refactoring
+
+25. **Refactoring Task Descriptions Must Reference Source**
+    - WRONG: "Create chat/page.tsx with scroll infrastructure"
+    - RIGHT: "Copy lines 150-400 from page.tsx to chat/page.tsx (scroll infrastructure)"
+    - Tasks must specify WHAT CODE is being moved, not what concept is being implemented
+    - If a task doesn't reference specific source code, it's creating new code, not migrating
+
+**Reference:** See MISTAKES-LOG entry 2026-02-04 - Refactoring deleted 2450 lines of working code
+
+---
+
 ## When In Doubt
 
 - ASK before destructive operations
@@ -207,6 +283,6 @@ rm "D:/source/file.md"
 
 ---
 
-*Last updated: 2026-01-25 - Added CAPABILITY PARITY CHECK rules for architecture changes*
+*Last updated: 2026-02-04 - Added Code Migration & Refactoring rules (22-25) after refactoring deleted 2450 lines of working code*
 
 

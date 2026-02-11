@@ -976,3 +976,72 @@ If build PASSES → Push proceeds to remote
 **User never has to remember to run the build - git enforces it.**
 
 ---
+
+## 2026-02-04: Refactoring Deleted 2450 Lines of Working Code - Production Down
+
+### What Happened
+1. User requested modular architecture refactoring (Steps 4-6)
+2. Task breakdown created 12 tasks for "extracting" chat UI to new routes
+3. Tasks said things like "Create chat/page.tsx with scroll infrastructure"
+4. Developer agents created NEW placeholder code instead of COPYING existing code
+5. Original page.tsx (2900 lines) was slimmed to 64-line router
+6. New chat/page.tsx had only 450 lines of placeholder/shell code
+7. 2450 lines of working functionality were effectively deleted
+8. Production site showed "Coming next: Task 17, 18, 19..." placeholder instead of working chat
+9. Had to restore original page.tsx from git history
+
+### Root Cause
+**Tasks described CONCEPTS to implement, not CODE to migrate.**
+
+The task breakdown said:
+- "Create scroll infrastructure" ← Agent wrote NEW code
+- "Add input form and send logic" ← Agent wrote NEW simplified code
+- "Add right panel structure" ← Agent wrote NEW placeholder
+
+Instead of:
+- "Copy lines 150-400 (scroll logic) from page.tsx to chat/page.tsx"
+- "Copy lines 401-600 (input handling) from page.tsx to chat/page.tsx"
+- "Verify chat/page.tsx works identically to original"
+
+**"Copy-test-delete" was mentioned in the plan but not followed.** The actual tasks created new shells and deleted the original.
+
+### What Was Lost/Broken
+- Production site completely broken for ~30 minutes
+- All chat functionality (TTS, streaming, sandbox, chapters, history, voice input, YouTube embeds, etc.)
+- User trust
+- Multiple failed deployment attempts chasing type errors in incomplete code
+
+### Prevention Rules (Added to CRITICAL-RULES.md)
+
+**22. Migration ≠ Recreation**
+- When moving code, COPY the actual working code
+- Do NOT write new "clean" versions
+- If original is 2900 lines and new is 450 lines, STOP
+
+**23. Working-First Migration Pattern**
+- Step 1: Copy ENTIRE file to new location
+- Step 2: Verify it WORKS (not just compiles)
+- Step 3: Only THEN modify the original
+- "Build passes" ≠ "Feature works"
+
+**24. Line Count Sanity Check**
+- Compare: Original X lines → New Y lines
+- If Y < X/2, something is wrong
+- ASK before proceeding
+
+**25. Task Descriptions Must Reference Source**
+- WRONG: "Create scroll infrastructure"
+- RIGHT: "Copy lines 150-400 from page.tsx (scroll logic)"
+
+### The Fundamental Problem
+Claude accepts task plans that look logically complete but aren't functionally complete. Each task in isolation seemed valid. But the SUM of tasks didn't equal a working migration - it equaled a partial recreation with most features missing.
+
+**No one asked:** "Does the new chat/page.tsx have the same 2900 lines of functionality as the original?"
+
+### System Fix Applied
+- Added rules 22-25 to CRITICAL-RULES.md
+- Added this entry to MISTAKES-LOG.md
+- Restored working page.tsx from git history
+- API handlers (Step 6) kept - they're backward compatible
+
+---

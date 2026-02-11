@@ -113,6 +113,7 @@ MAX_TEXT_LENGTH = 5000
 class SynthesizeRequest(BaseModel):
     text: str
     voice: Optional[str] = None
+    advisorId: Optional[str] = None  # Map to voice via ADVISOR_VOICES
 
 
 async def generate_speech(text: str, voice: str) -> bytes:
@@ -393,9 +394,17 @@ async def synthesize_with_boundaries(request: SynthesizeRequest):
           "totalDurationMs": int
         }
     """
+    # Determine voice: explicit voice > advisorId mapping > default
+    voice = request.voice
+    if not voice and request.advisorId:
+        voice = ADVISOR_VOICES.get(request.advisorId, DEFAULT_VOICE)
+    if not voice:
+        voice = DEFAULT_VOICE
+
     trail.light(LED_REQUEST_START, "synthesize_with_boundaries_request", {
         "text_length": len(request.text),
-        "voice": request.voice or DEFAULT_VOICE
+        "advisorId": request.advisorId,
+        "voice": voice
     })
 
     try:
@@ -407,9 +416,6 @@ async def synthesize_with_boundaries(request: SynthesizeRequest):
                 "truncated_to": MAX_TEXT_LENGTH
             })
             text = text[:MAX_TEXT_LENGTH]
-
-        # Use provided voice or default
-        voice = request.voice or DEFAULT_VOICE
 
         # Generate audio with word boundaries
         audio_bytes, word_boundaries = await generate_speech_with_boundaries(text, voice)

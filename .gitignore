@@ -105,6 +105,14 @@ logs/
 debug.log
 breadcrumb-debug.log
 
+# Claude Code temp files
+tmpclaude-*
+nul
+
+# Test scripts
+test-web-search.py
+
 # Session files
 Context/**/*.md
 session*.md
+.aider*

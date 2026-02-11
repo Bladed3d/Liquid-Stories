@@ -59,14 +59,14 @@ ADVISOR_VOICES = {
         "who speaks with clarity and conviction."
     ),
     "zen": (
-        "A warm, gentle female voice with a calm, meditative quality. "
-        "Slightly lower register, unhurried pace, radiating compassion "
-        "and wisdom like a meditation teacher creating a safe space."
+        "A warm, gentle male voice with a calm, meditative quality. "
+        "Deep and unhurried pace, radiating compassion "
+        "and wisdom like a seasoned meditation teacher creating a safe space."
     ),
     "researcher": (
-        "A bright, articulate male voice with an intellectual curiosity. "
-        "Clear enunciation, moderate pace, the voice of someone who finds "
-        "genuine excitement in discovery and explaining complex ideas simply."
+        "A composed, articulate female voice with a lower register and intellectual depth. "
+        "Clear enunciation, steady pace, the voice of a confident scholar who "
+        "explains complex ideas with calm authority and genuine curiosity."
     ),
     "organizer": (
         "A clear, precise female voice with a warm professionalism. "

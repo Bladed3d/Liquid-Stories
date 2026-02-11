@@ -1,6 +1,6 @@
 # Ai-Friends - Project Index
 
-**Last Updated:** 2025-11-24 16:25:56
+**Last Updated:** 2026-02-11 11:11:56
 **Auto-generated** by `save-session.py`
 
 ---
@@ -20,8 +20,15 @@
 
 ## Entry Points
 
+- **advisor-team-mvp/.next/server/app/index.html** (1 lines)
+- **advisor-team-mvp/playwright-report/index.html** (85 lines)
+- **DevSandbox/index.html** (225 lines)
+- **DevSandbox/qr-upload-poc/public/index.html** (297 lines)
+- **Gestures/index.html** (269 lines)
 - **index.html** (172 lines)
 - **playwright-report/index.html** (85 lines)
+- **qwen3-tts-env/Lib/site-packages/gradio/templates/frontend/index.html** (131 lines)
+- **qwen3-tts-env/Lib/site-packages/setuptools/tests/indexes/test_links_priority/simple/foobar/index.html** (4 lines)
 - **v4-modular/index.html** (990 lines)
 - **V6/desktop/index.html** (710 lines)
 - **V6/index.html** (134 lines)
@@ -66,25 +73,58 @@
 
 **Location:** `src/lib/` and `src/utils/`
 
-*No utility files found*
+- **mock-data.ts** (215 lines) - Mock data for the intake system prototype
 
 ---
 
 ## Configuration
 
+- **advisor-team-mvp/lib/spontaneous-image/config.ts** (111 lines)
+- **qwen3-tts-env/Lib/site-packages/gradio/cli/commands/components/files/gradio.config.js** (9 lines)
+- **advisor-team-mvp/next.config.ts** (7 lines)
+- **Kameron/Intake/app/next.config.ts** (7 lines)
+- **advisor-team-mvp/package-lock.json** (12097 lines)
+- **DevSandbox/qr-upload-poc/package-lock.json** (4992 lines)
+- **Kameron/Intake/app/package-lock.json** (6538 lines)
 - **package-lock.json** (894 lines)
 - **tests/package-lock.json** (6531 lines)
+- **advisor-team-mvp/.next/dev/package.json** (3 lines)
+- **advisor-team-mvp/.next/package.json** (1 lines)
+- **advisor-team-mvp/package.json** (66 lines)
+- **DevSandbox/qr-upload-poc/package.json** (26 lines)
+- **Kameron/Intake/app/.next/dev/package.json** (3 lines)
+- **Kameron/Intake/app/package.json** (26 lines)
+- **qwen3-tts-env/Lib/site-packages/gradio/package.json** (6 lines)
+- **qwen3-tts-env/Lib/site-packages/gradio_client/package.json** (8 lines)
+- **rewindtty/libs/cjson/tests/json-patch-tests/package.json** (15 lines)
 - **tests/package.json** (62 lines)
 - **V6/package.json** (5 lines)
+- **qwen3-tts-env/Lib/site-packages/torch/_dynamo/package.py** (1157 lines)
+- **qwen3-tts-env/Lib/site-packages/torch/_inductor/package/package.py** (138 lines)
+- **ProjectsAiLiquid-Storiesqwen3-tts-env/Lib/site-packages/pip/_vendor/idna/package_data.py** (1 lines)
+- **qwen3-tts-env/Lib/site-packages/idna/package_data.py** (1 lines)
+- **qwen3-tts-env/Lib/site-packages/pip/_vendor/idna/package_data.py** (1 lines)
+- **qwen3-tts-env/Lib/site-packages/torch/package/package_exporter.py** (1190 lines)
+- **ProjectsAiLiquid-Storiesqwen3-tts-env/Lib/site-packages/pip/_internal/index/package_finder.py** (1029 lines)
+- **qwen3-tts-env/Lib/site-packages/pip/_internal/index/package_finder.py** (1029 lines)
+- **qwen3-tts-env/Lib/site-packages/torch/package/package_importer.py** (789 lines)
+- **ProjectsAiLiquid-Storiesqwen3-tts-env/Lib/site-packages/pip/_vendor/requests/packages.py** (25 lines)
+- **qwen3-tts-env/Lib/site-packages/pip/_vendor/requests/packages.py** (25 lines)
+- **qwen3-tts-env/Lib/site-packages/requests/packages.py** (23 lines)
 - **playwright-visual.config.ts** (61 lines)
+- **DevSandbox/qr-upload-poc/playwright.config.js** (34 lines)
+- **advisor-team-mvp/playwright.config.ts** (52 lines)
 - **playwright.config.ts** (84 lines)
+- **advisor-team-mvp/prisma.config.ts** (14 lines)
+- **advisor-team-mvp/vitest.config.ts** (15 lines)
+- **advisor-team-mvp/lib/voice-config.ts** (53 lines)
 
 ---
 
 ## 📊 Project Statistics
 
-- **Total Files Indexed:** 164
-- **Total Lines of Code:** 96,331
+- **Total Files Indexed:** 18030
+- **Total Lines of Code:** 8,554,783
 - **Components:** 0
 - **Services:** 0
 - **Hooks:** 0

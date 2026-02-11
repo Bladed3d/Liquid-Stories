@@ -16,11 +16,11 @@ cd Saved/Derek/Reference-Library/scripts
 python index.py
 ```
 
-**When to Ask**:
-- ✅ At the START of a lesson creation day (ask once)
+**When to Re-index** (use judgment, don't ask every time):
+- ✅ User explicitly requests it
 - ✅ After user adds NEW writings to the library
 - ✅ If search results seem incomplete or outdated
-- ❌ NOT before every lesson (user will say when)
+- ❌ NOT before every lesson - that's overkill
 
 **Example Dialogue**:
 ```
@@ -39,6 +39,31 @@ AI: "Great! Let's proceed with research."
 ---
 
 ### Step 2: Multi-Source Research (Part 1)
+
+---
+
+**⚡ CHECKPOINT 1: Lesson Essence (BEFORE searching)**
+
+Before any Qdrant searches, the team must understand what the lesson is REALLY about. Otherwise, searches drive understanding instead of understanding driving searches.
+
+**The team asks three questions:**
+
+1. **What is this lesson about?** (Not the topic word - the actual insight)
+2. **What is Derek's REAL breakthrough?** (The thing that changes everything)
+3. **What transforms for the reader?** (Not what they learn - who they become)
+
+**Quick process:**
+- Read the Table of Contents entry for this lesson
+- Role-play Character Weaver + Zen Scribe briefly to surface the real insight
+- Write 2-3 sentences capturing the Lesson Essence
+
+**Example - Lesson 004 "Asking":**
+- ❌ Surface: "Ask better questions to get better answers"
+- ✅ Real insight: "Questions are polluted by ego/anger/greed before you ask them. Clear yourself first, then ask sincerely."
+
+**The Lesson Essence guides your search terms for the three searches below.**
+
+---
 
 **MANDATORY: Use three-search Qdrant approach for validated enhancement**
 
@@ -110,29 +135,58 @@ Search 3: "truth flows through you vessel conduit not from you"
 
 When Part 1 is complete, activate the team:
 
-1. **Ask IQ2 FIRST** via llama-server API (background process)
+---
+
+**⚡ PRE-FLIGHT: Ensure IQ2 is Running**
+
+Before calling IQ2, check if the server is responding:
+
+```bash
+curl -s http://127.0.0.1:8080/health
+```
+
+**If no response, start the server automatically:**
+
+```bash
+start "IQ2 Server" E:/llamacpp/bin/llama-server.exe -m E:/llamacpp/models/minimax-m2.1-PRISM-IQ2_M.gguf -ngl 18 -c 8192 --port 8080 --temp 0.7 --top_p 0.95 --top_k 40 --dry-multiplier 0.5 --dry-base 2.0
+```
+
+Wait 30-60 seconds for server initialization, then proceed.
+
+**Do NOT ask the user** — infrastructure issues with documented solutions should be resolved automatically. Only ask when you genuinely cannot proceed.
+
+---
+
+1. **Ask IQ2 FIRST** via llama-server API
+
+   **CRITICAL: Use simple text prompts only** - no special characters, no slashes, no complex escaping. This prevents duplication issues.
+
+   **IQ2 takes 2-3.5 minutes to respond** - launch first, then work on Character Weaver + Zen Scribe while waiting.
+
    ```bash
    curl -s -X POST http://127.0.0.1:8080/completion \
      -H "Content-Type: application/json" \
      -d '{
-       "prompt": "Share key quotes from research and ask for structure/audience guidance...",
+       "prompt": "Simple text question about the lesson topic. Include key quotes from research. Ask for structure and audience guidance.",
        "n_predict": 1500,
        "repeat_penalty": 1.1,
        "repeat_last_n": 64
-     }' &
+     }'
    ```
 
-2. **While IQ2 processes, role-play Character Weaver and Zen Scribe**
+2. **While IQ2 processes (~2-3 min), role-play Character Weaver and Zen Scribe**
+
+   These are **role-played** (not subagents) because they contribute to dialogue, not final output:
    - Read Derek Character Profile for voice guidance
-   - Character Weaver: Understands Derek's psychology and how he'd approach the topic
-   - Zen Scribe: Knows how to execute authentic language based on Character Weaver's guidance
+   - **Character Weaver**: Derek's psychology - how he'd approach this topic, his wounds, contradictions
+   - **Zen Scribe**: Voice execution - how to express insights in Derek's authentic language
 
-3. **Retrieve IQ2 response** and conduct GENUINE back-and-forth dialogue
+3. **Retrieve IQ2 response** and integrate with team insights
    - **NEVER simulate or fake IQ2's input**
-   - **NEVER shortcut by writing dialogue yourself**
    - **ALWAYS use IQ2's actual response**
+   - Weave IQ2's structure/audience insights with Character Weaver + Zen Scribe perspectives
 
-**Create Part 2**: "The Writing Team Dialogue" with genuine collaboration
+**Create Part 2**: "The Writing Team Dialogue" capturing all perspectives
 
 ---
 
@@ -170,59 +224,59 @@ The Integration Round weaves them into unified prose:
 
 ---
 
+**⚡ CHECKPOINT 2: Revisit Lesson Essence (AFTER research & dialogue)**
+
+Before writing Part 3, the team re-asks the three Lesson Essence questions:
+
+1. **What is this lesson REALLY about?** (Has our understanding changed?)
+2. **What is Derek's REAL breakthrough?** (Did we discover something deeper?)
+3. **What transforms for the reader?** (Is it what we originally thought?)
+
+**Possible outcomes:**
+
+- **Confirmed**: Research validated initial insight → proceed with original Lesson Essence
+- **Deepened**: Found nuances/layers → update Lesson Essence with richer understanding
+- **Shifted**: Discovered it's about something different → update Lesson Essence before Part 3
+
+**This checkpoint prevents drift.** Without it, the team might write Part 3 based on what the research returned instead of what the lesson is actually about.
+
+**Include in Part 2.5**: State whether Lesson Essence was Confirmed, Deepened, or Shifted.
+
+---
+
 ### Step 5: Write the Unified Lesson (Part 3)
 
-**lesson-editor agent crafts the final lesson** using Validation-Enhancement Framework
+**Part 3 is written IN CONVERSATION** (not as deployed subagent)
 
-Invoke lesson-editor agent:
-```bash
-Task tool with subagent_type="lesson-editor"
-Prompt: "Read the lesson file at [path] and craft Part 3 following Validation-Enhancement Framework"
-```
+**Why in-conversation?** The contextual richness from participating in the full discussion (Lesson Essence, searches, team dialogue, integration) produces dramatically better output than a subagent reading a file. The subagent doesn't have the lived understanding - it only reads documents.
 
-**lesson-editor's Role** (not Zen Scribe):
+**Process:**
+1. Read the lesson-editor agent profile for guidance on structure and voice
+2. Write Part 3 in conversation, drawing on full context from Steps 1-4
+3. Follow the Opening Hook Strategy and structure below
 
-Synthesizes Parts 1-2.5 into flowing lesson with:
-- **Three-Source Validation**: Every enhancement validated by Derek's writings
-- **Historical Proof**: Newton/Einstein, etc. (only if validated by Search 2)
-- **Practical Examples**: "Not/Instead" format (created from Derek's principles)
-- **Cross-References**: Embedded connections to previous lessons (if validated by Search 3)
-- **Dramatic Buildup Opening**: v10's compelling narrative structure
-- **Drift Detection**: Safeguards against psychologizing mystical teachings
+**Lesson Editor Role** (role-played in conversation):
+- **Opening Hook**: Start with MOST profound/shocking concept (not "what you were taught")
+- **Enhancement**: Elaborate and deepen insights with context (historical figures, universal experiences)
+- **Comprehension Bridges**: Explain novel concepts so they land with meaning
+- **Derek's Voice**: Direct address ("you"), conversational, powerful but humble
 
 **lesson-editor Creates**:
 
-1. **Dramatic Buildup Opening**:
-   - Buildup: "Great inventors... understood something profound:"
-   - Line break (dramatic pause)
-   - Payoff: "[Most profound concept]"
-   - Deepening: Historical proof, context from Derek's writings
-
-2. **Development**:
-   - Derek's core teachings (from Search 1)
-   - Validated enhancements (from Search 2)
-   - Sincerity distinctions (Derek's exact questions)
-
-3. **Character Transformation**:
-   - Ego dissolution, courage, sacred reverence (from team insights)
-   - "Flows from vs through you" mechanism (Stephen King example from Search 2)
-
-4. **Practical Application**:
-   - "Not/Instead" examples (created from Derek's principles)
-   - "So how do you practice this?" bridge
-
-5. **Empowering Conclusion**:
-   - "This is what empowerment actually looks like"
-   - Cross-reference to Lesson 002 if discussing "flows through you" (validated by Search 3)
+1. **Hook Opening**: Lead with Derek's most shocking insight + compelling context
+2. **Development**: Why this matters, how it works
+3. **Deepening**: Psychological truth, character transformation
+4. **Application**: Concrete practice ("Not/Instead" examples)
+5. **Transformation**: Who they become through this
 
 **Quality Targets**:
-- Length: ~2,500-3,500 characters (v10 was 3,832, v19 was 2,102)
+- Length: ~700-900 words (3-4 minute read, like v10/v24)
 - Voice: Derek speaking directly to reader ("you" throughout)
 - Mystical language: Preserved EXACTLY ("vacuum that the Universe fills")
-- No psychologizing: Drift detection passed (all green flags)
+- All insights from Integration Round included
 - Post-lesson metadata: Related Concepts, Writing Team, Process
 
-**Create Part 3**: "The Lesson" - one-page, flowing, validated enhancement of Derek's teachings
+**Create Part 3**: "The Lesson" - one-page, flowing enhancement of Derek's teachings
 
 ---
 
@@ -256,15 +310,15 @@ Naming convention: `lesson-XXX-title-version-YYYY-MM-DD.md`
 | IQ2 | Story Architect + Audience Advisor | llama-server API on port 8080 |
 | Character Weaver | Derek Character Specialist | `.claude/agents/character-weaver.md` |
 | Zen Scribe | Voice Execution Specialist | `.claude/agents/zen-scribe.md` |
-| lesson-editor | Validation-Enhancement Synthesis | `.claude/agents/lesson-editor.md` |
+| lesson-editor | Fresh Reader Synthesis (Part 3) | `.claude/agents/lesson-editor.md` |
 
 **Derek Character Profile**: `Saved/Derek/Projects/2-Minutes-HOOT/derek-character-profile.md`
 
-**lesson-editor Framework**: Validation-Enhancement Framework
-- Three-Source Validation Rule
-- Dramatic Buildup Opening (v10's narrative structure)
-- Drift Detection Warnings
-- Length Target: 2,500-3,500 characters
+**Lesson Editor Framework**: In-Conversation Synthesis + Opening Hook Strategy
+- Dramatic Buildup Opening (historical figures → line break → profound statement)
+- Enhancement Role (elaborate and deepen with context)
+- Comprehension Bridges (explain novel concepts)
+- Length Target: ~700-900 words (3-4 minute read, like v10/v24)
 
 ---
 
