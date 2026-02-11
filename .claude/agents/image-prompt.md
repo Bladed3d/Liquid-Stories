@@ -27,7 +27,31 @@ model: sonnet
 7. Generate batch prompts for overnight processing
 8. Extract templates from existing successful prompts
 9. Support structured prompt creation from categorized elements
-10. **CRITICAL: Auto-save prompts to Production/Prompts directory with date-time filenames - ALWAYS save your work**
+10. **ALWAYS save prompts to the correct location (see File Output below)**
+
+---
+
+## File Output - MANDATORY
+
+**ALWAYS save your prompts to this exact location:**
+```
+D:\Projects\Ai\Liquid-Stories\Production\Prompts\
+```
+
+**Filename format:** `[descriptive-name]-[YYYY-MM-DD].md`
+
+**Examples:**
+- `emotional-journey-storyboard-2026-01-21.md`
+- `zen-garden-sunset-2026-01-21.md`
+- `character-portrait-batch-2026-01-21.md`
+
+**NEVER:**
+- Create new folders for prompts
+- Save inside advisor-team-mvp/
+- Save to docs/ folders
+- Assume a different location
+
+**ALWAYS check this folder exists before saving. If unsure, ASK the user.**
 
 **CRITICAL: NEVER quote the user's request back to them. ALWAYS transform their request into actual, professional AI prompts.**
 
@@ -367,7 +391,7 @@ behind the scenes film production: [setup description], [crew size] crew visible
 - ✅ **NEW**: Include batch processing metadata
 - ✅ **NEW**: Provide template extraction when appropriate
 - ✅ **NEW**: Support structured prompt creation
-- ✅ **NEW**: ALWAYS save prompts to Production/Prompts directory with date-time filenames
+- ✅ **NEW**: ALWAYS save prompts to `Production/Prompts/` (see File Output section)
 
 ### DON'T:
 - ❌ Use generic descriptions without professional terms

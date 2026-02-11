@@ -1,7 +1,29 @@
 {
-    "env": {
-        "ANTHROPIC_AUTH_TOKEN": "ef5053fdb6634f1fbfe72a5847061719.zHHH3Pgcdxzb6RuW",
-        "ANTHROPIC_BASE_URL": "https://api.z.ai/api/anthropic",
-        "API_TIMEOUT_MS": "3000000"
-    }
+  "permissions": {
+    "deny": [
+      "Bash(*taskkill*/IM node*)",
+      "Bash(*taskkill*//IM node*)",
+      "Bash(*taskkill*/IM electron*)",
+      "Bash(*taskkill*//IM electron*)",
+      "Bash(*taskkill*/IM npm*)",
+      "Bash(*taskkill*//IM npm*)",
+      "Bash(*taskkill*/IM python*)",
+      "Bash(*taskkill*//IM python*)",
+      "Bash(*taskkill*/IM claude*)",
+      "Bash(*taskkill*//IM claude*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(rm -rf /:*)",
+      "Bash(rm -rf /*:*)"
+    ],
+    "ask": [
+      "Bash(taskkill:*)",
+      "Bash(mv *:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git add *.env:*)",
+      "Bash(git commit *.env:*)",
+      "Write(.claude/agents/**)"
+    ]
+  },
+  "enabledMcpjsonServers": ["playwright"]
 }

@@ -2,6 +2,9 @@
 # Pre-submit hook: Blocks dangerous operations before Claude executes them
 # This runs BEFORE Claude processes your request
 
+# Fix Windows Git Bash PATH issue (Ralph plugin compatibility)
+export PATH="/usr/bin:/bin:/mingw64/bin:$PATH"
+
 # Extract the user's prompt from stdin
 PROMPT=$(cat)
 

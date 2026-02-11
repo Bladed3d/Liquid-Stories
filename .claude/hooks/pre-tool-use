@@ -1,10 +1,39 @@
 #!/bin/bash
-# Block Read operations on .env files to prevent API key exposure
+# Pre-tool-use hook: Validates tool calls before execution
+# Defense in depth: settings.json deny list is primary, this is backup
 
-if echo "$TOOL_NAME" | grep -q "Read"; then
-  if echo "$TOOL_INPUT" | grep -q "\.env"; then
+SCRIPT_DIR="$(dirname "$0")"
+
+# Block Read operations on .env files to prevent API key exposure
+if echo "$TOOL_NAME" | grep -qi "Read"; then
+  if echo "$TOOL_INPUT" | grep -qi "\.env"; then
     echo "❌ BLOCKED: Reading .env files exposes API keys"
     echo "Use 'grep KEYNAME .env.local' or 'Edit' tool instead"
+    exit 1
+  fi
+fi
+
+# For Bash commands, validate dangerous patterns
+if echo "$TOOL_NAME" | grep -qi "Bash"; then
+  # TOOL_INPUT contains the full JSON including the command
+  # Check for dangerous taskkill patterns directly in the input
+
+  # Block taskkill by process name (//IM or /IM variants)
+  if echo "$TOOL_INPUT" | grep -qiE "taskkill.*(//IM|/IM).*(node|electron|npm|python|claude)"; then
+    echo "❌ BLOCKED: taskkill by process name"
+    echo ""
+    echo "This kills ALL instances including Claude chat!"
+    echo ""
+    echo "Use specific PID instead:"
+    echo "  1. netstat -ano | findstr :3000"
+    echo "  2. taskkill //F //PID <specific_number>"
+    echo ""
+    exit 1
+  fi
+
+  # Block even if command appears anywhere in compound commands
+  if echo "$TOOL_INPUT" | grep -qiE "(&&|;|\|).*taskkill.*(//IM|/IM)"; then
+    echo "❌ BLOCKED: Compound command contains process name taskkill"
     exit 1
   fi
 fi

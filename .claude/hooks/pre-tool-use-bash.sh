@@ -1,6 +1,9 @@
 #!/bin/bash
 # Pre-tool hook for Bash commands: Validates commands before execution
 
+# Fix Windows Git Bash PATH issue (Ralph plugin compatibility)
+export PATH="/usr/bin:/bin:/mingw64/bin:$PATH"
+
 COMMAND="$1"
 
 # Block taskkill by process name
