@@ -35,7 +35,6 @@ Write minimal, integrated code tracing full path from trigger to outcome.
 
 - Add data-testid selectors per Developer Guidance.
 - Instrument with LED breadcrumbs for debugging.
-- Every multi-step operation MUST define a ProcessTrail (import from `lib/led-processes.ts`). Every function that touches an API, database, or external service MUST include `trail.light()` / `trail.fail()` calls. Code without LED instrumentation will be rejected by the quality agent.
 - No orphan or uncalled code.
 - For multi-step tasks exceeding 3 steps: Implement up to 3 steps, note progress in report.
 

@@ -377,8 +377,6 @@ LED Verdict: PASS / NEEDS_BREADCRUMBS
 Add to verification checklist:
 - [ ] **Verified LED breadcrumbs exist in code**
 - [ ] **Checked for LED anti-patterns**
-- [ ] **Forward trace** — every ProcessTrail step has a corresponding LED in the code
-- [ ] **Backward trace** — every DB write and API response traces back to a named process. Flag gaps as NEEDS_FIX.
 
 ---
 

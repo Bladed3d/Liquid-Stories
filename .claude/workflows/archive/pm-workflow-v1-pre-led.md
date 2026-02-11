@@ -89,7 +89,6 @@ Task({
     - Clear acceptance criteria
     - Files likely affected
     - Estimated complexity (S/M/L)
-    - ProcessTrail definition for multi-step operations (expected steps and outputs)
   `,
   subagent_type: "task-breakdown",
   model: "haiku"
@@ -171,8 +170,6 @@ while retry_count < 3:
       ${research_findings ? "Research findings: " + research_findings : ""}
 
       Implement code to pass the test.
-      All multi-step operations MUST use ProcessTrail (import from lib/led-processes.ts).
-      All API/DB/external service calls MUST include trail.light()/trail.fail() LEDs.
 
       MANDATORY: Run FULL build with cache clearing:
       rm -rf .next node_modules/.cache && npx tsc --noEmit && "C:/Program Files/nodejs/npm.cmd" run build 2>&1 | tail -50
@@ -205,8 +202,6 @@ while retry_count < 3:
       Developer Output: [code changes]
 
       Run the Playwright test.
-      Verify LED coverage: forward trace (every ProcessTrail step has a corresponding LED)
-      and backward trace (every DB write/API response traces to a named process).
       Return: APPROVED / NEEDS_FIX / ESCALATE
     `,
     subagent_type: "quality",
@@ -326,12 +321,6 @@ Files Changed:
 Smoke Tests: All passed (after each push)
 Final Deployment Test: PASSED
 Production Status: VERIFIED WORKING
-
-LED Coverage Delta:
-- New ProcessTrail processes added: [count]
-- New LED breadcrumbs added: [count]
-- Forward trace: [PASS/gaps found]
-- Backward trace: [PASS/gaps found]
 
 Feature is LIVE at: https://advisor-team.vercel.app/[feature-url]
 ```
