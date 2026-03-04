@@ -1,4 +1,17 @@
 {
+  "hooks": {
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-compact.sh"
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "deny": [
       "Bash(*taskkill*/IM node*)",
@@ -14,7 +27,11 @@
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
       "Bash(rm -rf /:*)",
-      "Bash(rm -rf /*:*)"
+      "Bash(rm -rf /*:*)",
+      "Bash(git rm*CLAUDE.md*)",
+      "Bash(git rm*CRITICAL-RULES.md*)",
+      "Bash(rm*CLAUDE.md*)",
+      "Bash(rm*CRITICAL-RULES.md*)"
     ],
     "ask": [
       "Bash(taskkill:*)",
@@ -22,7 +39,11 @@
       "Bash(rm -rf:*)",
       "Bash(git add *.env:*)",
       "Bash(git commit *.env:*)",
-      "Write(.claude/agents/**)"
+      "Write(.claude/agents/**)",
+      "Write(CLAUDE.md)",
+      "Write(CRITICAL-RULES.md)",
+      "Edit(CLAUDE.md)",
+      "Edit(CRITICAL-RULES.md)"
     ]
   },
   "enabledMcpjsonServers": ["playwright"]
