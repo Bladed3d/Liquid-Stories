@@ -1,17 +1,17 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-09
-**Sources:** Git history (896 commits), 20 PRDs, 28 session summaries
+**Sources:** Git history (898 commits), 20 PRDs, 28 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 896
+- Total commits: 898
 - Date range: 2026-01-02 → 2026-03-09 (66 days of active development)
 - Feature commits (feat:): 109 identified
 - PRDs read: 20
 - Session summaries read: 28
-- Features documented (shipped): 56
+- Features documented (shipped): 58
 - Features in roadmap (planned/in-development): 7
 - Categories: 12
 
@@ -350,7 +350,8 @@
 **First shipped:** 2026-01-15 (`d5d12f2`), major overhaul 2026-02-22 (`560b895`), iPad fix 2026-03-08 (`8857461`)
 **What it does:** Full app experience on mobile. Sandbox panel stacks below chat on small screens. Right panel auto-expands when content arrives. Long-press replaces right-click for context menus. Works on iOS, Android, and Safari including iPad.
 **Investor signal:** Mobile readiness is not optional for a personal development product. Users live on their phones.
-**Evidence:** Commits `d5d12f2`, `560b895`, `8857461`
+**Updated 2026-03-09:** Tightened message spacing — reduced line-height, compact paragraph and list margins, hidden blank AI paragraphs, added visual separation for section headers. Responses are now significantly more readable without extra scrolling. (`7e5f80d`)
+**Evidence:** Commits `d5d12f2`, `560b895`, `8857461`, `7e5f80d`
 
 ### Session Rating System
 **Status:** Shipped
@@ -365,6 +366,13 @@
 **What it does:** Users upload documents (TXT, MD, PDF) and the advisory team discusses their content. The upload pipeline uses Google Gemini embeddings. The team can reference specific passages from uploaded materials.
 **Investor signal:** Professional users bring their existing work into the advisory relationship — business plans, resumes, notes. This makes ClarityEQ useful for real work, not just reflection.
 **Evidence:** Commit `2b96c8c`
+
+### QR Phone Upload — Send a Photo from Your Phone
+**Status:** Shipped
+**First shipped:** 2026-03-09 (`63c67f8`)
+**What it does:** Users click the upload button and choose "From your phone." A QR code appears with a 10-minute countdown. They scan it on any phone — no login required — choose or snap a photo, and it lands instantly in their desktop session. The desktop modal auto-closes when the photo arrives.
+**Investor signal:** Removes the single biggest friction point in mobile-to-desktop image workflows. No AirDrop, no email, no login. Scan → pick → done. This makes the painting and image features dramatically more accessible to non-technical users.
+**Evidence:** Commit `63c67f8`, QR-Phone-Upload-PRD.md
 
 ---
 
