@@ -1,12 +1,12 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-09
-**Sources:** Git history (898 commits), 20 PRDs, 28 session summaries
+**Sources:** Git history (899 commits), 20 PRDs, 28 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 898
+- Total commits: 899
 - Date range: 2026-01-02 → 2026-03-09 (66 days of active development)
 - Feature commits (feat:): 109 identified
 - PRDs read: 20
@@ -372,7 +372,8 @@
 **First shipped:** 2026-03-09 (`63c67f8`)
 **What it does:** Users click the upload button and choose "From your phone." A QR code appears with a 10-minute countdown. They scan it on any phone — no login required — choose or snap a photo, and it lands instantly in their desktop session. The desktop modal auto-closes when the photo arrives.
 **Investor signal:** Removes the single biggest friction point in mobile-to-desktop image workflows. No AirDrop, no email, no login. Scan → pick → done. This makes the painting and image features dramatically more accessible to non-technical users.
-**Evidence:** Commit `63c67f8`, QR-Phone-Upload-PRD.md
+**Updated 2026-03-09:** Fixed Clerk login wall on phone page (added to public routes) and gallery access (removed camera-only constraint so iOS/Android shows the full choice sheet). (`9bfea9d`)
+**Evidence:** Commits `63c67f8`, `9bfea9d`, QR-Phone-Upload-PRD.md
 
 ---
 
