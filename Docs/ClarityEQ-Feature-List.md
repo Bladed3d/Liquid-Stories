@@ -1,18 +1,18 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-09
-**Sources:** Git history (902 commits), 20 PRDs, 28 session summaries
+**Sources:** Git history (903 commits), 20 PRDs, 28 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 902
+- Total commits: 903
 - Date range: 2026-01-02 → 2026-03-09 (66 days of active development)
 - Feature commits (feat:): 111 identified
 - PRDs read: 20
 - Session summaries read: 28
-- Features documented (shipped): 61
-- Features in roadmap (planned/in-development): 6
+- Features documented (shipped): 62
+- Features in roadmap (planned/in-development): 5
 - Categories: 12
 
 ---
@@ -453,10 +453,12 @@
 ## 12. Roadmap — Planned Features (Not Yet Shipped to Production)
 
 ### Life Path Interview — Self-Discovery Profile
-**Status:** In Development (committed 2026-03-07 `d317972`, pending verification and push)
-**What it does:** An 8–12 turn conversational interview conducted by the full advisory team to discover how a user thinks, works, and is wired. Output is a shareable Life Path Profile: personalized career direction, natural work style, and suggested paths forward. Accompanied by an AI-generated image of the user's life path scene. All users have access; the feature is badged as a Premium Feature to signal value.
+**Status:** Shipped
+**First shipped:** 2026-03-07 (`d317972`), production-ready 2026-03-09 (`3ad4cd4`)
+**What it does:** An 8–12 turn conversational interview conducted by the full advisory team to discover how a user thinks, works, and is wired. Output is a shareable Life Path Profile: personalized career direction, natural work style, and suggested paths forward. Accompanied by an AI-generated hero image of the user's life path scene — saved to permanent storage. A working share link is appended to the profile at the moment it's generated. Admin can see sessions started, profiles completed, hero image success rate, and completion rate in /admin/stats.
 **Investor signal:** Self-discovery is a high-value, high-margin category. The shareable Life Path Profile is an organic growth mechanism — recipients of shared profiles see a beautiful artifact and ask "how do I get one of these?"
-**Evidence:** Commit `d317972`, `Docs/Life-Path-PRD.md`, PRD validation 2026-03-06
+**Updated 2026-03-09:** Fixed hero image capture (URL now saved to DB), fixed share link (real URL injected as SSE after profile saves — no more broken placeholder), added Life Path adoption stats to admin dashboard. (`3ad4cd4`)
+**Evidence:** Commits `d317972`, `3ad4cd4`, `Docs/Life-Path-PRD.md`, PRD validation 2026-03-06
 
 ### Career Matching Layer
 **Status:** Planned (PRD finalized 2026-03-06, awaits Life Path MVP)
