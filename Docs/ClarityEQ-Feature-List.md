@@ -1,18 +1,18 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-09
-**Sources:** Git history (899 commits), 20 PRDs, 28 session summaries
+**Sources:** Git history (902 commits), 20 PRDs, 28 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 899
+- Total commits: 902
 - Date range: 2026-01-02 → 2026-03-09 (66 days of active development)
-- Feature commits (feat:): 109 identified
+- Feature commits (feat:): 111 identified
 - PRDs read: 20
 - Session summaries read: 28
-- Features documented (shipped): 58
-- Features in roadmap (planned/in-development): 7
+- Features documented (shipped): 61
+- Features in roadmap (planned/in-development): 6
 - Categories: 12
 
 ---
@@ -135,9 +135,17 @@
 ### My Images Gallery
 **Status:** Shipped
 **First shipped:** 2026-03-03 (`fb91a15`)
-**What it does:** A gallery of all images the user has uploaded or had painted. Images can be selected from the gallery and used as a reference for new painting sessions without re-uploading.
+**What it does:** A gallery of all images the user has uploaded or had painted. Images can be selected from the gallery and used as a reference for new painting sessions without re-uploading. Upload tiles show a delete button on hover. Users can mark any upload as their avatar directly from the gallery — a blue badge confirms the selection.
 **Investor signal:** Users accumulate a personal visual library that grows over time. The gallery is tangible evidence that ClarityEQ is building a persistent creative relationship, not just processing queries.
-**Evidence:** Commit `fb91a15`
+**Updated 2026-03-09:** Added delete (X) on all tiles, Set as Avatar on uploads with inline badge confirmation, parallel fetch of uploads + profile for instant load. (`0279bf3`)
+**Evidence:** Commits `fb91a15`, `0279bf3`
+
+### Vision Board — Aspirational Painting Session
+**Status:** Shipped
+**First shipped:** 2026-03-09 (`0279bf3`)
+**What it does:** A dedicated session type where Aria leads the user through a 2–3 question conversation about the life they are building toward, then generates a series of aspirational paintings placing them inside that future. All Vision Board sessions auto-link to a system "Vision Board" project so they accumulate in one place. The sandbox and unrelated advisors are intentionally blocked — the session stays visual and focused.
+**Investor signal:** Manifestation and vision boarding is a mainstream personal development practice with proven emotional attachment. A user who has seen themselves painted inside their dream life has a deeply personal artifact they will share. This is ClarityEQ's highest-shareability feature.
+**Evidence:** Commit `0279bf3`, PRD `Docs/Avatar-VisionBoard-PRD-v2.md`
 
 ### Painting Design Interview
 **Status:** Shipped
@@ -327,16 +335,18 @@
 ### Guided Onboarding Interview
 **Status:** Shipped
 **First shipped:** 2026-03-05 (`7521d86` — overhaul committed and pushed)
-**What it does:** New users see a "Start Here" card on the home screen. Clicking it starts a guided getting-to-know-you session: who they are, what they do, and what they are facing — through natural conversation, not a form. A welcome image fires on the first response (a dynamic oil painting with the user's name and city). From session 2 onward, all advisors know the user's background.
-**Investor signal:** First impressions determine whether users stay. This replaces the blank-screen problem — the leading cause of AI trial user churn — with an immediately personal experience.
-**Evidence:** Commit `7521d86`, session summaries 2026-03-04 and 2026-03-05 (verified: "Start Here" → Aria greeting → welcome image with user's name confirmed working)
+**What it does:** New users see a "Start Here" card on the home screen. Clicking it starts a guided getting-to-know-you session: who they are, what they do, and what they are facing — through natural conversation, not a form. A welcome image fires on the first response (a dynamic oil painting with the user's name and city). From session 2 onward, all advisors know the user's background. After onboarding completes, the home screen transitions to a two-panel layout: Vision Board on the left, Life Path on the right — each with a clear CTA.
+**Investor signal:** First impressions determine whether users stay. This replaces the blank-screen problem — the leading cause of AI trial user churn — with an immediately personal experience. The post-onboarding two-panel layout directs users toward the product's two highest-value journeys.
+**Updated 2026-03-09:** Post-onboarding home screen redesigned — Vision Board panel left ("Paint your future"), Life Path panel right. Two states total: pre-onboarding shows Start Here, post-onboarding shows the two panels. (`0279bf3`)
+**Evidence:** Commit `7521d86`, `0279bf3`, session summaries 2026-03-04 and 2026-03-05 (verified: "Start Here" → Aria greeting → welcome image with user's name confirmed working)
 
 ### User Avatar with Crop and Zoom Editor
 **Status:** Shipped
 **First shipped:** 2026-02-15 (`66134ff`)
-**What it does:** Users upload a profile photo with an in-app crop and zoom editor. The avatar appears throughout the app.
-**Investor signal:** Personal identity in the product increases emotional attachment. Users with their own photo see themselves as participants in the ClarityEQ experience.
-**Evidence:** Commit `66134ff`
+**What it does:** Users upload a profile photo with an in-app crop and zoom editor. The avatar appears throughout the app. Any photo in My Images can now be set as the avatar with one click — it auto-injects into Life Path and Vision Board image generations so the user's actual face appears in their aspirational paintings.
+**Investor signal:** Personal identity in the product increases emotional attachment. When the user's face appears in their own painted future, ownership of that image is 100% personal. Highly shareable.
+**Updated 2026-03-09:** Avatar auto-injects into Life Path and Vision Board image pipelines via `input_images[]` (Flux 2 Pro identity preservation). Managed from My Images gallery. (`0279bf3`)
+**Evidence:** Commits `66134ff`, `0279bf3`
 
 ### Settings Panel
 **Status:** Shipped
@@ -372,8 +382,8 @@
 **First shipped:** 2026-03-09 (`63c67f8`)
 **What it does:** Users click the upload button and choose "From your phone." A QR code appears with a 10-minute countdown. They scan it on any phone — no login required — choose or snap a photo, and it lands instantly in their desktop session. The desktop modal auto-closes when the photo arrives.
 **Investor signal:** Removes the single biggest friction point in mobile-to-desktop image workflows. No AirDrop, no email, no login. Scan → pick → done. This makes the painting and image features dramatically more accessible to non-technical users.
-**Updated 2026-03-09:** Fixed Clerk login wall on phone page (added to public routes) and gallery access (removed camera-only constraint so iOS/Android shows the full choice sheet). (`9bfea9d`)
-**Evidence:** Commits `63c67f8`, `9bfea9d`, QR-Phone-Upload-PRD.md
+**Updated 2026-03-09:** Fixed Clerk login wall on phone page (added to public routes) and gallery access (removed camera-only constraint so iOS/Android shows the full choice sheet). (`9bfea9d`) Fixed generate-token route — now uses service role client to bypass Supabase RLS, eliminating silent token write failures that caused "Invalid upload link" errors. (`3ffc742`)
+**Evidence:** Commits `63c67f8`, `9bfea9d`, `3ffc742`, QR-Phone-Upload-PRD.md
 
 ---
 
@@ -477,12 +487,6 @@
 **What it does:** Users share any conversation via a public URL. The shared page opens with the first AI-generated image as a hero, followed by the full transcript, closing with a CTA for clarityeq.com. No login required to view. Owner controls sharing.
 **Investor signal:** Every shared conversation is a live advertisement with the AI image as the hook, the transcript as the proof, and the CTA as the conversion. Organic growth built into the product.
 **Evidence:** `Docs/Chat-Sharing-PRD.md`, session summary 2026-03-06 (hero image Supabase storage architecture resolved)
-
-### Avatar and Vision Board
-**Status:** Planned (PRD written 2026-03-07, depends on Life Path)
-**What it does:** Users upload a 3-angle photo set as their avatar. This photo personalizes all Life Path images and a dedicated Vision Board feature — a series of paintings placing the user inside their described future goals.
-**Investor signal:** Personalized manifestation paintings are highly shareable. Seeing yourself in your future is emotionally powerful in a way that stock imagery is not. Virality built into the output.
-**Evidence:** `Docs/Avatar-VisionBoard-PRD.md` (triggered by accidental discovery: Derek's reference photo was loaded during a Life Path interview, Flux placed him in the scene — "struck enough to warrant designing for deliberately")
 
 ---
 
