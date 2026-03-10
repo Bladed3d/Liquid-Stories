@@ -1,17 +1,17 @@
 # ClarityEQ — Feature List
-**Generated:** 2026-03-09
-**Sources:** Git history (903 commits), 20 PRDs, 28 session summaries
+**Generated:** 2026-03-10
+**Sources:** Git history (908 commits), 21 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 903
-- Date range: 2026-01-02 → 2026-03-09 (66 days of active development)
-- Feature commits (feat:): 111 identified
-- PRDs read: 20
-- Session summaries read: 28
-- Features documented (shipped): 62
+- Total commits: 908
+- Date range: 2026-01-02 → 2026-03-10 (67 days of active development)
+- Feature commits (feat:): 116 identified
+- PRDs read: 21
+- Session summaries read: 29
+- Features documented (shipped): 64
 - Features in roadmap (planned/in-development): 5
 - Categories: 12
 
@@ -268,12 +268,13 @@
 **Investor signal:** Transforms ClarityEQ from a series of one-off conversations into an ongoing working relationship. Users who have projects have a reason to return every week — they are building something.
 **Evidence:** Commit `01c7d94`, session summary 2026-02-21, MEMORY.md projects section
 
-### Topic Recognition and Session Resumption
+### Persistent Knowledge Graph — Cross-Session Memory
 **Status:** Shipped
 **First shipped:** 2026-02-21 (`7a5d5ac`)
-**What it does:** When a user starts a new conversation, the system automatically checks if the topic matches a past session using keyword-overlap matching. If matched, the last 10 messages from the previous session are injected as context. The team greets the user with a brief recap and asks where to continue — no manual effort needed.
-**Investor signal:** The experience of "picking up where you left off" without any manual work. This is the moment trial users convert to subscribers.
-**Evidence:** Commit `7a5d5ac`, MEMORY.md `findMatchingTopic()` section
+**What it does:** After every conversation, the system extracts confirmed facts, decisions, and insights and stores them in a structured knowledge graph tagged by topic and user. When a user starts a new session on a related topic, the team is silently briefed from this graph — they already know what was decided, what was left unresolved, and what matters to this person. This works across completely separate conversations: a user discussing a family matter in one chat can trigger the team to surface a related legal issue from a different chat, because both are indexed under the same topic cluster. No manual tagging or linking required — the system builds and queries this knowledge continuously in the background.
+**Investor signal:** ClarityEQ gets smarter about each user over time. The longer someone uses it, the more the team understands their world — turning a tool into a relationship. This compounding memory is the moat that single-session AI products cannot replicate.
+**Corrected 2026-03-10:** Previous description understated the feature as simple session resumption using raw message injection. The actual implementation extracts structured facts into `session_facts` and `user_topics` tables, builds cross-topic awareness, and gates context injection on explicit user intent — far more architecturally sophisticated and investor-relevant than described.
+**Evidence:** Commit `7a5d5ac`, `lib/topics.ts` (`findMatchingTopic()`), `handlers/context.ts` (topic resumption section), `Docs/Cross-Chat-Topic-Navigation-PRD.md`
 
 ### Session-to-Project Organization
 **Status:** Shipped
@@ -285,9 +286,10 @@
 ### Animated Welcome and Topic Greeting for Returning Users
 **Status:** Shipped
 **First shipped:** 2026-02-21 (`b0fe345`)
-**What it does:** Returning users see an animated welcome screen that recognizes their history. Past conversation topics appear as clickable buttons — one click pre-fills the chat with a continuation prompt. The team greets users by referencing what they have discussed before.
-**Investor signal:** "This app knows me" is the retention moment. The first time users see their own topics reflected back at them is when ClarityEQ becomes a relationship rather than a tool.
-**Evidence:** Commit `b0fe345`
+**What it does:** Returning users see an animated welcome screen that recognizes their history. The backend computes recent conversation topics and the welcome screen displays them as clickable one-tap entry points. Clicking a topic pre-fills the input with a continuation prompt ("Let's continue our discussion about [topic]"), making it effortless to resume past work. Only shown when the user has two or more sessions and at least one stored topic.
+**Investor signal:** "This app knows me" is the retention moment. Clickable topic shortcuts convert passive recognition into an active re-engagement loop — users come back because their history is waiting for them, not just stored.
+**Updated 2026-03-10:** Topic buttons fully implemented in `ProjectGreeting.tsx` (commit `e18266e`). Previously marked Partial because `recentSessionTopics` was returned by the backend but never rendered. Now complete.
+**Evidence:** Commits `b0fe345`, `e18266e`, `lib/projects.ts` (`getGreetingData()`), `Docs/Cross-Chat-Topic-Navigation-PRD.md`
 
 ### Project Picker on New Chat
 **Status:** Shipped
@@ -309,6 +311,13 @@
 **What it does:** Every project has a dedicated Notes tab alongside Sessions. Notes auto-save as the user types. The Save button creates a named note with a title — a snapshot the user can return to. The Open button browses all saved notes for that project. Notes are fully isolated: notes written inside "My Business Plan" never appear in "My Paintings." Deleting a project deletes its notes (with an explicit warning). Pre-existing notes were automatically migrated to the General project.
 **Investor signal:** Notes that follow the project context — not a separate app, not a global scratchpad — turn ClarityEQ into the workspace where users do their thinking, not just get advice.
 **Evidence:** Commit `c9a718a`, PRD `Docs/Project-Notes-PRD.md`
+
+### Cross-Chat Topic Navigation — Session Jump Banner
+**Status:** Shipped
+**First shipped:** 2026-03-10 (`e18266e`)
+**What it does:** When the advisory team references facts from a prior conversation, a dismissible banner appears at the top of the chat identifying the source session by number and topic name (e.g., "Continuing from Chat #42 · Estate Litigation Strategy"). Users can tap "Open that chat" to jump directly to the source session, or "Move this chat into Chat #N" to consolidate work there via a direct API call. The banner auto-dismisses when the user sends their first reply in the current session. Dismiss state persists across page refreshes. A secondary chapter navigation chip appears in the header for chapter-type sessions, linking back to the parent session. Backend emits typed SSE events (`topic_resume`, `chapter_parent`) so the frontend can build navigation UI without a second API call.
+**Investor signal:** Prevents session fragmentation — the single biggest source of "the AI forgot what we discussed" complaints. When users can navigate to the source conversation, work consolidates rather than spreading across disconnected sessions. Directly increases retention and perceived intelligence of the product.
+**Evidence:** Commits `e18266e`, `Docs/Cross-Chat-Topic-Navigation-PRD.md`, LED range 7460–7499
 
 ---
 
