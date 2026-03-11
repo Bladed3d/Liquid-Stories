@@ -1,17 +1,17 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-10
-**Sources:** Git history (908 commits), 21 PRDs, 29 session summaries
+**Sources:** Git history (922 commits), 21 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 908
+- Total commits: 922
 - Date range: 2026-01-02 → 2026-03-10 (67 days of active development)
 - Feature commits (feat:): 116 identified
 - PRDs read: 21
 - Session summaries read: 29
-- Features documented (shipped): 64
+- Features documented (shipped): 70
 - Features in roadmap (planned/in-development): 5
 - Categories: 12
 
@@ -143,9 +143,10 @@
 ### Vision Board — Aspirational Painting Session
 **Status:** Shipped
 **First shipped:** 2026-03-09 (`0279bf3`)
-**What it does:** A dedicated session type where Aria leads the user through a 2–3 question conversation about the life they are building toward, then generates a series of aspirational paintings placing them inside that future. All Vision Board sessions auto-link to a system "Vision Board" project so they accumulate in one place. The sandbox and unrelated advisors are intentionally blocked — the session stays visual and focused.
-**Investor signal:** Manifestation and vision boarding is a mainstream personal development practice with proven emotional attachment. A user who has seen themselves painted inside their dream life has a deeply personal artifact they will share. This is ClarityEQ's highest-shareability feature.
-**Evidence:** Commit `0279bf3`, PRD `Docs/Avatar-VisionBoard-PRD-v2.md`
+**What it does:** A dedicated session type where Aria leads the user through a 2–3 question conversation about the life they are building toward, then generates a series of aspirational paintings placing them inside that future. All Vision Board sessions auto-link to a system "Vision Board" project so they accumulate in one place. The sandbox and unrelated advisors are intentionally blocked — the session stays visual and focused. The homepage displays the user's three most recent Vision Board paintings in a responsive gallery row with empty placeholder slots for missing images.
+**Investor signal:** Manifestation and vision boarding is a mainstream personal development practice with proven emotional attachment. A user who has seen themselves painted inside their dream life has a deeply personal artifact they will share. This is ClarityEQ's highest-shareability feature. The homepage gallery makes these paintings the first thing users see on return.
+**Updated 2026-03-10:** Homepage now shows 3-image Vision Board gallery instead of single latest image. Responsive layout scales proportionally with viewport on desktop; stacks vertically on mobile. (`708252c`, `0ae8d73`, `64d9dee`)
+**Evidence:** Commit `0279bf3`, `708252c`, `0ae8d73`, `64d9dee`, PRD `Docs/Avatar-VisionBoard-PRD-v2.md`
 
 ### Painting Design Interview
 **Status:** Shipped
@@ -333,9 +334,10 @@
 ### Little Wins — AI Accountability Partner
 **Status:** Shipped
 **First committed:** 2026-03-08 (`628762b` through `06f6d03`)
-**What it does:** When a user commits to something in a conversation ("I'll email Marcus by Thursday"), the advisory team proposes logging it as a Little Win. With the user's confirmation, a tracked commitment is created with a required due date. On the user's next visit, the team checks in on pending wins. Overdue wins trigger an offer to break them into smaller steps. Users cannot self-check-off — they validate completion through conversation.
-**Investor signal:** The accountability partner that turns advice into action. Commitment plus follow-up is the core retention loop in every successful productivity and coaching tool. This feature creates daily and weekly usage habits.
-**Evidence:** Commits `628762b`, `07112e3`, `5d0df5d`, `61b0b94`, `88975d1`, `018c6f3`, `06f6d03`, session summary 2026-03-08
+**What it does:** When a user commits to something in a conversation ("I'll email Marcus by Thursday"), the advisory team proposes logging it as a Little Win. With the user's confirmation, a tracked commitment is created with a required due date. If the user mentions a specific time ("at 3pm"), a reminder is attached. On the user's next visit, the team checks in on pending wins. Overdue wins trigger an offer to break them into smaller steps. A real-time toast notification appears the moment a win is created or completed. Users can mark wins complete from the panel, and in-app reminder modals pop up when a win's reminder time arrives. An urgent wins banner above the chat highlights due-today and overdue items on arrival.
+**Investor signal:** The accountability partner that turns advice into action. Commitment plus follow-up is the core retention loop in every successful productivity and coaching tool. Time-based reminders and urgency banners create daily usage habits — users come back because they know the app will hold them to it.
+**Updated 2026-03-10:** Added reminder time extraction from natural language, mark-complete button, SSE real-time toast notifications, in-app reminder modal (60s polling), urgent wins banner above chat, and dedup fix preventing silent duplicate win creation. (`249ebf3`, `e56f41e`, `54253ba`, `f25bb37`, `656f000`, `62481ca`)
+**Evidence:** Commits `628762b`, `07112e3`, `5d0df5d`, `61b0b94`, `88975d1`, `018c6f3`, `06f6d03`, `249ebf3`, `e56f41e`, `54253ba`, `f25bb37`, `656f000`, `62481ca`, session summary 2026-03-08
 
 ---
 
@@ -346,8 +348,9 @@
 **First shipped:** 2026-03-05 (`7521d86` — overhaul committed and pushed)
 **What it does:** New users see a "Start Here" card on the home screen. Clicking it starts a guided getting-to-know-you session: who they are, what they do, and what they are facing — through natural conversation, not a form. A welcome image fires on the first response (a dynamic oil painting with the user's name and city). From session 2 onward, all advisors know the user's background. After onboarding completes, the home screen transitions to a two-panel layout: Vision Board on the left, Life Path on the right — each with a clear CTA.
 **Investor signal:** First impressions determine whether users stay. This replaces the blank-screen problem — the leading cause of AI trial user churn — with an immediately personal experience. The post-onboarding two-panel layout directs users toward the product's two highest-value journeys.
-**Updated 2026-03-09:** Post-onboarding home screen redesigned — Vision Board panel left ("Paint your future"), Life Path panel right. Two states total: pre-onboarding shows Start Here, post-onboarding shows the two panels. (`0279bf3`)
-**Evidence:** Commit `7521d86`, `0279bf3`, session summaries 2026-03-04 and 2026-03-05 (verified: "Start Here" → Aria greeting → welcome image with user's name confirmed working)
+**Updated 2026-03-09:** Post-onboarding home screen redesigned — Vision Board panel left, Life Path panel right. Two states total: pre-onboarding shows Start Here, post-onboarding shows the two panels. (`0279bf3`)
+**Updated 2026-03-10:** Home screen tagline changed to "Everyone is being told to learn AI. We built AI to learn you." Life Path renamed to "Achieve" throughout. Recent topic shortcuts appear between tagline and cards — clicking one loads the actual previous session. Responsive layout: desktop uses proportional flex, mobile stacks vertically. (`3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`)
+**Evidence:** Commit `7521d86`, `0279bf3`, `3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`, session summaries 2026-03-04 and 2026-03-05
 
 ### User Avatar with Crop and Zoom Editor
 **Status:** Shipped
@@ -392,7 +395,8 @@
 **What it does:** Users click the upload button and choose "From your phone." A QR code appears with a 10-minute countdown. They scan it on any phone — no login required — choose or snap a photo, and it lands instantly in their desktop session. The desktop modal auto-closes when the photo arrives.
 **Investor signal:** Removes the single biggest friction point in mobile-to-desktop image workflows. No AirDrop, no email, no login. Scan → pick → done. This makes the painting and image features dramatically more accessible to non-technical users.
 **Updated 2026-03-09:** Fixed Clerk login wall on phone page (added to public routes) and gallery access (removed camera-only constraint so iOS/Android shows the full choice sheet). (`9bfea9d`) Fixed generate-token route — now uses service role client to bypass Supabase RLS, eliminating silent token write failures that caused "Invalid upload link" errors. (`3ffc742`)
-**Evidence:** Commits `63c67f8`, `9bfea9d`, `3ffc742`, QR-Phone-Upload-PRD.md
+**Updated 2026-03-10:** Fixed token sent as `[object Promise]` in Next.js 16 — `params` is now a Promise and must be unwrapped with `React.use()`. This was the remaining cause of "invalid upload link" errors on phone upload. (`64d9dee`)
+**Evidence:** Commits `63c67f8`, `9bfea9d`, `3ffc742`, `64d9dee`, QR-Phone-Upload-PRD.md
 
 ---
 
@@ -440,7 +444,8 @@
 ### Next.js on Vercel with Supabase and Clerk
 **Status:** Shipped
 **First shipped:** 2026-01-02 (initial), Supabase `b27c8d8` (2026-01-11)
-**What it does:** App runs on Next.js 14 (App Router) deployed to Vercel with auto-deploy from main branch. Authentication via Clerk. Database via Supabase. All serverless — no fixed servers to maintain or scale.
+**What it does:** App runs on Next.js 16 (App Router) deployed to Vercel with auto-deploy from main branch. Authentication via Clerk. Database via Supabase. All serverless — no fixed servers to maintain or scale. Dev server includes automatic Turbopack cache clearing on startup (prevents corruption crashes on Windows) and structured log output to `logs/current.log`.
+**Corrected 2026-03-10:** Updated Next.js version from 14 to 16. Added dev server reliability improvements (`a8fd803`, `4171acc`).
 **Investor signal:** Battle-tested modern stack. Scales to millions of users without infrastructure re-engineering. Global CDN and edge compute handled automatically.
 **Evidence:** Commit `82ea634`, `b27c8d8`
 
