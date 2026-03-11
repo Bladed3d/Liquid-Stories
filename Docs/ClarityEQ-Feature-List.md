@@ -1,17 +1,17 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-10
-**Sources:** Git history (922 commits), 21 PRDs, 29 session summaries
+**Sources:** Git history (929 commits), 21 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 922
+- Total commits: 929
 - Date range: 2026-01-02 → 2026-03-10 (67 days of active development)
 - Feature commits (feat:): 116 identified
 - PRDs read: 21
 - Session summaries read: 29
-- Features documented (shipped): 70
+- Features documented (shipped): 71
 - Features in roadmap (planned/in-development): 5
 - Categories: 12
 
@@ -350,7 +350,9 @@
 **Investor signal:** First impressions determine whether users stay. This replaces the blank-screen problem — the leading cause of AI trial user churn — with an immediately personal experience. The post-onboarding two-panel layout directs users toward the product's two highest-value journeys.
 **Updated 2026-03-09:** Post-onboarding home screen redesigned — Vision Board panel left, Life Path panel right. Two states total: pre-onboarding shows Start Here, post-onboarding shows the two panels. (`0279bf3`)
 **Updated 2026-03-10:** Home screen tagline changed to "Everyone is being told to learn AI. We built AI to learn you." Life Path renamed to "Achieve" throughout. Recent topic shortcuts appear between tagline and cards — clicking one loads the actual previous session. Responsive layout: desktop uses proportional flex, mobile stacks vertically. (`3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`)
-**Evidence:** Commit `7521d86`, `0279bf3`, `3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`, session summaries 2026-03-04 and 2026-03-05
+**Updated 2026-03-10:** Stage 3 now includes 5 benefit bullet points (Vision Board, Advisory Team, Spontaneous Images, Little Wins, Projects) delivered verbatim after the personalized advisor roster — plants awareness of the product's key features before the user's first real session. (`eff0679`)
+**Updated 2026-03-10:** Onboarding reduced to exactly 2 questions before Stage 3 pitch — Q1: name and where from, Q2: what do you do. No follow-ups, no additional exchanges. Stage 3 fires immediately after the second answer. Protects against investor/executive churn before they see the product pitch. Fixed early welcome image firing before the user's name was known — image now correctly waits for the AI's `^IMG` marker which extracts name from the user's actual answer. (`5e7748e`, `06613a2`, `658c40a`)
+**Evidence:** Commit `7521d86`, `0279bf3`, `3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`, `eff0679`, `5e7748e`, `06613a2`, `658c40a`, session summaries 2026-03-04 and 2026-03-05
 
 ### User Avatar with Crop and Zoom Editor
 **Status:** Shipped
@@ -397,6 +399,13 @@
 **Updated 2026-03-09:** Fixed Clerk login wall on phone page (added to public routes) and gallery access (removed camera-only constraint so iOS/Android shows the full choice sheet). (`9bfea9d`) Fixed generate-token route — now uses service role client to bypass Supabase RLS, eliminating silent token write failures that caused "Invalid upload link" errors. (`3ffc742`)
 **Updated 2026-03-10:** Fixed token sent as `[object Promise]` in Next.js 16 — `params` is now a Promise and must be unwrapped with `React.use()`. This was the remaining cause of "invalid upload link" errors on phone upload. (`64d9dee`)
 **Evidence:** Commits `63c67f8`, `9bfea9d`, `3ffc742`, `64d9dee`, QR-Phone-Upload-PRD.md
+
+### Vision Board Avatar Upload Intercept
+**Status:** Shipped
+**First shipped:** 2026-03-10 (`24d66f9`, `0519a28`)
+**What it does:** When a user clicks to create a Vision Board session and has no avatar uploaded, an intercept modal appears before the session starts. It invites them to upload a photo via the QR phone flow ("Your goals materialize faster with you in the picture"). They can upload or skip. If they skip, the session starts immediately. The modal returns every time they create a Vision Board until they have an avatar — no skip tracking needed, since the check is simply whether `avatar_url` is null. Once uploaded, the modal never appears again.
+**Investor signal:** Avatar upload is the single change that makes Vision Board images feel personal and shareable. This intercept creates the right moment to ask — the user is already opening Vision Board, so the relevance is obvious. Frictionless QR phone flow removes the biggest barrier (finding the file on a laptop). A user who uploads their photo is significantly more likely to return.
+**Evidence:** Commits `24d66f9`, `0519a28`, `948ab6b`, PRD `Docs/User-Image-PRD2.md`
 
 ---
 
