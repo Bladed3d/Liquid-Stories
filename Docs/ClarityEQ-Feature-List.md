@@ -1,17 +1,17 @@
 # ClarityEQ — Feature List
-**Generated:** 2026-03-10
-**Sources:** Git history (929 commits), 21 PRDs, 29 session summaries
+**Generated:** 2026-03-11
+**Sources:** Git history (933 commits), 22 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 929
-- Date range: 2026-01-02 → 2026-03-10 (67 days of active development)
-- Feature commits (feat:): 116 identified
-- PRDs read: 21
+- Total commits: 933
+- Date range: 2026-01-02 → 2026-03-11 (68 days of active development)
+- Feature commits (feat:): 118 identified
+- PRDs read: 22
 - Session summaries read: 29
-- Features documented (shipped): 71
+- Features documented (shipped): 72
 - Features in roadmap (planned/in-development): 5
 - Categories: 12
 
@@ -29,8 +29,9 @@
 ### Advisor Personalities (5 Distinct Advisors)
 **Status:** Shipped
 **First shipped:** 2026-01-15 (`b942cf1` — major advisor system upgrade)
-**What it does:** Five advisors with defined roles: Marcus (strategic inversion, Charlie Munger style, powered by MiniMax M2.5), Aria (creative vision and image generation), Maya (research and web search), a mindset coach, and a risk analyst. Each has a distinct voice, priorities, and response style.
+**What it does:** Five core advisors with defined roles: David (business strategy), Ravi (Zen mindset and wellbeing), Vera (research and web search), Sarah (writing and organization), and Aria (creative vision and image generation). Marcus (risk analysis, Charlie Munger inversion style) is optional — toggled off by default in Settings. Each has a distinct voice, priorities, and response style, including a unique TTS voice.
 **Investor signal:** Named personalities create emotional attachment. Users return to talk to "their team." Named advisors enable per-advisor TTS voice assignment, making the audio experience feel like a real group conversation.
+**Corrected 2026-03-11:** Previous entry listed wrong advisor names (Maya, "mindset coach", "risk analyst") — names verified against MEMORY.md and codebase.
 **Evidence:** Commit `b942cf1` (initial advisor upgrade 2026-01-15), `e977640` (Marcus redesign as Munger inversion advisor 2026-02-25)
 
 ### Guardrails System and App Help Advisor
@@ -92,6 +93,13 @@
 **What it does:** The moment the AI triggers an image or visual output, the right panel shows "Aria is creating something for you..." with an advancing progress bar. Users see that something is being built rather than staring at a blank panel.
 **Investor signal:** Bridges the gap between text finishing and image appearing. Without this animation, users close the app before seeing the image.
 **Evidence:** Session summary 2026-02-23, new SSE `progress` event type
+
+### Silent Retry for Hung AI Streams (No-Hang)
+**Status:** Shipped
+**First shipped:** 2026-03-11 (`ec3c54e`)
+**What it does:** When the AI provider accepts a connection but stops sending data — a silent hang — the user would previously see "Advisory Team is thinking..." forever with no way out except a hard refresh. Now, a 60-second watchdog detects the hang and silently retries up to two more times. The user never sees a loading flicker, an error, or any indication that a retry happened. If all three attempts fail, a single clean message appears: "The service is slow right now — try again in a moment." A backend 70-second timeout acts as a second layer of defense and fires an admin email alert so Derek is notified when it happens.
+**Investor signal:** Silent failures are the most damaging UX issue — users blame themselves or the product, and they leave. This turns an invisible catastrophic failure into an invisible recovery.
+**Evidence:** Commit `ec3c54e`, PRD `Docs/No-Hang-PRD.md`
 
 ### Conversational Memory — Token Budget and Sliding Window
 **Status:** Shipped
@@ -352,7 +360,8 @@
 **Updated 2026-03-10:** Home screen tagline changed to "Everyone is being told to learn AI. We built AI to learn you." Life Path renamed to "Achieve" throughout. Recent topic shortcuts appear between tagline and cards — clicking one loads the actual previous session. Responsive layout: desktop uses proportional flex, mobile stacks vertically. (`3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`)
 **Updated 2026-03-10:** Stage 3 now includes 5 benefit bullet points (Vision Board, Advisory Team, Spontaneous Images, Little Wins, Projects) delivered verbatim after the personalized advisor roster — plants awareness of the product's key features before the user's first real session. (`eff0679`)
 **Updated 2026-03-10:** Onboarding reduced to exactly 2 questions before Stage 3 pitch — Q1: name and where from, Q2: what do you do. No follow-ups, no additional exchanges. Stage 3 fires immediately after the second answer. Protects against investor/executive churn before they see the product pitch. Fixed early welcome image firing before the user's name was known — image now correctly waits for the AI's `^IMG` marker which extracts name from the user's actual answer. (`5e7748e`, `06613a2`, `658c40a`)
-**Evidence:** Commit `7521d86`, `0279bf3`, `3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`, `eff0679`, `5e7748e`, `06613a2`, `658c40a`, session summaries 2026-03-04 and 2026-03-05
+**Updated 2026-03-11:** Onboarding rewritten as server-owned stage architecture — 4 micro-prompts (Stage 1/2/3A/3B) injected by the server based on message count, replacing a single monolithic AI prompt. Stage 3A advisor question is hardcoded server-side so the AI cannot rephrase it. Stage 3B YES/NO branching detects user intent and routes the NO path to a static server-owned response, skipping the AI call entirely. Onboarding profile is assembled from conversation history without AI-generated JSON markers. (`f94f6b0`)
+**Evidence:** Commit `7521d86`, `0279bf3`, `3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`, `eff0679`, `5e7748e`, `06613a2`, `658c40a`, `f94f6b0`, session summaries 2026-03-04 and 2026-03-05
 
 ### User Avatar with Crop and Zoom Editor
 **Status:** Shipped
