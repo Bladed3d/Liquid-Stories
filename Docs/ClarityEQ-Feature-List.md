@@ -1,12 +1,12 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-13
-**Sources:** Git history (942 commits), 23 PRDs, 29 session summaries
+**Sources:** Git history (943 commits), 23 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 942
+- Total commits: 943
 - Date range: 2026-01-02 → 2026-03-13 (70 days of active development)
 - Feature commits (feat:): 124 identified
 - PRDs read: 23
@@ -468,9 +468,9 @@
 ### Invite Management System
 **Status:** Shipped
 **First shipped:** 2026-01-16 (`145c869`), enhanced 2026-03-07 (`0934072`)
-**What it does:** Admin sends personalized invite emails with tracking. The invites page shows stats (sent, pending, converted, bounce rate) with filtering. Admin can generate invite links without sending email for in-person distribution. Automated approval emails send when users are approved off the waitlist.
+**What it does:** Admin sends personalized invite emails with tracking. The invites page shows stats (sent, pending, converted, bounce rate) with filtering. Admin can generate invite links without sending email for in-person distribution. Automated approval emails send when users are approved off the waitlist. Test accounts are excluded from the invites list so internal testing doesn't skew conversion metrics.
 **Investor signal:** Controlled early growth with full visibility into conversion at every stage. The invite model enables high-touch growth while tracking results.
-**Evidence:** Commits `145c869`, `e8fb71f`, `0934072`
+**Evidence:** Commits `145c869`, `e8fb71f`, `0934072`, `02f9fbd`
 
 ### Waitlist and Access Gating
 **Status:** Shipped
