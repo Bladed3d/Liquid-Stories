@@ -1,12 +1,12 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-13
-**Sources:** Git history (944 commits), 23 PRDs, 29 session summaries
+**Sources:** Git history (945 commits), 23 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 944
+- Total commits: 945
 - Date range: 2026-01-02 → 2026-03-13 (70 days of active development)
 - Feature commits (feat:): 124 identified
 - PRDs read: 23
@@ -37,9 +37,10 @@
 ### Guardrails System and App Help Advisor
 **Status:** Shipped
 **First shipped:** 2026-01-14 (`d712da2`)
-**What it does:** The team has built-in guardrails that prevent harmful, off-topic, or counterproductive behavior. A dedicated "App Use Advisor" answers meta questions about how the app works, keeping the main team focused on the user's actual challenges.
+**What it does:** The team has built-in guardrails that prevent harmful, off-topic, or counterproductive behavior. A dedicated "App Use Advisor" answers meta questions about how the app works, keeping the main team focused on the user's actual challenges. The advisor prompt is a living document covering all major features: Vision Board, Life Path, PDF/HTML export, voice input, QR phone upload, painting design interview, projects, and more.
 **Investor signal:** Safety and meta-support without breaking immersion. Users who get confused stay in the experience rather than bouncing.
-**Evidence:** Commit `d712da2`
+**Updated 2026-03-13:** Added Vision Board, Life Path, PDF/HTML export, voice input, QR phone upload, avatar system, sandbox editing, topic resumption, and 7 new Q&A pairs. (`1fa17c8`)
+**Evidence:** Commits `d712da2`, `1fa17c8`
 
 ### Web Search for Researcher Advisor
 **Status:** Shipped
