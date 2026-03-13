@@ -1,17 +1,17 @@
 # ClarityEQ — Feature List
-**Generated:** 2026-03-12
-**Sources:** Git history (939 commits), 22 PRDs, 29 session summaries
+**Generated:** 2026-03-13
+**Sources:** Git history (940 commits), 23 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 939
-- Date range: 2026-01-02 → 2026-03-12 (69 days of active development)
-- Feature commits (feat:): 123 identified
-- PRDs read: 22
+- Total commits: 940
+- Date range: 2026-01-02 → 2026-03-13 (70 days of active development)
+- Feature commits (feat:): 124 identified
+- PRDs read: 23
 - Session summaries read: 29
-- Features documented (shipped): 76
+- Features documented (shipped): 77
 - Features in roadmap (planned/in-development): 5
 - Categories: 12
 
@@ -430,6 +430,13 @@
 **Updated 2026-03-09:** Fixed Clerk login wall on phone page (added to public routes) and gallery access (removed camera-only constraint so iOS/Android shows the full choice sheet). (`9bfea9d`) Fixed generate-token route — now uses service role client to bypass Supabase RLS, eliminating silent token write failures that caused "Invalid upload link" errors. (`3ffc742`)
 **Updated 2026-03-10:** Fixed token sent as `[object Promise]` in Next.js 16 — `params` is now a Promise and must be unwrapped with `React.use()`. This was the remaining cause of "invalid upload link" errors on phone upload. (`64d9dee`)
 **Evidence:** Commits `63c67f8`, `9bfea9d`, `3ffc742`, `64d9dee`, QR-Phone-Upload-PRD.md
+
+### HTML & PDF Session Export
+**Status:** Shipped
+**First shipped:** 2026-03-13 (`174471a`)
+**What it does:** Users can export any past session as a self-contained HTML file or a print-ready PDF. The download button on each session row now opens a dropdown with two options. HTML exports embed all generated images as base64 (works offline, no broken links), render interactive sandbox content (charts, spreadsheets) inline, and display messages in a clean two-column layout. PDF export opens the same document in a new browser tab for Print → Save as PDF, with full-width images appearing inline after the advisor message that generated them — not as a small sidebar. A "Preparing download…" spinner appears while images are being fetched.
+**Investor signal:** Session exports make ClarityEQ shareable. An executive who downloads a session and sends it to their team is a word-of-mouth acquisition engine. A beautiful, image-rich PDF that recreates the full advisory experience is something people show others.
+**Evidence:** Commit `174471a`, `Docs/Download-pdf-PRD.md`
 
 ### Vision Board Avatar Upload Intercept
 **Status:** Shipped
