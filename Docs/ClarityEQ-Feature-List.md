@@ -1,12 +1,12 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-13
-**Sources:** Git history (943 commits), 23 PRDs, 29 session summaries
+**Sources:** Git history (944 commits), 23 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 943
+- Total commits: 944
 - Date range: 2026-01-02 → 2026-03-13 (70 days of active development)
 - Feature commits (feat:): 124 identified
 - PRDs read: 23
@@ -521,7 +521,8 @@
 **What it does:** An 8–12 turn conversational interview conducted by the full advisory team to discover how a user thinks, works, and is wired. Output is a shareable Life Path Profile: personalized career direction, natural work style, and suggested paths forward. Accompanied by an AI-generated hero image of the user's life path scene — saved to permanent storage. A working share link is appended to the profile at the moment it's generated. Admin can see sessions started, profiles completed, hero image success rate, and completion rate in /admin/stats.
 **Investor signal:** Self-discovery is a high-value, high-margin category. The shareable Life Path Profile is an organic growth mechanism — recipients of shared profiles see a beautiful artifact and ask "how do I get one of these?"
 **Updated 2026-03-09:** Fixed hero image capture (URL now saved to DB), fixed share link (real URL injected as SSE after profile saves — no more broken placeholder), added Life Path adoption stats to admin dashboard. (`3ad4cd4`)
-**Evidence:** Commits `d317972`, `3ad4cd4`, `Docs/Life-Path-PRD.md`, PRD validation 2026-03-06
+**Updated 2026-03-13:** Avatar upload now required before starting Life Path. Intercept modal fires if user has no avatar: "Your Life Path is more powerful with you in it." No skip option — user uploads or returns to home. Avatar saved before session creation so Vision Board and Life Path share the same photo without prompting twice. (`7e12135`)
+**Evidence:** Commits `d317972`, `3ad4cd4`, `7e12135`, `Docs/Life-Path-PRD.md`, PRD validation 2026-03-06
 
 ### Career Matching Layer
 **Status:** Planned (PRD finalized 2026-03-06, awaits Life Path MVP)
