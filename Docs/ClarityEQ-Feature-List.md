@@ -1,17 +1,17 @@
 # ClarityEQ — Feature List
-**Generated:** 2026-03-11
-**Sources:** Git history (933 commits), 22 PRDs, 29 session summaries
+**Generated:** 2026-03-12
+**Sources:** Git history (939 commits), 22 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 933
-- Date range: 2026-01-02 → 2026-03-11 (68 days of active development)
-- Feature commits (feat:): 118 identified
+- Total commits: 939
+- Date range: 2026-01-02 → 2026-03-12 (69 days of active development)
+- Feature commits (feat:): 123 identified
 - PRDs read: 22
 - Session summaries read: 29
-- Features documented (shipped): 72
+- Features documented (shipped): 76
 - Features in roadmap (planned/in-development): 5
 - Categories: 12
 
@@ -193,7 +193,8 @@
 **First shipped:** 2026-02-16 (`71c84bb`)
 **What it does:** In Business mode, the team generates interactive spreadsheets with formulas, calculations, and charts — rendered in a sandboxed iframe. Users can interact with the spreadsheet directly: change values and see calculations update. Uses jspreadsheet CE v4 and Chart.js. Confirmed working on iPad (Safari fix shipped 2026-03-08).
 **Investor signal:** For business users, a working spreadsheet is worth more than a paragraph of advice. No other conversational AI produces a live, editable financial model mid-conversation.
-**Evidence:** Commit `71c84bb`, commit `8857461` (Safari/iPad fix 2026-03-08)
+**Updated 2026-03-12:** Fixed a critical rendering bug where spreadsheets appeared as a solid black box instead of displaying content — root cause was a sandbox context injection gap combined with a rendering initialization timing issue. Both corrected. (`1709bcb`)
+**Evidence:** Commit `71c84bb`, commit `8857461` (Safari/iPad fix 2026-03-08), commit `1709bcb` (black box fix 2026-03-12)
 
 ### AI-Generated Sandbox HTML
 **Status:** Shipped
@@ -208,6 +209,20 @@
 **What it does:** Comprehensive filtering for both generated images and sandbox HTML content before it reaches the user.
 **Investor signal:** Enterprise and family-safe readiness. Required for any user-facing AI system operating at scale.
 **Evidence:** Commits `30b9a26`, `73bc153`
+
+### Spreadsheet Formula Verifier — AI Quality Check Layer
+**Status:** Shipped
+**First shipped:** 2026-03-12 (`d21d14c`, `17e4103`, `7410349`)
+**What it does:** After a spreadsheet is generated, a second AI pass automatically checks the result before it reaches the user. The verifier reviews formula correctness, data accuracy, and chart configuration. If it finds errors, it returns specific corrections and the system applies them. If the spreadsheet passes, it is delivered as-is. A pre-generation guard (Layer 1A) catches common formula problems before generation begins; LED diagnostic codes (6530–6548) log every check result so the team can monitor quality trends in production.
+**Investor signal:** Self-correcting output for the feature most likely to be trusted with real numbers. A user who finds a formula error in a financial model loses trust in the whole product. This layer catches those errors before the user ever sees them — turning a reliability risk into a reliability guarantee.
+**Evidence:** Commits `d21d14c` (AI verifier), `17e4103` (pre-generation guard + LED diagnostics), `7410349` (LED range 6530–6548 registered)
+
+### Sandbox Content Editing and Persistence
+**Status:** Shipped
+**First shipped:** 2026-03-12 (`ffdd202`)
+**What it does:** Users can edit sandbox content — HTML visuals or spreadsheets — directly in the right panel. Changes are saved to the session and persist across page refreshes. If a user closes the browser and returns, their edits are still there. Works for both HTML-rendered plans and live spreadsheets.
+**Investor signal:** Turns the sandbox from a read-only output into a working document. Users who can edit and save their plans are engaged in the work, not just reading advice. Editable artifacts significantly increase the time users spend inside a session.
+**Evidence:** Commit `ffdd202`
 
 ### Safari/iPad Spreadsheet Fix — Blank Body on Apple Devices
 **Status:** Shipped
@@ -362,6 +377,13 @@
 **Updated 2026-03-10:** Onboarding reduced to exactly 2 questions before Stage 3 pitch — Q1: name and where from, Q2: what do you do. No follow-ups, no additional exchanges. Stage 3 fires immediately after the second answer. Protects against investor/executive churn before they see the product pitch. Fixed early welcome image firing before the user's name was known — image now correctly waits for the AI's `^IMG` marker which extracts name from the user's actual answer. (`5e7748e`, `06613a2`, `658c40a`)
 **Updated 2026-03-11:** Onboarding rewritten as server-owned stage architecture — 4 micro-prompts (Stage 1/2/3A/3B) injected by the server based on message count, replacing a single monolithic AI prompt. Stage 3A advisor question is hardcoded server-side so the AI cannot rephrase it. Stage 3B YES/NO branching detects user intent and routes the NO path to a static server-owned response, skipping the AI call entirely. Onboarding profile is assembled from conversation history without AI-generated JSON markers. (`f94f6b0`)
 **Evidence:** Commit `7521d86`, `0279bf3`, `3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`, `eff0679`, `5e7748e`, `06613a2`, `658c40a`, `f94f6b0`, session summaries 2026-03-04 and 2026-03-05
+
+### Onboarding Auto-Transition to First Real Session
+**Status:** Shipped
+**First shipped:** 2026-03-12 (`99da1cc`)
+**What it does:** When a new user finishes the onboarding interview (Stage 4 — choosing an advisor focus area), the server immediately creates a new regular session without any AI round-trip delay. A brief bridging note appears in the chat: "I've started a new chat so we can really dig into this." The user's chosen focus is automatically sent as the opening message of the new session, and the full advisory team responds immediately. The user goes directly from finishing onboarding into their first real advisory conversation — no extra taps, no blank screen, no transition friction.
+**Investor signal:** The moment between finishing setup and starting real value is where new users drop off. This eliminates that gap entirely. Onboarding completion and first advisory engagement become one continuous experience — dramatically improving the conversion from "signed up" to "got value."
+**Evidence:** Commit `99da1cc`
 
 ### User Avatar with Crop and Zoom Editor
 **Status:** Shipped
@@ -528,7 +550,7 @@
 
 | Source | Records Used |
 |---|---|
-| Git commit log | 894 commits; 107 `feat:` commits identified and reviewed |
+| Git commit log | 939 commits; 123 `feat:` commits identified and reviewed |
 | PRDs read (19) | Life-Path, Career-Matching-Layer, Development-Roadmap, Walk-Beside-You, Drive-Mode, Directive-Mode, LITTLE-WINS-PLAN-v1, TTS-PRD, Projects-Feature-PRD, Spontaneous-Image-Generation-PRD, Smart-Images-PRD, Image-Upload-Unified-PRD, Sandbox-PRD01, Onboarding-Interview-PRD, Chat-Sharing-PRD, Streaming-prd (via summaries), BetterLED-PRD, Modes-PRD, Voice-Type-PRD |
 | Session summaries read (28) | 2026-01-22 through 2026-03-08; all dated summary files reviewed |
 | MEMORY.md | Read — current architecture state and verified feature status |
@@ -540,11 +562,11 @@
 - No feature listed as "shipped" without a git commit or session summary confirming it worked
 - Features committed but not yet pushed to production are noted explicitly
 - Roadmap section is clearly separated — no planned features mixed with shipped ones
-- Summary stats reflect actual counts from `git rev-list --count HEAD` (894) and manual PRD/summary counts
+- Summary stats reflect actual counts from `git rev-list --count HEAD` (939) and manual PRD/summary counts
 - Investor signal lines written for a non-technical reader — no internal jargon
 
 ---
 
-*Generated by Claude Sonnet 4.6 on 2026-03-08*
+*Generated by Claude Sonnet 4.6 on 2026-03-12*
 *Instructions: `D:/Projects/Ai/Liquid-Stories/Docs/Git-Feature-List.md`*
 *Previous version: `D:/Projects/Ai/Liquid-Stories/Docs/ClarityEQ-Feature-List.md` (generated 2026-03-07)*
