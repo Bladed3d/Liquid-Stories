@@ -1,12 +1,12 @@
 # ClarityEQ — Feature List
 **Generated:** 2026-03-13
-**Sources:** Git history (945 commits), 23 PRDs, 29 session summaries
+**Sources:** Git history (946 commits), 23 PRDs, 29 session summaries
 **App status:** Live at clarityeq.com (Vercel, auto-deploy)
 
 ---
 
 ## Summary Stats
-- Total commits: 945
+- Total commits: 946
 - Date range: 2026-01-02 → 2026-03-13 (70 days of active development)
 - Feature commits (feat:): 124 identified
 - PRDs read: 23
@@ -375,10 +375,11 @@
 **Updated 2026-03-09:** Post-onboarding home screen redesigned — Vision Board panel left, Life Path panel right. Two states total: pre-onboarding shows Start Here, post-onboarding shows the two panels. (`0279bf3`)
 **Updated 2026-03-10:** Home screen tagline changed to "Everyone is being told to learn AI. We built AI to learn you." Life Path renamed to "Achieve" throughout. Recent topic shortcuts appear between tagline and cards — clicking one loads the actual previous session. Responsive layout: desktop uses proportional flex, mobile stacks vertically. (`3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`)
 **Updated 2026-03-13:** "Achieve" label reverted to "Life Path" — direct executive feedback confirmed Life Path resonates strongly. Subtext updated to "Who you are beyond what you do." (`f20da4c`)
+**Updated 2026-03-13:** Added ghosted sub-tagline below Vision Board/Life Path cards: "Where else can you find five team members who care about nothing but your success?" Rendered in Shadows Into Light handwritten font at #508dd9 / 9% opacity — barely visible, intentionally understated. (`ee0af23`)
 **Updated 2026-03-10:** Stage 3 now includes 5 benefit bullet points (Vision Board, Advisory Team, Spontaneous Images, Little Wins, Projects) delivered verbatim after the personalized advisor roster — plants awareness of the product's key features before the user's first real session. (`eff0679`)
 **Updated 2026-03-10:** Onboarding reduced to exactly 2 questions before Stage 3 pitch — Q1: name and where from, Q2: what do you do. No follow-ups, no additional exchanges. Stage 3 fires immediately after the second answer. Protects against investor/executive churn before they see the product pitch. Fixed early welcome image firing before the user's name was known — image now correctly waits for the AI's `^IMG` marker which extracts name from the user's actual answer. (`5e7748e`, `06613a2`, `658c40a`)
 **Updated 2026-03-11:** Onboarding rewritten as server-owned stage architecture — 4 micro-prompts (Stage 1/2/3A/3B) injected by the server based on message count, replacing a single monolithic AI prompt. Stage 3A advisor question is hardcoded server-side so the AI cannot rephrase it. Stage 3B YES/NO branching detects user intent and routes the NO path to a static server-owned response, skipping the AI call entirely. Onboarding profile is assembled from conversation history without AI-generated JSON markers. (`f94f6b0`)
-**Evidence:** Commit `7521d86`, `0279bf3`, `3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`, `eff0679`, `5e7748e`, `06613a2`, `658c40a`, `f94f6b0`, session summaries 2026-03-04 and 2026-03-05
+**Evidence:** Commit `7521d86`, `0279bf3`, `3cd1378`, `cc22e68`, `a55ef08`, `0ae8d73`, `64d9dee`, `eff0679`, `5e7748e`, `06613a2`, `658c40a`, `f94f6b0`, `ee0af23`, session summaries 2026-03-04 and 2026-03-05
 
 ### Onboarding Auto-Transition to First Real Session
 **Status:** Shipped
